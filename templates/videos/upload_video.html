@@ -1,0 +1,135 @@
+{% extends "videos/base.html" %}
+
+{% block title %}Upload Video{% endblock %}
+
+{% block content %}
+
+<style>
+   
+    .action-btn {
+        display: inline-block;
+        background: #ff0000;
+        color: white;
+        padding: 5px 20px;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        text-decoration: none;
+        font-size: 14px;
+    }
+
+    .upload-wrapper {
+    max-width: 520px;
+    margin: 40px auto;
+    background: #181818;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    color: white;
+    }
+
+    .upload-wrapper input[type="text"],
+   .upload-wrapper input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    background: #0f0f0f;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 8px;
+    margin-top: 6px; 
+    }
+
+
+    .upload-wrapper h2 {
+    margin-bottom: 20px;
+    font-weight: 500;
+    }
+
+
+    .action-btn:hover {
+        background: #e60000;
+    }
+
+    .secondary-btn {
+        background: #00a2ff;
+        margin-left: 10px;
+    }
+
+    .secondary-btn:hover {
+        background: #008ad6;
+    }
+</style>
+
+<div class="upload-wrapper">
+
+    <h2>Upload Video</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <label>Video Title</label><br>
+        {{ form.title }}<br><br>
+
+        <label>Upload Video</label><br>
+
+    <div style="
+        background:#181818;
+        padding:16px;
+        border-radius:12px;
+        margin:20px 0;
+    ">
+
+   <h4 style="margin-bottom:14px; font-weight:500;">
+      visibility & Comments
+   </h4>
+
+    <!-- PRIVATE VIDEO -->
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-bottom:14px;
+    ">
+        <div>
+            <strong>Private Video</strong><br>
+            <small style="color:#aaa;">
+                 Turn ON to make this video private
+            </small>
+        </div>
+
+        {{ form.is_private }}
+    </div>
+
+    <hr style="border:0.5px solid #303030;">
+
+    <!-- COMMENTS -->
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        margin-top:12px;
+    ">
+        <div>
+            <strong>Allow Comments</strong><br>
+            <small style="color:#aaa;">
+                Viewers can comment on this video
+            </small>
+        </div>
+
+        {{ form.comments_enabled }}
+    </div>
+
+</div>
+        <button type="submit" class="action-btn">
+            Upload
+        </button>
+
+        <a href="{% url 'all_videos' %}" class="action-btn secondary-btn">
+            More Video
+        </a>
+    </form>
+
+</div>
+
+{% endblock %}

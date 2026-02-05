@@ -1,0 +1,13 @@
+# Media files
+media/
+
+# Python
+__pycache__/
+*.pyc
+
+# Virtual env
+venv/
+.env
+
+# DB
+db.sqlite3

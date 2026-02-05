@@ -1,0 +1,115 @@
+{% include "videos/base.html" %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Playlists</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;          
+            vertical-align: middle;      
+            font-size: 14px;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f3f4f6;
+        }
+
+     
+        .play-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 12px;
+            font-size: 13px;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        .play-btn:hover {
+            background-color: #1e40af;
+        }
+
+        .empty {
+            text-align: center;
+            color: gray;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Your Playlists</h2>
+
+    {% if playlists %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Playlist</th>
+                    <th>Total Videos</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for playlist in playlists %}
+                    <tr>
+                        <td>{{ playlist.name }}</td>
+                        <td>{{ playlist.videos.count }}</td>
+                        <td>
+                            <a class="play-btn"
+                               href="{% url 'playlist_player' playlist.id %}">
+                                ▶ Play
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="empty">
+            No playlists created yet.
+        </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

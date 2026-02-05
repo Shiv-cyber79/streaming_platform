@@ -1,0 +1,32 @@
+{% extends "videos/base.html" %}
+
+{% block content %}
+<div style="max-width:500px; margin-left:1em;" class="container">
+    <h2>Create New Playlist</h2>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <label>Playlist Name</label><br>
+        {{ form.playlist_name }}<br><br>
+        
+        <label>Video Title</label><br>
+        {{ form.video_title }}<br><br>
+
+        <label>Upload Video</label><br>
+        {{ form.video_file }}<br><br>
+
+        <button type="submit"
+                style="background:#ff0000;color:white;
+                       padding:5px 20px;border:none;
+                       border-radius:20px;">
+            Create Playlist
+        </button>
+
+        <a href="{% url 'playlist_list' %}" style="margin-left:15px;">
+            Cancel
+        </a>
+    </form>
+
+</div>
+{% endblock %}

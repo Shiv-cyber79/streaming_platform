@@ -1,0 +1,49 @@
+{% extends "videos/base.html" %}
+
+{% block title %}All Videos{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width:500px; margin-left:1em;">
+
+    <h2>All Uploaded Videos</h2>
+
+    <div style="margin-bottom:15px;">
+        <a href="{% url 'all_videos' %}" style="font-weight:bold;">
+            
+        </a>
+    </div>
+
+    {% if videos %}
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align:left; padding:8px;">Title</th>
+                    <!-- <th style="text-align:left; padding:8px;">Uploaded By</th> -->
+                    <!-- <th style="text-align:left; padding:8px;">Date</th> -->
+                    <th style="text-align:left; padding:8px;">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for video in videos %}
+                <tr>
+                    <td style="padding:8px;">{{ video.title }}</td>
+                    <!-- <td style="padding:8px;">{{ video.user.username }}</td> -->
+                    <!-- <td style="padding:8px;">{{ video.uploaded_at|date:"M d, Y" }}</td> -->
+                    <td style="padding:8px;">
+                        <a href="{% url 'video_detail' video.id %}" style="font-weight:bold;">
+                            ▶ Play
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No videos uploaded yet.</p>
+    {% endif %}
+
+</div>
+
+{% endblock %}

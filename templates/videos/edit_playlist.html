@@ -1,0 +1,45 @@
+{% extends "videos/base.html" %}
+
+{% block title %}Edit Playlist{% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin-left:2em;" class="container">
+
+    <h2>Edit Playlist</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit"
+                style="
+                    background:#ff0000;
+                    color:white;
+                    border:none;
+                    padding:4px 30px;
+                    border-radius:30px;
+                    font-weight:bold;
+                    cursor:pointer;
+                ">
+            Save Changes
+        </button>
+
+        <a href="{% url 'playlist_list' %}"
+           style="
+                display:inline-block;
+                background:#ae00ff;
+                color:white;
+                border:none;
+                padding:4px 30px;
+                border-radius:30px;
+                font-weight:bold;
+                text-decoration:none;
+                margin-left:10px;
+           ">
+            Cancel
+        </a>
+    </form>
+
+</div>
+{% endblock %}

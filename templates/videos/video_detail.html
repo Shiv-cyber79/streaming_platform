@@ -1,0 +1,40 @@
+{% extends "videos/base.html" %}
+
+{% block title %}{{ video.title }}{% endblock %}
+
+{% block content %}
+
+<div class="container"><div class="container" style="max-width:500px; margin-left:1em;">
+
+
+    <!-- MAIN VIDEO -->
+    <h2>{{ video.title }}</h2>
+
+    <video controls autoplay style="width:100%; max-width:800px;">
+        <source src="{{ video.video_file.url }}" type="video/mp4">
+    </video>
+
+    <p>Uploaded by {{ video.user.username }}</p>
+
+    <hr>
+
+
+    <h3>More Videos</h3>
+
+    {% for v in suggested_videos %}
+        <div style="margin-bottom:10px;">
+            <a href="{% url 'video_detail' v.id %}">
+                ▶ {{ v.title }}
+            </a>
+        </div>
+    {% empty %}
+        <p>No other videos.</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
+
+<video controls>
+    <source src="{% url 'stream_video' video.id %}" type="video/mp4">
+</video>

@@ -1,0 +1,158 @@
+{% extends "videos/base.html" %}
+
+{% block title %}Your Playlists{% endblock %}
+
+{% block content %}
+
+<style>
+    body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
+        color: white;
+    }
+
+    .hero {
+        text-align: center;
+        margin: 40px 0 20px;
+    }
+
+    .hero h1 {
+        margin: 0;
+        font-size: 36px;
+    }
+
+    .hero p {
+        color: #aaa;
+        margin-top: 6px;
+    }
+
+    .card {
+        max-width: 900px;
+        margin: 0 auto 60px;
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+
+    .card-header h3 {
+        visibility: hidden;   
+    }
+
+    .center {
+    text-align: center;
+    }
+
+    .new-btn {
+        background: #ff0000;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        border-radius: 20px;
+        font-size: 14px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th {
+        text-align: center;
+        font-size: 14px;
+        color: #bbb;
+        padding: 12px 10px;
+        border-bottom: 1px solid #333;
+    }
+
+    td {
+        padding: 14px 10px;
+        border-bottom: 1px solid #222;
+        font-size: 15px;
+    }
+
+    tr:hover {
+        background: rgba(255,255,255,0.05);
+    }
+
+    .play-btn,
+    .edit-btn {
+        display: inline-block;
+        padding: 6px 14px;
+        margin: 0 4px;
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        color: white;
+        background: #272727;
+        border-radius: 20px;
+        transition: background 0.2s ease;
+}
+
+    .play-btn:hover,
+    .edit-btn:hover {
+        background: #3d3d3d;
+}
+
+</style>
+
+
+<div class="hero">
+    <h1>Your Playlists</h1>
+    <p>Play your saved playlists anytime.</p>
+</div>
+
+
+<div class="card">
+
+    <div class="card-header">
+        <h3>Playlists</h3>
+        <a href="{% url 'create_playlist' %}" class="new-btn">+ New Playlist</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Playlist</th>
+                <th>Total Videos</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for playlist in playlists %}
+            <tr>
+                <td class="center">{{ playlist.name }}</td>
+                <td class="center">{{ playlist.videos.count }}</td>
+                <td class="center">
+                    <a href="{% url 'playlist_detail' playlist.id %}?autoplay=1" class="play-btn">
+                        Play
+                    </a>
+                    |
+                    <a href="{% url 'edit_playlist' playlist.id %}" class="edit-btn">
+                         Edit
+                    </a>
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="3" style="text-align:center; color:#aaa;">
+                    No playlists found.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

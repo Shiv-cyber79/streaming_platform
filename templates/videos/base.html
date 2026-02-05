@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{% block title %}Streaming{% endblock %}</title>
+
+    <script>
+async function refreshAccessToken() {
+    const response = await fetch("/users/refresh-token/");
+    if (!response.ok) {
+        window.location.href = "/login/";
+        return;
+    }
+    const data = await response.json();
+    return data.access;
+}
+</script>
+
+    <style>
+
+        .home-page {
+           background: #000000;
+           color: white;
+        }
+
+       
+        .profile-menu {
+           position: relative;
+        }
+
+
+        .profile-pic {
+           width: 36px;
+           height: 36px;
+           border-radius: 50%;
+           cursor: pointer;
+        }
+
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 45px;
+            background: #1f1f1f;
+            border-radius: 6px;
+            width: 160px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            padding: 8px 0;
+            z-index: 2000;
+        }
+
+
+        .profile-dropdown a {
+            display: block;
+            padding: 10px 15px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+
+        .dropdown-logout {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            text-align: left;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+
+       .profile-dropdown a:hover,
+       .dropdown-logout:hover {
+           background: #333;
+        }
+
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f9f9f9;
+        }
+
+    
+        .navbar {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: #000000;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+            margin-right: 30px;
+        }
+
+        .logout-btn {
+           color: white;        
+           font-size: 13px;   
+        }
+
+        .nav-links a,
+        .nav-links button {
+            margin-right: 15px;
+            text-decoration: none;
+            color: white;
+            font-weight: bold;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+
+        .nav-right {
+            margin-left: auto;
+        }
+
+    
+        .popup {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+        }
+
+        .nav-btn {
+           background: none;
+           border: none;
+           font-weight: bold;
+           cursor: pointer;
+           color: white;  
+        }
+
+        .popup-content {
+            background: white;
+            width: 320px;
+            margin: 140px auto;
+            padding: 25px;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        .popup-content h3 {
+            margin-bottom: 10px;
+        }
+
+        .popup-content p {
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .popup-btn {
+            display: block;
+            padding: 10px;
+            margin-bottom: 12px;
+            background: red;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .popup-btn.signup {
+            background: #065fd4;
+        }
+
+        .popup-cancel {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #777;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+
+<div class="navbar">
+    <div class="logo">▶ Stream</div>
+
+    <div class="nav-links">
+      
+        <a href="{% url 'home' %}">Home</a>
+
+        {% if user.is_authenticated %}
+            <a href="{% url 'playlist_list' %}">Playlists</a>
+            <a href="{% url 'upload_video' %}">Upload</a>
+        {% else %}
+            <button onclick="openLoginPopup()">Playlists</button>
+            <button onclick="openLoginPopup()">Upload</button>
+        {% endif %}
+    </div>
+
+    <div class="nav-right">
+    {% if user.is_authenticated %}
+        <div class="profile-menu">
+            
+            <img src="https://i.pravatar.cc/40"
+                 class="profile-pic"
+                 onclick="toggleProfileMenu()">
+
+          
+            <div id="profileDropdown" class="profile-dropdown">
+                <a href="#">⚙️ Settings</a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-logout">
+                        🚪 Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+            <button onclick="openLoginPopup()"
+                    style="background:none;border:none;font-weight:bold;cursor:pointer;color:white;">
+                Login
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+
+{% block content %}{% endblock %}
+
+<div id="loginPopup" class="popup">
+    <div class="popup-content">
+        <h3>Login required</h3>
+        <p>Sign in or create an account to continue</p>
+
+        <a href="{% url 'login' %}?next={{ request.path }}" class="popup-btn">
+            Login
+        </a>
+
+        <a href="{% url 'signup' %}?next={{ request.path }}" class="popup-btn signup">
+            Create account
+        </a>
+
+        <button onclick="closeLoginPopup()" class="popup-cancel">
+            Cancel
+        </button>
+    </div>
+</div>
+
+<script>
+function openLoginPopup() {
+    document.getElementById("loginPopup").style.display = "block";
+}
+
+function closeLoginPopup() {
+    document.getElementById("loginPopup").style.display = "none";
+}
+</script>
+
+<script>
+async function callProtectedAPI() {
+    const response = await fetch("/videos/api/playlists/", {
+        headers: {
+            "Authorization": "Bearer {{ request.session.access_token }}"
+        }
+    });
+
+    if (response.status === 401) {
+        await refreshAccessToken();
+        return callProtectedAPI(); // retry
+    }
+
+    const data = await response.json();
+    console.log(data);
+}
+</script>
+
+<script>
+function toggleProfileMenu() {
+    const menu = document.getElementById("profileDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+
+document.addEventListener("click", function (e) {
+    const profileMenu = document.querySelector(".profile-menu");
+    const dropdown = document.getElementById("profileDropdown");
+
+    if (profileMenu && !profileMenu.contains(e.target)) {
+        dropdown.style.display = "none";
+    }
+});
+</script>
+
+
+</body>
+</html>

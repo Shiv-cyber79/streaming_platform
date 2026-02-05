@@ -1,0 +1,19 @@
+<h2>Add "{{ video.title }}" to Playlist</h2>
+
+<form method="post">
+    {% csrf_token %}
+
+    <label>Select Playlist:</label><br><br>
+
+    <select name="playlist_id" required>
+        {% for playlist in playlists %}
+            <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+        {% endfor %}
+    </select>
+
+    <br><br>
+
+    <button type="submit">Add to Playlist</button>
+</form>
+
+<a href="{% url 'video_detail' video.id %}">⬅ Back</a>
