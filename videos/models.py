@@ -22,19 +22,21 @@ class Playlist(models.Model):
 
 class Video(models.Model):
     title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
     video_file = models.FileField(upload_to="videos/")
     thumbnail = models.ImageField(upload_to="thumbnails/", default="thumbnails/default.jpg")
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_private = models.BooleanField(default=False)
+
+    views = models.PositiveIntegerField(default=0)  
+
     created_at = models.DateTimeField(auto_now_add=True)
     comments_enabled = models.BooleanField(default=True)
 
     def __str__(self):
         return self.title
-
-
-
+    
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist
@@ -47,6 +49,9 @@ class PlaylistForm(forms.ModelForm):
         }
     def __str__(self):
         return self.name
+    
+    def __str__(self):
+        return f"{self.user.username} liked {self.video.title}"
 class Comment(models.Model):
     video = models.ForeignKey(
         Video,
@@ -59,6 +64,10 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.text[:20]}"
+    
+class VideoLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="likes")
 
     class Meta:
         unique_together = ("user", "video")
