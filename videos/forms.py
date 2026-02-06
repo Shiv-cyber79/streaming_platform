@@ -4,8 +4,7 @@ from .models import Playlist, Video
 class VideoForm(forms.ModelForm):
     class Meta:
         model = Video
-        fields = ["title", "video_file", "comments_enabled"]
-
+        fields = ["title", "video_file", "is_private", "comments_enabled"]
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist

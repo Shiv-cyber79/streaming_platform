@@ -2,8 +2,10 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist
-
+from .models import Video, Comment, Playlist,VideoLike,Subscription, User
+from django.views.decorators.http import require_POST
+from django.http import JsonResponse
+from django.db.models import F
 
 
 def home(request):
@@ -28,33 +30,32 @@ def stream_video(request, video_id):
     return FileResponse(video.video_file.open(), content_type="video/mp4")@login_required
 
 
-
 @login_required
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-
     videos = playlist.videos.order_by("created_at")
 
     video_id = request.GET.get("video")
 
-    
     if video_id:
         current_video = videos.filter(id=video_id).first()
     else:
-        current_video = videos.first()  
+        current_video = videos.first()
 
-    
+    if current_video:
+        Video.objects.filter(id=current_video.id).update(
+            views=F("views") + 1
+        )
     next_video = None
     if current_video:
         video_list = list(videos)
         index = video_list.index(current_video)
-
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
 
     return render(
         request,
-        "videos/playlist_player.html",
+        "videos/playlist_player.html",  
         {
             "playlist": playlist,
             "videos": videos,
@@ -63,19 +64,23 @@ def playlist_detail(request, playlist_id):
         }
     )
 
-@login_required
-def playlist_player(request, playlist_id):
-    playlist = get_object_or_404(Playlist, id=playlist_id)
-    videos = playlist.videos.all()
 
-    current_video = videos.first() if videos.exists() else None
+# @login_required
+# def playlist_player(request, playlist_id):
+#     playlist = get_object_or_404(Playlist, id=playlist_id)
+#     videos = playlist.videos.all()
 
-    return render(request, "videos/playlist_detail.html", {
-        "playlist": playlist,
-        "videos": videos,
-        "current_video": current_video
-    })
+#     current_video = videos.first() if videos.exists() else None
 
+#     if current_video:
+#         Video.objects.filter(id=current_video.id).update(
+#             views=F("views") + 1
+#         )
+#     return render(request, "videos/playlist_player.html", {
+#         "playlist": playlist,
+#         "videos": videos,
+#         "current_video": current_video
+#     })
 
 @login_required(login_url="login")
 def upload_video(request):
@@ -108,7 +113,67 @@ def video_detail(request, video_id):
     return render(request, "videos/video_detail.html", {"video": video})
 
 
-# @login_required
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
+
+    like, created = VideoLike.objects.get_or_create(
+        user=request.user,
+        video=video
+    )
+
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    return JsonResponse({
+        "liked": liked,
+        "count": video.likes.count()
+    })
+
+@require_POST
+@login_required
+def toggle_subscribe(request, user_id):
+    channel = get_object_or_404(User, id=user_id)
+
+    if channel == request.user:
+        return JsonResponse(
+            {"error": "You cannot subscribe to yourself"},
+            status=400
+        )
+
+    sub, created = Subscription.objects.get_or_create(
+        subscriber=request.user,
+        channel=channel
+    )
+
+    if not created:
+        sub.delete()
+        subscribed = False
+    else:
+        subscribed = True
+
+    return JsonResponse({
+        "subscribed": subscribed,
+        "count": channel.subscribers.count()
+    })
+
+@login_required
+def subscription_feed(request):
+    videos = (
+        Video.objects
+        .filter(user__subscribers__subscriber=request.user)
+        .order_by("-created_at")
+    )
+
+    return render(request, "videos/subscription_feed.html", {
+        "videos": videos
+    })
+
+@login_required
 def add_comment(request, video_id):
     video = get_object_or_404(Video, id=video_id)
 
@@ -128,7 +193,9 @@ def add_comment(request, video_id):
     playlist = video.playlists.first()
 
     if playlist:
-        return redirect("playlist_player", playlist_id=playlist.id)
+        return redirect(
+            f"/playlists/{playlist.id}/?video={video.id}"
+        )
 
     return redirect("video_detail", video_id=video.id)
 
@@ -166,6 +233,7 @@ def edit_playlist(request, playlist_id):
         "form": form,
         "playlist": playlist
     })
+
 
 @login_required
 def create_playlist(request):

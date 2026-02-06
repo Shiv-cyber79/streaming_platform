@@ -5,61 +5,142 @@
 {% block content %}
 
 <style>
-   
-    .action-btn {
-        display: inline-block;
-        background: #ff0000;
-        color: white;
-        padding: 5px 20px;
-        border: none;
-        border-radius: 20px;
-        cursor: pointer;
-        font-weight: bold;
-        text-decoration: none;
-        font-size: 14px;
-    }
 
-    .upload-wrapper {
-    max-width: 520px;
-    margin: 40px auto;
+.upload-wrapper {
+    max-width: 560px;
+    margin: 48px auto;
     background: #181818;
-    padding: 28px;
+    padding: 32px;
     border-radius: 14px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.6);
     color: white;
-    }
+    font-family: Roboto, Arial, sans-serif;
+}
 
-    .upload-wrapper input[type="text"],
-   .upload-wrapper input[type="file"] {
+.upload-wrapper h2 {
+    margin-bottom: 28px;
+    font-weight: 500;
+    font-size: 22px;
+}
+
+.upload-wrapper label {
+    display: block;
+    margin-top: 22px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #ddd;
+}
+
+.upload-wrapper input[type="text"],
+.upload-wrapper input[type="file"] {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
+    margin-top: 8px;
     background: #0f0f0f;
     color: white;
     border: 1px solid #303030;
     border-radius: 8px;
-    margin-top: 6px; 
-    }
+    font-size: 14px;
+}
 
 
-    .upload-wrapper h2 {
-    margin-bottom: 20px;
+.upload-wrapper input::file-selector-button {
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.upload-wrapper input::file-selector-button:hover {
+    background: #444;
+}
+
+.upload-wrapper input[type="file"] {
+    margin-bottom: 6px;
+}
+
+.settings-box {
+    background: #0f0f0f;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 30px 0;
+}
+
+.settings-box h4 {
+    margin-bottom: 18px;
     font-weight: 500;
-    }
+    font-size: 15px;
+}
 
+.setting-row {
+    margin-bottom: 18px;
+}
 
-    .action-btn:hover {
-        background: #e60000;
-    }
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+}
 
-    .secondary-btn {
-        background: #00a2ff;
-        margin-left: 10px;
-    }
+.checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #ff0000;
+    cursor: pointer;
+}
 
-    .secondary-btn:hover {
-        background: #008ad6;
-    }
+.setting-row small {
+    display: block;
+    margin-left: 30px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.4;
+}
+
+.upload-actions {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
+
+.action-btn {
+    background: #ff0000;
+    color: white;
+    padding: 10px 26px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: #e60000;
+}
+
+.secondary-btn {
+    background: #00a2ff;
+}
+
+.secondary-btn:hover {
+    background: #008ad6;
+}
 </style>
+
+<!-- <label>Upload Video</label>
+{{ form.video_file }}
+<small style="color:#aaa;font-size:12px;">
+    MP4 recommended • Max quality supported
+</small> -->
 
 <div class="upload-wrapper">
 
@@ -68,66 +149,38 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <label>Video Title</label><br>
-        {{ form.title }}<br><br>
+        <label>Video Title</label>
+        {{ form.title }}
 
-        <label>Upload Video</label><br>
+        <label>Upload Video</label>
+        {{ form.video_file }}
 
-    <div style="
-        background:#181818;
-        padding:16px;
-        border-radius:12px;
-        margin:20px 0;
-    ">
+        <div class="settings-box">
+            <h4>Visibility & Comments</h4>
 
-   <h4 style="margin-bottom:14px; font-weight:500;">
-      visibility & Comments
-   </h4>
+            <div class="setting-row">
+                <label class="checkbox-row">
+                    {{ form.is_private }}
+                    <span>Private Video</span>
+                </label>
+                <small>Only you can watch this video</small>
+            </div>
 
-    <!-- PRIVATE VIDEO -->
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:14px;
-    ">
-        <div>
-            <strong>Private Video</strong><br>
-            <small style="color:#aaa;">
-                 Turn ON to make this video private
-            </small>
+            <div class="setting-row">
+                <label class="checkbox-row">
+                    {{ form.comments_enabled }}
+                    <span>Allow Comments</span>
+                </label>
+                <small>Viewers can comment on this video</small>
+            </div>
         </div>
 
-        {{ form.is_private }}
-    </div>
-
-    <hr style="border:0.5px solid #303030;">
-
-    <!-- COMMENTS -->
-    <div style="
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-top:12px;
-    ">
-        <div>
-            <strong>Allow Comments</strong><br>
-            <small style="color:#aaa;">
-                Viewers can comment on this video
-            </small>
+        <div class="upload-actions">
+            <button type="submit" class="action-btn">Upload</button>
+            <a href="{% url 'all_videos' %}" class="action-btn secondary-btn">
+                More Videos
+            </a>
         </div>
-
-        {{ form.comments_enabled }}
-    </div>
-
-</div>
-        <button type="submit" class="action-btn">
-            Upload
-        </button>
-
-        <a href="{% url 'all_videos' %}" class="action-btn secondary-btn">
-            More Video
-        </a>
     </form>
 
 </div>
