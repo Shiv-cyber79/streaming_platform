@@ -2,6 +2,7 @@ from django.db import models
 from django import forms
 from django.contrib.auth.models import User
 from .validators import validate_video_size
+from django.utils import timezone
 
 
 class Profile(models.Model):
@@ -28,6 +29,7 @@ class Video(models.Model):
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_private = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
 
     views = models.PositiveIntegerField(default=0)  
 
@@ -91,3 +93,21 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.subscriber} → {self.channel}"
+
+class SubscriptionPlan(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.IntegerField()  
+    duration_days = models.IntegerField()
+
+    def __str__(self):
+        return self.name
+    
+class UserSubscription(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
+    start_date = models.DateTimeField(auto_now_add=True)
+    end_date = models.DateTimeField()
+    active = models.BooleanField(default=True)
+
+    def is_active(self):
+        return self.active and self.end_date > timezone.now()

@@ -2,10 +2,15 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User
+from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
+from .utils import has_active_subscription
+import razorpay
+from django.conf import settings
+from django.utils import timezone
+from datetime import timedelta
 
 
 def home(request):
@@ -42,6 +47,10 @@ def playlist_detail(request, playlist_id):
     else:
         current_video = videos.first()
 
+    if current_video and current_video.is_premium:
+        if not has_active_subscription(request.user):
+            return redirect("subscription_plans")
+
     if current_video:
         Video.objects.filter(id=current_video.id).update(
             views=F("views") + 1
@@ -64,23 +73,43 @@ def playlist_detail(request, playlist_id):
         }
     )
 
+@login_required
+def create_payment(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
-# @login_required
-# def playlist_player(request, playlist_id):
-#     playlist = get_object_or_404(Playlist, id=playlist_id)
-#     videos = playlist.videos.all()
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
 
-#     current_video = videos.first() if videos.exists() else None
+    order = client.order.create({
+        "amount": plan.price * 100,
+        "currency": "INR",
+        "payment_capture": 1
+    })
 
-#     if current_video:
-#         Video.objects.filter(id=current_video.id).update(
-#             views=F("views") + 1
-#         )
-#     return render(request, "videos/playlist_player.html", {
-#         "playlist": playlist,
-#         "videos": videos,
-#         "current_video": current_video
-#     })
+    request.session["plan_id"] = plan.id
+
+    return JsonResponse({
+        "order_id": order["id"],
+        "amount": plan.price,
+        "key": settings.RAZORPAY_KEY_ID
+    })
+
+@require_POST
+@login_required
+def payment_success(request):
+    plan_id = request.session.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+
+    return redirect("home")
+
 
 @login_required(login_url="login")
 def upload_video(request):

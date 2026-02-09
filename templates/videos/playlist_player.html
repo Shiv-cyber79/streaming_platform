@@ -3,7 +3,6 @@
 {% block content %}
 
 <style>
-/* LAYOUT */
 .container {
     display: flex;
     height: calc(100vh - 60px);
@@ -11,7 +10,6 @@
     color: white;
 }
 
-/* VIDEO AREA */
 .video-section {
     flex: 3;
     padding: 20px;
@@ -30,14 +28,15 @@ video {
     margin-top: 14px;
 }
 
-.video-meta h2 {
-    margin: 0;
+.video-title {
+    font-size: 20px;
     font-weight: 500;
 }
 
-.video-meta span {
+.video-views {
     font-size: 13px;
     color: #aaa;
+    margin-top: 4px;
 }
 
 .channel-row {
@@ -66,6 +65,26 @@ video {
     font-weight: bold;
 }
 
+/* ACTION BUTTONS */
+.action-row {
+    display: flex;
+    gap: 10px;
+}
+
+.like-btn {
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.like-btn.liked {
+    background: #065fd4;
+}
+
 .subscribe-btn {
     background: #cc0000;
     color: white;
@@ -74,6 +93,16 @@ video {
     border-radius: 20px;
     cursor: pointer;
     font-weight: bold;
+}
+
+.premium-btn {
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
 }
 
 /* DESCRIPTION */
@@ -192,8 +221,8 @@ textarea {
 </video>
 
 <div class="video-meta">
-    <h2>{{ current_video.title }}</h2>
-    <span>{{ current_video.views }} views</span>
+    <div class="video-title">{{ current_video.title }}</div>
+    <div class="video-views">{{ current_video.views }} views</div>
 
     <div class="channel-row">
         <div class="channel-info">
@@ -206,13 +235,27 @@ textarea {
             </div>
         </div>
 
-        <button id="subscribeBtn" class="subscribe-btn">
-            Subscribe
-        </button>
+        <div class="action-row">
+            <button id="likeBtn" class="like-btn">
+                👍 <span id="likeCount">{{ current_video.likes.count }}</span>
+            </button>
+
+            <button id="subscribeBtn" class="subscribe-btn">
+                Subscribe
+            </button>
+
+            {% if current_video.is_premium %}
+                <a href="{% url 'subscription_plans' %}" class="premium-btn">
+                    Join Premium
+                </a>
+            {% endif %}
+        </div>
     </div>
 
     <div class="description">
-        <p id="descText">{{ current_video.description }}</p>
+        <p id="descText">
+            {{ current_video.description|default:"No description" }}
+        </p>
         <button class="desc-toggle" onclick="toggleDesc()">Show more</button>
     </div>
 </div>
@@ -236,15 +279,9 @@ textarea {
             <textarea name="comment" placeholder="Add a comment..." required></textarea>
             <button type="submit" class="comment-btn">Post Comment</button>
         </form>
-    {% else %}
-        <p style="color:#aaa;">
-            <a href="{% url 'login' %}" style="color:#ff0000;">Login</a> to comment
-        </p>
     {% endif %}
 </div>
 
-{% else %}
-<p>No videos in this playlist.</p>
 {% endif %}
 </div>
 
@@ -286,55 +323,24 @@ function toggleDesc() {
 document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
         method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "Content-Type": "application/json"
-        }
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
     })
     .then(res => res.json())
     .then(data => {
-        if (data.subscribed !== undefined) {
-            this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
-        }
-    })
-    .catch(err => console.error("Subscribe error:", err));
+        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
+    });
 });
-</script>
 
-
-<script>
-let shuffle = false;
-let loop = false;
-
-document.getElementById("shuffleBtn").onclick = function () {
-    shuffle = !shuffle;
-    this.classList.toggle("active");
-};
-
-document.getElementById("loopBtn").onclick = function () {
-    loop = !loop;
-    this.classList.toggle("active");
-};
-
-const videoPlayer = document.getElementById("videoPlayer");
-
-videoPlayer?.addEventListener("ended", function () {
-    if (loop) {
-        videoPlayer.currentTime = 0;
-        videoPlayer.play();
-        return;
-    }
-
-    if (shuffle) {
-        const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
-        const randomIndex = Math.floor(Math.random() * ids.length);
-        window.location.href = "?video=" + ids[randomIndex];
-        return;
-    }
-
-    {% if next_video %}
-        window.location.href = "?video={{ next_video.id }}";
-    {% endif %}
+document.getElementById("likeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_like' current_video.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("likeCount").innerText = data.count;
+        this.classList.toggle("liked", data.liked);
+    });
 });
 </script>
 

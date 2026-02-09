@@ -116,6 +116,10 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
 
+RAZORPAY_KEY_ID = "rzp_test_xxxxx"
+RAZORPAY_KEY_SECRET = "xxxxx"
+
+
 # DEFAULT_FROM_EMAIL = 'Streaming Platform xjyj znnv gfeq mmyb'
 
 # Internationalization
