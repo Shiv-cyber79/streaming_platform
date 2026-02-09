@@ -6,11 +6,8 @@ from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSu
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
-from users.utils import has_active_subscription
-import razorpay
-from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
+import settings
+from 
 
 
 def home(request):
@@ -47,6 +44,10 @@ def playlist_detail(request, playlist_id):
         current_video = videos.filter(id=video_id).first()
     else:
         current_video = videos.first()
+
+    if current_video and current_video.is_premium:
+        if not has_active_subscription(request.user):
+            return redirect("subscription_plans")
 
     if current_video:
         Video.objects.filter(id=current_video.id).update(

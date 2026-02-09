@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Video, Comment,Playlist,Profile
+from .models import Video, Comment,Playlist,Profile,SubscriptionPlan,UserSubscription
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
@@ -14,3 +14,5 @@ class CommentAdmin(admin.ModelAdmin):
     list_filter = ("video", "user")
 
 admin.site.register(Profile)
+admin.site.register(SubscriptionPlan)
+admin.site.register(UserSubscription)
