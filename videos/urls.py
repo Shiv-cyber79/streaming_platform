@@ -2,12 +2,13 @@ from django.urls import path
 from . import views
 from .api import PlaylistAPI
 
+# app_name = 'videos'
+
 urlpatterns = [
   
     path("",views.home, name="home"),
     path("playlists/", views.playlist_list, name="playlist_list"),
     path("video/<int:video_id>/", views.video_detail, name="video_detail"),
-    
     path("api/playlists/", PlaylistAPI.as_view(), name="playlist_api"),
     path("all-videos/", views.all_videos, name="all_videos"),
     path("stream/<int:video_id>/", views.stream_video, name="stream_video"),
