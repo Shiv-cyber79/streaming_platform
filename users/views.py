@@ -1,67 +1,122 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse,JsonResponse
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.http import HttpResponse,FileResponse,JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
-from django.contrib.auth import login,authenticate,logout
-from django.contrib import messages
+from django.utils import timezone
+from django.conf import settings
 
-def signup(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+from .models import Subscription,SubscriptionPlan,UserSubscription
+from videos.models import Video,VideoLike
+import razorpay
+from datetime import timedelta
 
-        if User.objects.filter(username=username).exists():
-            return redirect(request.path)
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
+@login_required
+def user_profile(request, username):
+    channel_user = get_object_or_404(User,username=username)
+    # print(channel_user,request.user)
+    videos = Video.objects.filter(user=channel_user)
+    # print(videos)
+    context = {
+        "channel_user":channel_user,
+        "request_user":request.user,
+        "videos":videos
+    }
+    return render(request, "videos/user_page.html", context)
+
+@login_required
+def create_payment(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+
+    order = client.order.create({
+        "amount": plan.price * 100,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    request.session["plan_id"] = plan.id
+
+    return JsonResponse({
+        "order_id": order["id"],
+        "amount": plan.price,
+        "key": settings.RAZORPAY_KEY_ID
+    })
+
+@require_POST
+@login_required
+def payment_success(request):
+    plan_id = request.session.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+
+    return redirect("home")
+@require_POST
+@login_required
+def toggle_subscribe(request, user_id):
+    channel = get_object_or_404(User, id=user_id)
+
+    if channel == request.user:
+        return JsonResponse(
+            {"error": "You cannot subscribe to yourself"},
+            status=400
         )
 
-        login(request, user)
+    sub, created = Subscription.objects.get_or_create(
+        subscriber=request.user,
+        channel=channel
+    )
 
-        next_url = request.POST.get("next") or request.GET.get("next")
-        return redirect(next_url or "/")
+    if not created:
+        sub.delete()
+        subscribed = False
+    else:
+        subscribed = True
 
-    return render(request, "signup.html")
+    return JsonResponse({
+        "subscribed": subscribed,
+        "count": channel.subscribers.count()
+    })
 
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
 
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+    like, created = VideoLike.objects.get_or_create(
+        user=request.user,
+        video=video
+    )
 
-        user = authenticate(request, username=username, password=password)
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
 
-        if user is None:
-            messages.error(request, "Invalid username or password")
-            return render(request, "login.html")
+    return JsonResponse({
+        "liked": liked,
+        "count": video.likes.count()
+    })
 
-        login(request, user)
-        return redirect("home")  
+@login_required
+def subscription_feed(request):
+    videos = (
+        Video.objects
+        .filter(user__subscribers__subscriber=request.user)
+        .order_by("-created_at")
+    )
 
-    return render(request, "login.html")
-
-
-def logout_view(request):
-    logout(request)
-    return redirect("home") 
-
-def refresh_access_token(request):
-    refresh_token = request.session.get("refresh_token")
-
-    if not refresh_token:
-        return JsonResponse({"error": "No refresh token"}, status=401)
-
-    try:
-        refresh = RefreshToken(refresh_token)
-        new_access = str(refresh.access_token)
-
-        request.session["access_token"] = new_access
-
-        return JsonResponse({"access": new_access})
-
-    except Exception:
-        return JsonResponse({"error": "Invalid refresh token"}, status=401)
+    return render(request, "videos/subscription_feed.html", {
+        "videos": videos
+    })

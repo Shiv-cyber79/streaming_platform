@@ -1,17 +1,21 @@
 {% include "videos/base.html" %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ playlist.name }}</title>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f0f0f;
-            color: white;
-        }
+<style>
+.container {
+    display: flex;
+    height: calc(100vh - 60px);
+    background: #0f0f0f;
+    color: white;
+}
+a {
+    text-decoration: none;
+    color: inherit;
+}
+.video-section {
+    flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+}
 
     
         .container {
@@ -168,6 +172,13 @@
                 {% endif %}
 
             </div>
+            <div>
+                <a href="{% url 'user_profile' current_video.user.username %}">
+                <strong>{{ current_video.user.username }}</strong><br>
+                </a>
+                <small style="color:#aaa;">Channel</small>
+            </div>
+        </div>
 
         {% else %}
             <p>No videos in this playlist.</p>
@@ -195,7 +206,7 @@
                     data-src="{{ video.video_file.url }}"
                 >
                     {{ video.title }}
-                </div>
+        </div>
             {% endfor %}
         </div>
 

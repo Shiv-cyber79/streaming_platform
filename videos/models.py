@@ -3,6 +3,13 @@ from django import forms
 from django.contrib.auth.models import User
 from .validators import validate_video_size
 
+
+# class Profile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+
+#     def __str__(self):
+#         return self.user.username
 def video_upload_path(instance, filename):
     return f"videos/user_{instance.user.id}/{filename}"
 
@@ -53,3 +60,5 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.user.username}: {self.text[:20]}"
 
+    class Meta:
+        unique_together = ("user", "video")
