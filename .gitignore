@@ -11,3 +11,4 @@ venv/
 
 # DB
 db.sqlite3
+.envy
