@@ -2,9 +2,12 @@ from django import forms
 from .models import Playlist, Video
 
 class VideoForm(forms.ModelForm):
+    is_private = forms.BooleanField(required=False)
+    comments_enabled = forms.BooleanField(required=False)
+
     class Meta:
         model = Video
-        fields = ["title", "video_file", "comments_enabled"]
+        fields = ["title", "video_file", "is_private", "comments_enabled"]
 
 class PlaylistForm(forms.ModelForm):
     class Meta:

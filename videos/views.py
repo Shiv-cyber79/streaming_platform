@@ -2,7 +2,8 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan
+from .models import Video, Comment, Playlist,VideoLike, User
+from users.models import Subscription,UserSubscription,SubscriptionPlan
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
@@ -36,33 +37,36 @@ def stream_video(request, video_id):
     return FileResponse(video.video_file.open(), content_type="video/mp4")@login_required
 
 
-
 @login_required
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-
     videos = playlist.videos.order_by("created_at")
 
     video_id = request.GET.get("video")
 
-    
     if video_id:
         current_video = videos.filter(id=video_id).first()
     else:
-        current_video = videos.first()  
+        current_video = videos.first()
 
-    
+    if current_video and current_video.is_premium:
+        if not has_active_subscription(request.user):
+            return redirect("subscription_plans")
+
+    if current_video:
+        Video.objects.filter(id=current_video.id).update(
+            views=F("views") + 1
+        )
     next_video = None
     if current_video:
         video_list = list(videos)
         index = video_list.index(current_video)
-
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
 
     return render(
         request,
-        "videos/playlist_player.html",
+        "videos/playlist_player.html",  
         {
             "playlist": playlist,
             "videos": videos,
@@ -222,7 +226,9 @@ def add_comment(request, video_id):
     playlist = video.playlists.first()
 
     if playlist:
-        return redirect("playlist_player", playlist_id=playlist.id)
+        return redirect(
+            f"/playlists/{playlist.id}/?video={video.id}"
+        )
 
     return redirect("video_detail", video_id=video.id)
 
@@ -260,6 +266,7 @@ def edit_playlist(request, playlist_id):
         "form": form,
         "playlist": playlist
     })
+
 
 @login_required
 def create_playlist(request):

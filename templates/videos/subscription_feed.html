@@ -1,0 +1,58 @@
+{% extends "videos/base.html" %}
+{% block title %}Subscriptions{% endblock %}
+{% block content %}
+
+<style>
+.feed {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.video-card {
+    cursor: pointer;
+}
+
+.video-card img {
+    width: 100%;
+    border-radius: 10px;
+}
+
+.video-card h4 {
+    margin: 8px 0 2px;
+    font-size: 15px;
+}
+
+.video-card span {
+    font-size: 13px;
+    color: #aaa;
+}
+</style>
+
+<div class="feed">
+    <h2>Subscriptions</h2>
+
+    {% if videos %}
+    <div class="video-grid">
+        {% for video in videos %}
+        <a href="{% url 'video_detail' video.id %}" style="color:white;text-decoration:none;">
+            <div class="video-card">
+                <img src="{{ video.thumbnail.url }}">
+                <h4>{{ video.title }}</h4>
+                <span>{{ video.user.username }} • {{ video.views }} views</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+        <p style="color:#aaa;">No videos from your subscriptions yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
