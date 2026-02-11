@@ -3,7 +3,8 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan
+from .models import Video, Comment, Playlist,VideoLike,User
+from users.models import Subscription,UserSubscription,SubscriptionPlan
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
