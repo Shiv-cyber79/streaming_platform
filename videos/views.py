@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -6,9 +7,10 @@ from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSu
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
-import settings
-from 
-
+from django.conf import settings
+from users.utils import has_active_subscription
+import razorpay
+from django.utils import timezone
 
 def home(request):
     
