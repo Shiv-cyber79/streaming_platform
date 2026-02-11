@@ -63,6 +63,8 @@ def playlist_detail(request, playlist_id):
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
 
+    print("playlist details: ",current_video.user, current_video.user.id)
+    
     return render(
         request,
         "videos/playlist_player.html",  

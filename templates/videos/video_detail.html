@@ -30,7 +30,10 @@
     justify-content: center;
     font-weight: bold;
 }
-
+a {
+    text-decoration: none;
+    color: inherit;
+}
 .subscribe-btn {
     background: #cc0000;
     color: white;
@@ -66,7 +69,7 @@
         <source src="{{ video.video_file.url }}" type="video/mp4">
     </video>
     
-    <p>Uploaded by {{ video.user.username }}</p>
+    <!-- <p>Uploaded by {{ video.user.username }}</p> -->
     <div class="channel-row">
         <div class="channel-info">
             <div class="channel-avatar">
@@ -76,7 +79,7 @@
                 <a href="{% url 'user_profile' video.user.username %}">
                     <strong>{{ video.user.username }}</strong><br>
                 </a>
-                <small style="color:#aaa;">Channel</small>
+                <small style="color:#aaa;">Number of Subscribers</small>
             </div>
         </div>
         
@@ -85,10 +88,7 @@
                 👍 <span id="likeCount">{{ video.likes.count }}</span>
             </button>
             
-            <button id="subscribeBtn" class="subscribe-btn">
-                Subscribe
-            </button>
-            
+            <button id="subscribeBtn" class="btn subscribe">Subscribe</button>
             {% if current_video.is_premium %}
             <a href="{% url 'subscription_plans' %}" class="premium-btn">
                 Join Premium

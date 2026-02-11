@@ -15,7 +15,7 @@ from datetime import timedelta
 @login_required
 def user_profile(request, username):
     channel_user = get_object_or_404(User,username=username)
-    # print(channel_user,request.user)
+    print("Channel username",channel_user,"request username",request.user)
     videos = Video.objects.filter(user=channel_user)
     # print(videos)
     context = {

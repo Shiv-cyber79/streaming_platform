@@ -239,7 +239,7 @@ textarea {
                 <a href="{% url 'user_profile' current_video.user.username %}">
                 <strong>{{ current_video.user.username }}</strong><br>
                 </a>
-                <small style="color:#aaa;">Channel</small>
+                <small style="color:#aaa;">Number of Subscribers</small>
             </div>
         </div>
 
@@ -315,7 +315,7 @@ textarea {
         </div>
 
     
-        <div id="playlist">
+        <!-- <div id="playlist">
             {% for video in videos %}
                 <div
                     class="playlist-item {% if video.id == current_video.id %}active{% endif %}"
@@ -324,7 +324,7 @@ textarea {
                     {{ video.title }}
         </div>
             {% endfor %}
-        </div>
+        </div> -->
 
     </div>
 

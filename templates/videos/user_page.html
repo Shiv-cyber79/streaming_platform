@@ -230,7 +230,7 @@
 
 <!-- ==================== HEADER ==================== -->
 <header class="channel-header">
-    <div class="banner"></div>
+    <div class="banner">banner</div>
 
     <div class="channel-info">
         <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
@@ -240,7 +240,7 @@
                 {{ channel_user }}
                 <span class="badge"></span>
             </h1>
-            <p>{{ videos.count }}</p>
+            <p>Number of Subscribers</p>
         </div>
 
         <div class="channel-actions">
@@ -283,20 +283,17 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-    const subscribeBtn = document.getElementById("subscribeBtn");
-    let subscribed = false;
-
-    subscribeBtn.addEventListener("click", () => {
-        subscribed = !subscribed;
-
-        if (subscribed) {
-            subscribeBtn.textContent = "Subscribed";
-            subscribeBtn.classList.add("subscribed");
-        } else {
-            subscribeBtn.textContent = "Subscribe";
-            subscribeBtn.classList.remove("subscribed");
-        }
+document.getElementById("subscribeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_subscribe' request_user.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
     });
+});
+
 </script>
 
 {% endblock %}
