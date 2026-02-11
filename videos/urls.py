@@ -20,4 +20,13 @@ urlpatterns = [
     path("subscribe/<int:user_id>/", views.toggle_subscribe, name="toggle_subscribe"),
     path("video/<int:video_id>/like/", views.toggle_like, name="toggle_like"),
     path("subscriptions/", views.subscription_feed, name="subscription_feed"),
+    path("notifications/", views.notifications, name="notifications"),
+    path("settings/", views.user_settings, name="user_settings"),
+    path("subscription-plans/", views.subscription_plans, name="subscription_plans"),
+    # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),
+
+    path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
+    path("stripe-success/", views.stripe_success, name="stripe_success"),
+
+    
 ]

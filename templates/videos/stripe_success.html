@@ -1,0 +1,12 @@
+{% extends "videos/base.html" %}
+{% block title %}Payment Successful{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:80px auto;text-align:center;">
+    <h2>🎉 Subscription Activated!</h2>
+    <p>You are now subscribed to <strong>{{ plan.name }}</strong></p>
+    <a href="{% url 'home' %}">
+        <button class="comment-btn">Go to Home</button>
+    </a>
+</div>
+{% endblock %}

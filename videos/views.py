@@ -1,17 +1,20 @@
 from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan
+from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm,ProfilePhotoForm,NameChangeForm
+from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan,Notification,Profile
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
 from .utils import has_active_subscription
-import razorpay
+import stripe
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
 
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     playlists = Playlist.objects.all()
@@ -34,11 +37,24 @@ def stream_video(request, video_id):
 
     return FileResponse(video.video_file.open(), content_type="video/mp4")@login_required
 
+@login_required
+def subscription_plans(request):
+    plans = SubscriptionPlan.objects.all()
+    return render(request, "videos/subscription_plans.html", {
+        "plans": plans
+    })
 
 @login_required
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    videos = playlist.videos.order_by("created_at")
+
+    if not playlist.is_public and playlist.user != request.user:
+        return HttpResponseForbidden("This playlist is private")
+
+    if request.user == playlist.user:
+       videos = playlist.videos.order_by("created_at")
+    else:
+       videos = playlist.videos.filter(is_private=False).order_by("created_at")
 
     video_id = request.GET.get("video")
 
@@ -74,31 +90,35 @@ def playlist_detail(request, playlist_id):
     )
 
 @login_required
-def create_payment(request, plan_id):
+def create_stripe_checkout(request, plan_id):
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "inr",
+                "product_data": {
+                    "name": plan.name,
+                },
+                "unit_amount": plan.price * 100,  # paise
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=request.build_absolute_uri(
+            reverse("stripe_success")
+        ) + "?plan_id=" + str(plan.id),
+        cancel_url=request.build_absolute_uri(
+            reverse("subscription_plans")
+        ),
     )
 
-    order = client.order.create({
-        "amount": plan.price * 100,
-        "currency": "INR",
-        "payment_capture": 1
-    })
+    return redirect(session.url, code=303)
 
-    request.session["plan_id"] = plan.id
-
-    return JsonResponse({
-        "order_id": order["id"],
-        "amount": plan.price,
-        "key": settings.RAZORPAY_KEY_ID
-    })
-
-@require_POST
 @login_required
-def payment_success(request):
-    plan_id = request.session.get("plan_id")
+def stripe_success(request):
+    plan_id = request.GET.get("plan_id")
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
     UserSubscription.objects.create(
@@ -108,22 +128,53 @@ def payment_success(request):
         active=True
     )
 
-    return redirect("home")
+    return render(request, "videos/stripe_success.html", {
+        "plan": plan
+    })
 
 
 @login_required(login_url="login")
 def upload_video(request):
     if request.method == "POST":
         form = VideoForm(request.POST, request.FILES)
+
         if form.is_valid():
             video = form.save(commit=False)
             video.user = request.user
             video.save()
-            return redirect("home")  
+         
+            subscribers = Subscription.objects.filter(
+                channel=request.user
+            ).select_related("subscriber")
+
+            for sub in subscribers:
+                Notification.objects.create(
+                    recipient=sub.subscriber,
+                    sender=request.user,
+                    video=video,
+                    message=f"{request.user.username} uploaded a new video"
+                )
+
+            return redirect("playlist_list")  
+
     else:
         form = VideoForm()
 
     return render(request, "videos/upload_video.html", {"form": form})
+
+@login_required
+def notifications(request):
+    notifications = (
+        Notification.objects
+        .filter(recipient=request.user)
+        .order_by("-created_at")
+    )
+
+    notifications.filter(is_read=False).update(is_read=True)
+
+    return render(request, "videos/notifications.html", {
+        "notifications": notifications
+    })
 
 @login_required
 def video_list(request):
@@ -272,7 +323,8 @@ def create_playlist(request):
         if form.is_valid():
             playlist = Playlist.objects.create(
                 name=form.cleaned_data["playlist_name"],
-                user=request.user
+                user=request.user,
+                is_public=form.cleaned_data("is_public",False)
             )
 
             video = Video.objects.create(
@@ -297,4 +349,37 @@ def all_videos(request):
     videos = Video.objects.all().order_by("-created_at")
     return render(request, "videos/all_videos.html", {
         "videos": videos
+    })
+
+@login_required
+def user_settings(request):
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+
+    photo_form = ProfilePhotoForm(instance=profile)
+    name_form = NameChangeForm(instance=request.user)
+
+    if request.method == "POST":
+        if "photo_submit" in request.POST:
+            photo_form = ProfilePhotoForm(
+                request.POST,
+                request.FILES,
+                instance=profile
+            )
+            if photo_form.is_valid():
+                photo_form.save()
+
+        elif "name_submit" in request.POST:
+            name_form = NameChangeForm(
+                request.POST,
+                instance=request.user
+            )
+            if name_form.is_valid():
+                name_form.save()
+
+        return redirect("user_settings")
+
+    return render(request, "videos/settings.html", {
+        "photo_form": photo_form,
+        "name_form": name_form,
+        "profile": profile
     })
