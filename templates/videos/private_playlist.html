@@ -1,0 +1,72 @@
+{% extends "videos/base.html" %}
+{% block title %}Private Playlist{% endblock %}
+
+{% block content %}
+
+<style>
+.private-wrapper {
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.private-box {
+    background: #181818;
+    padding: 50px;
+    border-radius: 14px;
+    text-align: center;
+    width: 420px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+}
+
+.lock-icon {
+    font-size: 70px;
+    margin-bottom: 20px;
+}
+
+.private-box h2 {
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.private-box p {
+    color: #aaa;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+.back-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #ff0000;
+    color: white;
+    text-decoration: none;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: #cc0000;
+}
+</style>
+
+<div class="private-wrapper">
+    <div class="private-box">
+        <div class="lock-icon">🔒</div>
+
+        <h2>This playlist is private</h2>
+
+        <p>
+            The owner has set this playlist to private.
+            Only the creator can view it.
+        </p>
+
+        <a href="{% url 'home' %}" class="back-btn">
+            Go to Home
+        </a>
+    </div>
+</div>
+
+{% endblock %}

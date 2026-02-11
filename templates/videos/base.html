@@ -162,7 +162,11 @@
 <body>
 
 <div class="navbar">
-    <div class="logo">▶ Stream</div>
+
+    <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
+        ▶ Stream
+    </a>
+
 
     <div class="nav-links">
         <a href="{% url 'home' %}">Home</a>
@@ -178,7 +182,38 @@
     </div>
 
     <div class="nav-right">
-            {% if user.is_authenticated %}
+            {% if user.is_authenticated %} 
+
+            <!-- 🔔 Notification Bell START -->
+               <a href="{% url 'notifications' %}" 
+                  style="
+                      color:white;
+                      position:relative;
+                      margin-right:14px;
+                      font-size:20px;
+                      text-decoration:none;
+               ">
+
+               🔔
+
+               {% if unread_notifications_count > 0 %}
+                   <span style="
+                       position:absolute;
+                       top:-6px;
+                       right:-8px;
+                       background:red;
+                       color:white;
+                       border-radius:50%;
+                       padding:2px 6px;
+                       font-size:11px;
+                ">
+                    {{ unread_notifications_count }}
+                </span>
+            {% endif %}
+
+        </a>
+        <!-- 🔔 Notification Bell END -->
+
                 <div class="profile-menu">
                     {% if user.profile.avatar %}
                         <img src="{{ user.profile.avatar.url }}"
@@ -193,11 +228,18 @@
 
                     <div id="profileDropdown" class="profile-dropdown">
                         <div class="profile-info">
-                            <strong>{{ user.username }}</strong>
+                            <strong>
+                                {% if user.first_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% else %}
+                                    {{ user.username }}
+                               {% endif %}
+                           </strong>
+
                             <small>{{ user.email }}</small>
                         </div>
 
-                        <a href="#">⚙️ Settings</a>
+                        <a href="{% url 'user_settings' %}">⚙️ Settings</a>
 
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}

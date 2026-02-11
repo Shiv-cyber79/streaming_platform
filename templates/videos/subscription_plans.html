@@ -103,11 +103,6 @@
     font-size: 15px;
     font-weight: bold;
     cursor: pointer;
-    transition: opacity 0.2s ease;
-}
-
-.subscribe-btn:hover {
-    opacity: 0.9;
 }
 </style>
 
@@ -116,34 +111,32 @@
     <p>Unlock premium videos and enjoy uninterrupted streaming</p>
 
     <div class="plans">
-
         {% for plan in plans %}
-        <div class="plan-card {% if forloop.first %}popular{% endif %}">
-            {% if forloop.first %}
-                <div class="popular-badge">MOST POPULAR</div>
-            {% endif %}
+            <div class="plan-card {% if forloop.first %}popular{% endif %}">
+                {% if forloop.first %}
+                    <div class="popular-badge">MOST POPULAR</div>
+                {% endif %}
 
-            <div class="plan-name">{{ plan.name }}</div>
-            <div class="plan-price">₹{{ plan.price }}</div>
-            <div class="plan-duration">
-                {{ plan.duration_days }} days access
+                <div class="plan-name">{{ plan.name }}</div>
+                <div class="plan-price">₹{{ plan.price }}</div>
+                <div class="plan-duration">
+                    {{ plan.duration_days }} days access
+                </div>
+
+                <ul class="plan-features">
+                    <li>Access premium videos</li>
+                    <li>No ads</li>
+                    <li>HD streaming</li>
+                    <li>Cancel anytime</li>
+                </ul>
+
+                <a href="{% url 'stripe_checkout' plan.id %}">
+                    <button class="subscribe-btn">Subscribe Now</button>
+                </a>
             </div>
-
-            <ul class="plan-features">
-                <li>Access premium videos</li>
-                <li>No ads</li>
-                <li>HD streaming</li>
-                <li>Cancel anytime</li>
-            </ul>
-
-            <a href="{% url 'stripe_checkout' plan.id %}">
-    <button class="subscribe-btn">
-        Subscribe Now
-    </button>
-</a>
-        </div>
+        {% empty %}
+            <p style="color:#aaa;">No subscription plans available.</p>
         {% endfor %}
-
     </div>
 </div>
 {% endblock %}

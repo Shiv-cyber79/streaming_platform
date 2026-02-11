@@ -12,6 +12,7 @@ from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
 from django.urls import reverse
+from django.db.models import Q
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -49,7 +50,9 @@ def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
 
     if not playlist.is_public and playlist.user != request.user:
-        return HttpResponseForbidden("This playlist is private")
+     return render(request, "videos/private_playlist.html", {
+        "playlist": playlist
+    }, status=403)
 
     if request.user == playlist.user:
        videos = playlist.videos.order_by("created_at")
@@ -65,8 +68,9 @@ def playlist_detail(request, playlist_id):
 
     if current_video and current_video.is_premium:
         if not has_active_subscription(request.user):
-            return redirect("subscription_plans")
-
+            return render(request, "videos/premium_locked.html", {
+            "video": current_video
+        })
     if current_video:
         Video.objects.filter(id=current_video.id).update(
             views=F("views") + 1
@@ -187,11 +191,12 @@ def video_list(request):
 def video_detail(request, video_id):
     video = get_object_or_404(Video, id=video_id)
 
-    if video.is_private and not request.user.is_authenticated:
-        return redirect("login")
+  
+    if video.is_private:
+        if not request.user.is_authenticated or video.user != request.user:
+            return HttpResponseForbidden("This video is private.")
 
     return render(request, "videos/video_detail.html", {"video": video})
-
 
 @require_POST
 @login_required
@@ -251,6 +256,14 @@ def subscription_feed(request):
 
     return render(request, "videos/subscription_feed.html", {
         "videos": videos
+    })
+
+@login_required
+def subscription_plans(request):
+    plans = SubscriptionPlan.objects.all()
+
+    return render(request, "videos/subscription_plans.html", {
+        "plans": plans
     })
 
 @login_required
@@ -346,7 +359,15 @@ def create_playlist(request):
 
 @login_required
 def all_videos(request):
-    videos = Video.objects.all().order_by("-created_at")
+    if request.user.is_authenticated:
+        videos = Video.objects.filter(
+            Q(is_private=False) | Q(user=request.user)
+        ).order_by("-created_at")
+    else:
+        videos = Video.objects.filter(
+            is_private=False
+        ).order_by("-created_at")
+
     return render(request, "videos/all_videos.html", {
         "videos": videos
     })
