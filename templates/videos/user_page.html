@@ -283,7 +283,22 @@
 
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
-document.getElementById("subscribeBtn")?.addEventListener("click", function () {
+    const subscribeBtn = document.getElementById("subscribeBtn");
+    let subscribed = false;
+
+    subscribeBtn.addEventListener("click", () => {
+        subscribed = !subscribed;
+
+        if (subscribed) {
+            subscribeBtn.textContent = "Subscribed";
+            subscribeBtn.classList.add("subscribed");
+        } else {
+            subscribeBtn.textContent = "Subscribe";
+            subscribeBtn.classList.remove("subscribed");
+        }
+    });
+
+    document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     fetch("{% url 'toggle_subscribe' request_user.id %}", {
         method: "POST",
         headers: { "X-CSRFToken": "{{ csrf_token }}" }
@@ -293,7 +308,6 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
         this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
     });
 });
-
 </script>
 
 {% endblock %}
