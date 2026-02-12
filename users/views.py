@@ -6,8 +6,9 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 
-from .models import Subscription,SubscriptionPlan,UserSubscription
+from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
 from videos.models import Video,VideoLike
+from videos.forms import ProfilePhotoForm,NameChangeForm
 import razorpay
 from datetime import timedelta
 
@@ -128,35 +129,35 @@ def subscription_plans(request):
         "plans": plans
     })
 
-# @login_required
-# def user_settings(request):
-#     profile, _ = Profile.objects.get_or_create(user=request.user)
+@login_required
+def user_settings(request):
+    profile, _ = Channel.objects.get_or_create(user=request.user)
 
-#     photo_form = ProfilePhotoForm(instance=profile)
-#     name_form = NameChangeForm(instance=request.user)
+    photo_form = ProfilePhotoForm(instance=profile)
+    name_form = NameChangeForm(instance=request.user)
 
-#     if request.method == "POST":
-#         if "photo_submit" in request.POST:
-#             photo_form = ProfilePhotoForm(
-#                 request.POST,
-#                 request.FILES,
-#                 instance=profile
-#             )
-#             if photo_form.is_valid():
-#                 photo_form.save()
+    if request.method == "POST":
+        if "photo_submit" in request.POST:
+            photo_form = ProfilePhotoForm(
+                request.POST,
+                request.FILES,
+                instance=profile
+            )
+            if photo_form.is_valid():
+                photo_form.save()
 
-#         elif "name_submit" in request.POST:
-#             name_form = NameChangeForm(
-#                 request.POST,
-#                 instance=request.user
-#             )
-#             if name_form.is_valid():
-#                 name_form.save()
+        elif "name_submit" in request.POST:
+            name_form = NameChangeForm(
+                request.POST,
+                instance=request.user
+            )
+            if name_form.is_valid():
+                name_form.save()
 
-#         return redirect("user_settings")
+        return redirect("user_settings")
 
-#     return render(request, "videos/settings.html", {
-#         "photo_form": photo_form,
-#         "name_form": name_form,
-#         "profile": profile
-#     })
+    return render(request, "videos/settings.html", {
+        "photo_form": photo_form,
+        "name_form": name_form,
+        "profile": profile
+    })

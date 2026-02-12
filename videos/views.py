@@ -2,7 +2,7 @@ from datetime import timedelta
 from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm,ProfilePhotoForm,NameChangeForm
+from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
 from .models import Video, Comment, Playlist,VideoLike,User,Notification
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
