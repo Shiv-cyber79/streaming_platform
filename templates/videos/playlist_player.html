@@ -3,13 +3,13 @@
 {% block content %}
 
 <style>
-/* LAYOUT */
 .container {
     display: flex;
     height: calc(100vh - 60px);
     background: #0f0f0f;
     color: white;
 }
+<<<<<<< HEAD
 <<<<<<< Updated upstream
 
 =======
@@ -161,6 +161,139 @@ textarea {
     padding: 10px;
 }
 
+=======
+
+/* VIDEO AREA */
+.video-section {
+    flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+video {
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 10px;
+    background: black;
+}
+
+/* VIDEO META */
+.video-meta {
+    margin-top: 14px;
+}
+
+.video-meta h2 {
+    margin: 0;
+    font-weight: 500;
+}
+
+.video-meta span {
+    font-size: 13px;
+    color: #aaa;
+}
+
+.channel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #303030;
+}
+
+.channel-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.channel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #cc0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* ACTION BUTTONS */
+.action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.like-btn {
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.like-btn.liked {
+    background: #065fd4;
+}
+
+.subscribe-btn {
+    background: #cc0000;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.premium-btn {
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* DESCRIPTION */
+.description {
+    margin-top: 14px;
+}
+
+.description p {
+    color: #ccc;
+    max-height: 60px;
+    overflow: hidden;
+}
+
+.desc-toggle {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+}
+
+/* COMMENTS */
+.comments {
+    margin-top: 22px;
+    border-top: 1px solid #303030;
+    padding-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 70px;
+    background: #181818;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 .comment-btn {
     background: #ff0000;
     color: white;
@@ -183,7 +316,36 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
+<<<<<<< HEAD
     margin-bottom: 10px;
+=======
+    padding: 8px 6px;
+}
+
+.playlist-header h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+}
+
+.playlist-edit-btn {
+    font-size: 12px;
+    margin-left: 10px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: #212121;
+    color: #aaa;
+    text-decoration: none;
+    border: 1px solid #303030;
+    transition: all 0.2s ease;
+}
+
+.playlist-edit-btn:hover {
+    color: white;
+    background: #2a2a2a;
+    border-color: #555;
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 }
 
 .playlist-item {
@@ -192,10 +354,13 @@ textarea {
     border-bottom: 1px solid #303030;
 }
 
+<<<<<<< HEAD
 .playlist-item:hover {
     background: #303030;
 }
 
+=======
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 .playlist-item.active {
     background: #272727;
     border-left: 4px solid #ff0000;
@@ -233,8 +398,13 @@ textarea {
 </video>
 
 <div class="video-meta">
+<<<<<<< HEAD
     <div class="video-title">{{ current_video.title }}</div>
     <div class="video-views">{{ current_video.views }} views</div>
+=======
+    <h2>{{ current_video.title }}</h2>
+    <span>{{ current_video.views }} views</span>
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 
     <div class="channel-row">
         <div class="channel-info">
@@ -242,6 +412,7 @@ textarea {
                 {{ current_video.user.username|first|upper }}
             </div>
             <div>
+<<<<<<< HEAD
                 <a href="{% url 'user_profile' current_video.user.username %}">
                 <strong>{{ current_video.user.username }}</strong><br>
                 </a>
@@ -250,24 +421,41 @@ textarea {
 =======
                 <small style="color:#aaa;">Channel</small>
 >>>>>>> Stashed changes
+=======
+                <strong>{{ current_video.user.username }}</strong><br>
+                <small style="color:#aaa;">Channel</small>
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             </div>
         </div>
 
         <div class="action-row">
+<<<<<<< HEAD
+=======
+            <!-- LIKE -->
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             <button id="likeBtn" class="like-btn">
                 👍 <span id="likeCount">{{ current_video.likes.count }}</span>
             </button>
 
+<<<<<<< HEAD
+=======
+            <!-- SUBSCRIBE -->
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             <button id="subscribeBtn" class="subscribe-btn">
                 Subscribe
             </button>
 
+<<<<<<< HEAD
+=======
+            <!-- PREMIUM -->
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             {% if current_video.is_premium %}
                 <a href="{% url 'subscription_plans' %}" class="premium-btn">
                     Join Premium
                 </a>
             {% endif %}
         </div>
+<<<<<<< HEAD
     </div>
 
     <div class="description">
@@ -347,11 +535,73 @@ textarea {
     {% endfor %}
 </div>
 
+=======
+    </div>
+
+    <div class="description">
+        <p id="descText">{{ current_video.description }}</p>
+        <button class="desc-toggle" onclick="toggleDesc()">Show more</button>
+    </div>
+</div>
+
+<div class="comments">
+    <h3>Comments</h3>
+
+    {% for comment in current_video.comments.all %}
+        <p>
+            <strong>{{ comment.user.username }}</strong> :
+            {{ comment.text }}
+        </p>
+    {% empty %}
+        <p style="color:#aaa;">No comments yet.</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_comment' current_video.id %}">
+            {% csrf_token %}
+            <textarea name="comment" required></textarea>
+            <button class="comment-btn">Post Comment</button>
+        </form>
+    {% endif %}
+</div>
+
+{% endif %}
+</div>
+
+<!-- PLAYLIST -->
+<div class="playlist-section">
+
+    <!-- PLAYLIST NAME + EDIT INLINE -->
+    <div class="playlist-header">
+        <strong>
+            {{ playlist.name }}
+            <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">
+                ✎ 
+            </a>
+        </strong>
+    </div>
+
+    <!-- CONTROLS (UNCHANGED) -->
+    <div class="controls">
+        <button id="shuffleBtn">Shuffle</button>
+        <button id="loopBtn">Loop</button>
+    </div>
+
+    {% for video in videos %}
+        <a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
+            <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
+                {{ video.title }}
+            </div>
+        </a>
+    {% endfor %}
+</div>
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 </div>
 
 <script>
 let expanded = false;
 function toggleDesc() {
+<<<<<<< HEAD
     const text = document.getElementById("descText");
     expanded = !expanded;
     text.style.maxHeight = expanded ? "none" : "60px";
@@ -383,4 +633,71 @@ document.getElementById("likeBtn")?.addEventListener("click", function () {
 });
 </script>
 
+=======
+    expanded = !expanded;
+    document.getElementById("descText").style.maxHeight =
+        expanded ? "none" : "60px";
+}
+
+/* LIKE */
+document.getElementById("likeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_like' current_video.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("likeCount").innerText = data.count;
+        this.classList.toggle("liked", data.liked);
+    });
+});
+
+/* SUBSCRIBE */
+document.getElementById("subscribeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
+    });
+});
+
+/* PLAYER */
+let shuffle = false;
+let loop = false;
+
+shuffleBtn.onclick = () => {
+    shuffle = !shuffle;
+    shuffleBtn.classList.toggle("active");
+};
+
+loopBtn.onclick = () => {
+    loop = !loop;
+    loopBtn.classList.toggle("active");
+};
+
+videoPlayer?.addEventListener("ended", function () {
+    if (loop) {
+        videoPlayer.currentTime = 0;
+        videoPlayer.play();
+        return;
+    }
+
+    const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
+
+    if (shuffle) {
+        const randomIndex = Math.floor(Math.random() * ids.length);
+        window.location.href = "?video=" + ids[randomIndex];
+        return;
+    }
+
+    {% if next_video %}
+        window.location.href = "?video={{ next_video.id }}";
+    {% endif %}
+});
+</script>
+
+>>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 {% endblock %}

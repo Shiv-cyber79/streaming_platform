@@ -1,0 +1,142 @@
+{% extends "videos/base.html" %}
+{% block title %}Choose a Plan{% endblock %}
+
+{% block content %}
+<style>
+.subscription-wrapper {
+    max-width: 1100px;
+    margin: 60px auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.subscription-wrapper h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.subscription-wrapper p {
+    color: #aaa;
+    margin-bottom: 40px;
+}
+
+.plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 25px;
+}
+
+.plan-card {
+    background: #181818;
+    border-radius: 14px;
+    padding: 30px 24px;
+    position: relative;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    border: 1px solid #2a2a2a;
+}
+
+.plan-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 10px 40px rgba(255,0,0,0.25);
+}
+
+.plan-card.popular {
+    border: 2px solid #ff0000;
+    box-shadow: 0 0 35px rgba(255,0,0,0.35);
+}
+
+.popular-badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    padding: 6px 14px;
+    font-size: 12px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.plan-name {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.plan-price {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.plan-duration {
+    color: #aaa;
+    margin-bottom: 18px;
+}
+
+.plan-features {
+    text-align: left;
+    margin: 22px 0;
+}
+
+.plan-features li {
+    list-style: none;
+    margin-bottom: 10px;
+    color: #ccc;
+}
+
+.plan-features li::before {
+    content: "✔";
+    color: #ff0000;
+    margin-right: 8px;
+}
+
+.subscribe-btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+
+<div class="subscription-wrapper">
+    <h1>Choose Your Plan</h1>
+    <p>Unlock premium videos and enjoy uninterrupted streaming</p>
+
+    <div class="plans">
+        {% for plan in plans %}
+            <div class="plan-card {% if forloop.first %}popular{% endif %}">
+                {% if forloop.first %}
+                    <div class="popular-badge">MOST POPULAR</div>
+                {% endif %}
+
+                <div class="plan-name">{{ plan.name }}</div>
+                <div class="plan-price">₹{{ plan.price }}</div>
+                <div class="plan-duration">
+                    {{ plan.duration_days }} days access
+                </div>
+
+                <ul class="plan-features">
+                    <li>Access premium videos</li>
+                    <li>No ads</li>
+                    <li>HD streaming</li>
+                    <li>Cancel anytime</li>
+                </ul>
+
+                <a href="{% url 'stripe_checkout' plan.id %}">
+                    <button class="subscribe-btn">Subscribe Now</button>
+                </a>
+            </div>
+        {% empty %}
+            <p style="color:#aaa;">No subscription plans available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

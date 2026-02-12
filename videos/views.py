@@ -2,11 +2,19 @@ from datetime import timedelta
 from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist
+from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm,ProfilePhotoForm,NameChangeForm
+from .models import Video, Comment, Playlist,VideoLike,User,Notification
 from django.views.decorators.http import require_POST
+from django.http import JsonResponse
 from django.db.models import F
-from users.utils import has_active_subscription
+from .utils import has_active_subscription
+import stripe
+from django.conf import settings
+from django.urls import reverse
+from django.db.models import Q
+from users.models import Subscription
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     
@@ -34,7 +42,16 @@ def stream_video(request, video_id):
 @login_required
 def playlist_detail(request, playlist_id):
     playlist = get_object_or_404(Playlist, id=playlist_id)
-    videos = playlist.videos.order_by("created_at")
+
+    if not playlist.is_public and playlist.user != request.user:
+     return render(request, "videos/private_playlist.html", {
+        "playlist": playlist
+    }, status=403)
+
+    if request.user == playlist.user:
+       videos = playlist.videos.order_by("created_at")
+    else:
+       videos = playlist.videos.filter(is_private=False).order_by("created_at")
 
     video_id = request.GET.get("video")
 
@@ -45,8 +62,9 @@ def playlist_detail(request, playlist_id):
 
     if current_video and current_video.is_premium:
         if not has_active_subscription(request.user):
-            return redirect("subscription_plans")
-
+            return render(request, "videos/premium_locked.html", {
+            "video": current_video
+        })
     if current_video:
         Video.objects.filter(id=current_video.id).update(
             views=F("views") + 1
@@ -113,15 +131,44 @@ def playlist_detail(request, playlist_id):
 def upload_video(request):
     if request.method == "POST":
         form = VideoForm(request.POST, request.FILES)
+
         if form.is_valid():
             video = form.save(commit=False)
             video.user = request.user
             video.save()
-            return redirect("home")  
+         
+            subscribers = Subscription.objects.filter(
+                channel=request.user
+            ).select_related("subscriber")
+
+            for sub in subscribers:
+                Notification.objects.create(
+                    recipient=sub.subscriber,
+                    sender=request.user,
+                    video=video,
+                    message=f"{request.user.username} uploaded a new video"
+                )
+
+            return redirect("playlist_list")  
+
     else:
         form = VideoForm()
 
     return render(request, "videos/upload_video.html", {"form": form})
+
+@login_required
+def notifications(request):
+    notifications = (
+        Notification.objects
+        .filter(recipient=request.user)
+        .order_by("-created_at")
+    )
+
+    notifications.filter(is_read=False).update(is_read=True)
+
+    return render(request, "videos/notifications.html", {
+        "notifications": notifications
+    })
 
 @login_required
 def video_list(request):
@@ -136,11 +183,17 @@ def video_detail(request, video_id):
     print("video detail",video_id)
     video = get_object_or_404(Video, id=video_id)
 
-    if video.is_private and not request.user.is_authenticated:
-        return redirect("login")
+  
+    if video.is_private:
+        if not request.user.is_authenticated or video.user != request.user:
+            return HttpResponseForbidden("This video is private.")
 
     return render(request, "videos/video_detail.html", {"video": video})
 
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
 
 # @require_POST
 # @login_required
@@ -272,7 +325,8 @@ def create_playlist(request):
         if form.is_valid():
             playlist = Playlist.objects.create(
                 name=form.cleaned_data["playlist_name"],
-                user=request.user
+                user=request.user,
+                is_public=form.cleaned_data("is_public",False)
             )
 
             video = Video.objects.create(
@@ -294,7 +348,15 @@ def create_playlist(request):
 
 @login_required
 def all_videos(request):
-    videos = Video.objects.all().order_by("-created_at")
+    if request.user.is_authenticated:
+        videos = Video.objects.filter(
+            Q(is_private=False) | Q(user=request.user)
+        ).order_by("-created_at")
+    else:
+        videos = Video.objects.filter(
+            is_private=False
+        ).order_by("-created_at")
+
     return render(request, "videos/all_videos.html", {
         "videos": videos
     })

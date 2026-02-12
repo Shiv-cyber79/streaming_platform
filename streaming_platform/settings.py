@@ -1,7 +1,9 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -116,8 +118,11 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
 
-RAZORPAY_KEY_ID = "rzp_test_xxxxx"
-RAZORPAY_KEY_SECRET = "xxxxx"
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 
 # DEFAULT_FROM_EMAIL = 'Streaming Platform xjyj znnv gfeq mmyb'

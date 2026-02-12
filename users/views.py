@@ -120,3 +120,43 @@ def subscription_feed(request):
     return render(request, "videos/subscription_feed.html", {
         "videos": videos
     })
+@login_required
+def subscription_plans(request):
+    plans = SubscriptionPlan.objects.all()
+
+    return render(request, "videos/subscription_plans.html", {
+        "plans": plans
+    })
+
+# @login_required
+# def user_settings(request):
+#     profile, _ = Profile.objects.get_or_create(user=request.user)
+
+#     photo_form = ProfilePhotoForm(instance=profile)
+#     name_form = NameChangeForm(instance=request.user)
+
+#     if request.method == "POST":
+#         if "photo_submit" in request.POST:
+#             photo_form = ProfilePhotoForm(
+#                 request.POST,
+#                 request.FILES,
+#                 instance=profile
+#             )
+#             if photo_form.is_valid():
+#                 photo_form.save()
+
+#         elif "name_submit" in request.POST:
+#             name_form = NameChangeForm(
+#                 request.POST,
+#                 instance=request.user
+#             )
+#             if name_form.is_valid():
+#                 name_form.save()
+
+#         return redirect("user_settings")
+
+#     return render(request, "videos/settings.html", {
+#         "photo_form": photo_form,
+#         "name_form": name_form,
+#         "profile": profile
+#     })
