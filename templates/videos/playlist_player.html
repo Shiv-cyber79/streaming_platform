@@ -9,19 +9,11 @@
     background: #0f0f0f;
     color: white;
 }
-<<<<<<< HEAD
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
 a {
     text-decoration: none;
     color: inherit;
 }
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 .video-section {
     flex: 3;
     padding: 20px;
@@ -293,7 +285,6 @@ textarea {
     padding: 10px;
 }
 
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 .comment-btn {
     background: #ff0000;
     color: white;
@@ -316,9 +307,6 @@ textarea {
     display: flex;
     justify-content: space-between;
     align-items: center;
-<<<<<<< HEAD
-    margin-bottom: 10px;
-=======
     padding: 8px 6px;
 }
 
@@ -345,7 +333,6 @@ textarea {
     color: white;
     background: #2a2a2a;
     border-color: #555;
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 }
 
 .playlist-item {
@@ -354,13 +341,10 @@ textarea {
     border-bottom: 1px solid #303030;
 }
 
-<<<<<<< HEAD
 .playlist-item:hover {
     background: #303030;
 }
 
-=======
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 .playlist-item.active {
     background: #272727;
     border-left: 4px solid #ff0000;
@@ -398,13 +382,8 @@ textarea {
 </video>
 
 <div class="video-meta">
-<<<<<<< HEAD
-    <div class="video-title">{{ current_video.title }}</div>
-    <div class="video-views">{{ current_video.views }} views</div>
-=======
     <h2>{{ current_video.title }}</h2>
     <span>{{ current_video.views }} views</span>
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 
     <div class="channel-row">
         <div class="channel-info">
@@ -412,130 +391,32 @@ textarea {
                 {{ current_video.user.username|first|upper }}
             </div>
             <div>
-<<<<<<< HEAD
                 <a href="{% url 'user_profile' current_video.user.username %}">
                 <strong>{{ current_video.user.username }}</strong><br>
                 </a>
-<<<<<<< Updated upstream
                 <small style="color:#aaa;">Number of Subscribers</small>
-=======
-                <small style="color:#aaa;">Channel</small>
->>>>>>> Stashed changes
-=======
-                <strong>{{ current_video.user.username }}</strong><br>
-                <small style="color:#aaa;">Channel</small>
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
+
             </div>
         </div>
 
         <div class="action-row">
-<<<<<<< HEAD
-=======
             <!-- LIKE -->
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             <button id="likeBtn" class="like-btn">
                 👍 <span id="likeCount">{{ current_video.likes.count }}</span>
             </button>
 
-<<<<<<< HEAD
-=======
             <!-- SUBSCRIBE -->
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             <button id="subscribeBtn" class="subscribe-btn">
                 Subscribe
             </button>
 
-<<<<<<< HEAD
-=======
             <!-- PREMIUM -->
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
             {% if current_video.is_premium %}
                 <a href="{% url 'subscription_plans' %}" class="premium-btn">
                     Join Premium
                 </a>
             {% endif %}
         </div>
-<<<<<<< HEAD
-    </div>
-
-    <div class="description">
-        <p id="descText">
-            {{ current_video.description|default:"No description" }}
-        </p>
-        <button class="desc-toggle" onclick="toggleDesc()">Show more</button>
-    </div>
-</div>
-
-<div class="comments">
-    <h3>Comments</h3>
-
-    {% for comment in current_video.comments.all %}
-        <div class="comment">
-            <strong>{{ comment.user.username }}</strong>
-            <small> • {{ comment.created_at|date:"M d, Y H:i" }}</small>
-            <p>{{ comment.text }}</p>
-        </div>
-    {% empty %}
-        <p style="color:#aaa;">No comments yet.</p>
-    {% endfor %}
-
-    {% if user.is_authenticated %}
-        <form method="post" action="{% url 'add_comment' current_video.id %}">
-            {% csrf_token %}
-            <textarea name="comment" placeholder="Add a comment..." required></textarea>
-            <button type="submit" class="comment-btn">Post Comment</button>
-        </form>
-    {% endif %}
-</div>
-
-{% endif %}
-</div>
-
-<!-- PLAYLIST SECTION -->
-<div class="playlist-section">
-    <div class="playlist-header">
-        <strong>{{ playlist.name }}</strong>
-        {% if user == playlist.user %}
-            <a href="{% url 'edit_playlist' playlist.id %}" style="color:#aaa;">✏️ Edit</a>
-        {% endif %}
-    </div>
-
-
-    <div class="playlist-section">
-
-        <div class="playlist-header">
-            {{ playlist.name }}
-        </div>
-
-        <div class="controls">
-            <button id="shuffleBtn">Shuffle</button>
-            <button id="loopBtn">Loop</button>
-        </div>
-
-    
-        <!-- <div id="playlist">
-            {% for video in videos %}
-                <div
-                    class="playlist-item {% if video.id == current_video.id %}active{% endif %}"
-                    data-src="{{ video.video_file.url }}"
-                >
-                    {{ video.title }}
-        </div>
-            {% endfor %}
-        </div> -->
-
-    </div>
-
-    {% for video in videos %}
-        <a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
-            <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
-                {{ video.title }}
-            </div>
-        </a>
-    {% endfor %}
-</div>
-
-=======
     </div>
 
     <div class="description">
@@ -595,45 +476,11 @@ textarea {
         </a>
     {% endfor %}
 </div>
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 </div>
 
 <script>
 let expanded = false;
 function toggleDesc() {
-<<<<<<< HEAD
-    const text = document.getElementById("descText");
-    expanded = !expanded;
-    text.style.maxHeight = expanded ? "none" : "60px";
-}
-</script>
-
-<script>
-document.getElementById("subscribeBtn")?.addEventListener("click", function () {
-    fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    })
-    .then(res => res.json())
-    .then(data => {
-        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
-    });
-});
-
-document.getElementById("likeBtn")?.addEventListener("click", function () {
-    fetch("{% url 'toggle_like' current_video.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("likeCount").innerText = data.count;
-        this.classList.toggle("liked", data.liked);
-    });
-});
-</script>
-
-=======
     expanded = !expanded;
     document.getElementById("descText").style.maxHeight =
         expanded ? "none" : "60px";
@@ -699,5 +546,4 @@ videoPlayer?.addEventListener("ended", function () {
 });
 </script>
 
->>>>>>> eb2e44b878b464d990cd5d39a552054b6b0140ac
 {% endblock %}

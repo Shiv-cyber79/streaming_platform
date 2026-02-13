@@ -17,14 +17,45 @@ from datetime import timedelta
 def user_profile(request, username):
     channel_user = get_object_or_404(User,username=username)
     print("Channel username",channel_user,"request username",request.user)
-    videos = Video.objects.filter(user=channel_user)
-    # print(videos)
+    videos = Video.objects.filter(user=channel_user).order_by("created_at")
+    latest_video = videos.first()
+    other_videos = videos[1:]
+    print(type(videos))
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    print(subscriber_count)
+    is_subscribed = False
+    if request.user.is_authenticated:
+        is_subscribed = Subscription.objects.filter(
+            subscriber=request.user,
+            channel=channel_user
+        ).exists() 
+    print(is_subscribed)
+
     context = {
         "channel_user":channel_user,
         "request_user":request.user,
-        "videos":videos
+        "latest_video":latest_video,
+        "other_videos":other_videos,
+        "subscriber_count":subscriber_count,
+        "is_subscribed":is_subscribed
     }
     return render(request, "videos/user_page.html", context)
+
+@login_required
+def user_profile_videos(request, username):
+    channel_user = get_object_or_404(User, username=username)
+    videos = Video.objects.filter(user=channel_user)
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    return render(request, "videos/channel_user_videos.html", {
+        "channel_user": channel_user,
+        "subscriber_count":subscriber_count,
+        "videos": videos
+    })
+
 
 @login_required
 def create_payment(request, plan_id):
@@ -65,9 +96,9 @@ def payment_success(request):
 @require_POST
 @login_required
 def toggle_subscribe(request, user_id):
-    channel = get_object_or_404(User, id=user_id)
-
-    if channel == request.user:
+    channel_user = get_object_or_404(User, id=user_id)
+    print("Inside toggle subs",channel_user)
+    if channel_user == request.user:
         return JsonResponse(
             {"error": "You cannot subscribe to yourself"},
             status=400
@@ -75,19 +106,21 @@ def toggle_subscribe(request, user_id):
 
     sub, created = Subscription.objects.get_or_create(
         subscriber=request.user,
-        channel=channel
+        channel=channel_user
     )
+    print(sub,created)
+    print(not created)
 
     if not created:
         sub.delete()
         subscribed = False
     else:
         subscribed = True
-
-    return JsonResponse({
+    context = {
         "subscribed": subscribed,
-        "count": channel.subscribers.count()
-    })
+        "count": channel_user.subscribers.count()
+    }
+    return JsonResponse(context)
 
 @require_POST
 @login_required

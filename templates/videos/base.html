@@ -239,7 +239,7 @@
                             <small>{{ user.email }}</small>
                         </div>
 
-                        <a href="{% url 'user_settings' %}">⚙️ Settings</a>
+                        <a href="">⚙️ Settings</a>
 
                         <form method="post" action="{% url 'logout' %}">
                             {% csrf_token %}

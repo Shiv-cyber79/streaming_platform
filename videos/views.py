@@ -326,7 +326,7 @@ def create_playlist(request):
             playlist = Playlist.objects.create(
                 name=form.cleaned_data["playlist_name"],
                 user=request.user,
-                is_public=form.cleaned_data("is_public",False)
+                is_public=form.cleaned_data.get("is_public",False)
             )
 
             video = Video.objects.create(

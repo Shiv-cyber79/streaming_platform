@@ -1,4 +1,4 @@
-from .models import UserSubscription
+from users.models import UserSubscription
 from django.utils import timezone
 
 def has_active_subscription(user):

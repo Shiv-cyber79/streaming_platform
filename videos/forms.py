@@ -1,10 +1,10 @@
 from django import forms
-from .models import Playlist, Video, Profile, User
-
+from .models import Playlist, Video, User
+from users.models import Channel
 class ProfilePhotoForm(forms.ModelForm):
     class Meta:
-        model = Profile
-        fields = ["avatar"]
+        model = Channel
+        fields = ["profile_picture"]
 
 class NameChangeForm(forms.ModelForm):
     class Meta:

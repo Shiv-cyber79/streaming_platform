@@ -301,47 +301,15 @@
 <!-- ==================== NAV ==================== -->
 <nav class="nav-tabs">
     <a href="{% url 'user_profile' channel_user.username %}" class="">Home</a>
-    <a href="{% url 'user_profile_videos' channel_user.username %}">Videos</a>
-    <a href="{% url 'playlist_list' %}">Playlists</a>
+    <a href="{% url 'user_profile_videos' channel_user %}" class="active"></a>Videos</a>
+    <a href="#">Playlists</a>
     <a href="#">Posts</a>
 </nav>
 
 <!-- ==================== CONTENT ==================== -->
-{% if latest_video %}
-<section class="featured-video">
-
-    <!-- Video player -->
-    <div class="featured-player">
-        <video controls autoplay muted>
-            <source src="{{ latest_video.video_file.url }}">
-        </video>
-    </div>
-
-    <!-- Video info -->
-    <div class="featured-info">
-
-        <h2 class="featured-title">
-            {{ latest_video.title }}
-        </h2>
-
-        <p class="featured-meta">
-            {{ latest_video.views }} views •
-            {{ latest_video.created_at|timesince }} ago
-        </p>
-
-        <p class="featured-desc">
-            {{ latest_video.description|truncatechars:150 }}
-        </p>
-
-    </div>
-
-</section>
-{% endif %}
 <section class="content">
-    <h4>More Videos</h4>
-    <br>
     <div class="video-grid">
-        {% for video in other_videos %}
+        {% for video in videos %}
             <a href="{% url 'video_detail' video.id %}" class="video-link">
                 <div class="video-card">
                     <div class="thumbnail"> 
@@ -360,7 +328,6 @@
     </div>
 </section>
 
-<!-- ==================== JAVASCRIPT ==================== -->
 <script>
 /* SUBSCRIBE */
 document.getElementById("subscribeBtn")?.addEventListener("click", function () {
@@ -375,6 +342,5 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
 });
 
 </script>
-
 
 {% endblock %}
