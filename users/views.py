@@ -5,6 +5,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
+from django.contrib import messages
 
 from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
 from videos.models import Video,VideoLike, Playlist
@@ -182,6 +183,51 @@ def subscription_plans(request):
     })
 
 @login_required
+def unsubscribe(request, channel_id):
+    if request.method == "POST":
+        Subscription.objects.filter(
+            subscriber=request.user,
+            channel_id=channel_id
+        ).delete()
+
+    return redirect(request.META.get("HTTP_REFERER", "home"))
+
+# @login_required
+# def user_settings(request):
+#     profile, _ = Channel.objects.get_or_create(user=request.user)
+
+#     photo_form = ProfilePhotoForm(instance=profile)
+#     name_form = NameChangeForm(instance=request.user)
+
+#     if request.method == "POST":
+#         if "photo_submit" in request.POST:
+#             photo_form = ProfilePhotoForm(
+#                 request.POST,
+#                 request.FILES,
+#                 instance=profile
+#             )
+#             if photo_form.is_valid():
+#                 photo_form.save()
+
+#         elif "name_submit" in request.POST:
+#             name_form = NameChangeForm(
+#                 request.POST,
+#                 instance=request.user
+#             )
+#             if name_form.is_valid():
+#                 name_form.save()
+#         # user = authenticate(request, username=username, password=password)
+#         # print(user,"Completed")
+
+#         return redirect("user_settings")
+
+#     return render(request, "videos/settings.html", {
+#         "photo_form": photo_form,
+#         "name_form": name_form,
+#         "profile": profile
+#     })
+
+@login_required
 def user_settings(request):
     profile, _ = Channel.objects.get_or_create(user=request.user)
 
@@ -189,25 +235,64 @@ def user_settings(request):
     name_form = NameChangeForm(instance=request.user)
 
     if request.method == "POST":
+     
         if "photo_submit" in request.POST:
             photo_form = ProfilePhotoForm(
                 request.POST,
                 request.FILES,
                 instance=profile
             )
-            if photo_form.is_valid():
-                photo_form.save()
 
+            if photo_form.is_valid():
+                new_avatar = photo_form.cleaned_data["avatar"]
+
+                if profile.avatar_requested_at:
+                 time_diff = timezone.now() - profile.avatar_requested_at
+                 if time_diff < timedelta(hours=3):
+                    remaining_time = timedelta(hours=3) - time_diff
+                    minutes_left = int(remaining_time.total_seconds() // 60)
+
+                    messages.error(
+                        request,
+                        f"You can change your profile picture after {minutes_left} minutes."
+                    )
+                    return redirect("user_settings")
+               
+                profile.avatar = new_avatar
+                profile.avatar_requested_at = timezone.now()
+                profile.save()
+
+                messages.success(
+                    request,
+                    "Profile picture update request submitted successfully."
+                )
+                return redirect("user_settings")
+
+       
         elif "name_submit" in request.POST:
             name_form = NameChangeForm(
                 request.POST,
                 instance=request.user
             )
+            print("Name Submit Pressed")
             if name_form.is_valid():
+                if profile.username_requested_at:
+                    time_diff = timezone.now() - profile.username_requested_at
+                    if time_diff < timedelta(hours=3):
+                        remaining_time = timedelta(hours=3) - time_diff
+                        minutes_left = int(remaining_time.total_seconds() // 60)
+
+                        messages.error(
+                            request,
+                            f"You can change your name after {minutes_left} minutes."
+                        )
+                        return redirect("user_settings")
                 name_form.save()
-
-        return redirect("user_settings")
-
+                profile.username_requested_at = timezone.now()
+                profile.save()
+                messages.success(request, "Profile name updated successfully.")
+                return redirect("user_settings")
+            
     return render(request, "videos/settings.html", {
         "photo_form": photo_form,
         "name_form": name_form,

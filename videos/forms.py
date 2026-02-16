@@ -39,6 +39,7 @@ class VideoForm(forms.ModelForm):
             "video_file",
             "is_private",
             "comments_enabled",
+            "thumbnail",
             "is_premium",   
         ]
 class PlaylistForm(forms.ModelForm):
@@ -56,5 +57,6 @@ class CreatePlaylistWithVideoForm(forms.Form):
     playlist_name = forms.CharField(max_length=200)
     video_title = forms.CharField(max_length=255)
     video_file = forms.FileField()
+    thumbnail = forms.ImageField(required=False)  
 
     is_public = forms.BooleanField(required=False, initial=True)

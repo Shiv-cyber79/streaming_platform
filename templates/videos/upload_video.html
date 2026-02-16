@@ -149,6 +149,11 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
+        <div>
+           <label>Thumbnail</label>
+           {{ form.thumbnail }}
+        </div>
+
         <label>Video Title</label>
         {{ form.title }}
 
@@ -177,8 +182,8 @@
 
         <div class="upload-actions">
             <button type="submit" class="action-btn">Upload</button>
-            <a href="{% url 'all_videos' %}" class="action-btn secondary-btn">
-                More Videos
+            <a href="{% url 'watch_all' %}" class="action-btn secondary-btn">
+               More Videos
             </a>
         </div>
     </form>

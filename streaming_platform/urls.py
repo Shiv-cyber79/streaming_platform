@@ -26,10 +26,16 @@ urlpatterns = [
     path("subscriptions/", views.subscription_feed, name="subscription_feed"),
     path("subscription-plans/", views.subscription_plans, name="subscription_plans"),
     path("notifications/", videos.views.notifications,name="notifications"),
+    path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
+
+    path("settings/", views.user_settings, name="user_settings"),
     # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),
 
-    # path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
-    # path("stripe-success/", views.stripe_success, name="stripe_success"),
+    path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
+    path("stripe-success/", views.stripe_success, name="stripe_success"),
+
+    path('watch/', videos.views.upload_video_detail, name='watch_all'),
+    path('watch/<int:video_id>/', videos.views.upload_video_detail, name='watch_video'),
 
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),

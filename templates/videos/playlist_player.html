@@ -153,7 +153,7 @@ textarea {
     padding: 10px;
 }
 
-=======
+
 
 /* VIDEO AREA */
 .video-section {
@@ -162,11 +162,22 @@ textarea {
     overflow-y: auto;
 }
 
-video {
+/* YouTube-style responsive video */
+.video-wrapper {
+    position: relative;
     width: 100%;
-    max-height: 75vh;
-    border-radius: 10px;
+    max-width: 1000px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
     background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
 /* VIDEO META */
@@ -310,13 +321,6 @@ textarea {
     padding: 8px 6px;
 }
 
-.playlist-header h3 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 16px;
-}
-
 .playlist-edit-btn {
     font-size: 12px;
     margin-left: 10px;
@@ -326,13 +330,6 @@ textarea {
     color: #aaa;
     text-decoration: none;
     border: 1px solid #303030;
-    transition: all 0.2s ease;
-}
-
-.playlist-edit-btn:hover {
-    color: white;
-    background: #2a2a2a;
-    border-color: #555;
 }
 
 .playlist-item {
@@ -373,13 +370,14 @@ textarea {
 
 <div class="container">
 
-<!-- VIDEO SECTION -->
 <div class="video-section">
 {% if current_video %}
 
-<video id="videoPlayer" controls autoplay preload="auto">
-    <source src="{{ current_video.video_file.url }}" type="video/mp4">
-</video>
+<div class="video-wrapper">
+    <video id="videoPlayer" controls autoplay muted playsinline>
+        <source src="{{ current_video.video_file.url }}" type="video/mp4">
+    </video>
+</div>
 
 <div class="video-meta">
     <h2>{{ current_video.title }}</h2>
@@ -400,17 +398,14 @@ textarea {
         </div>
 
         <div class="action-row">
-            <!-- LIKE -->
             <button id="likeBtn" class="like-btn">
                 👍 <span id="likeCount">{{ current_video.likes.count }}</span>
             </button>
 
-            <!-- SUBSCRIBE -->
             <button id="subscribeBtn" class="subscribe-btn">
                 Subscribe
             </button>
 
-            <!-- PREMIUM -->
             {% if current_video.is_premium %}
                 <a href="{% url 'subscription_plans' %}" class="premium-btn">
                     Join Premium
@@ -429,10 +424,7 @@ textarea {
     <h3>Comments</h3>
 
     {% for comment in current_video.comments.all %}
-        <p>
-            <strong>{{ comment.user.username }}</strong> :
-            {{ comment.text }}
-        </p>
+        <p><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</p>
     {% empty %}
         <p style="color:#aaa;">No comments yet.</p>
     {% endfor %}
@@ -449,32 +441,28 @@ textarea {
 {% endif %}
 </div>
 
-<!-- PLAYLIST -->
 <div class="playlist-section">
 
-    <!-- PLAYLIST NAME + EDIT INLINE -->
-    <div class="playlist-header">
-        <strong>
-            {{ playlist.name }}
-            <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">
-                ✎ 
-            </a>
-        </strong>
-    </div>
+<div class="playlist-header">
+    <strong>
+        {{ playlist.name }}
+        <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">✎</a>
+    </strong>
+</div>
 
-    <!-- CONTROLS (UNCHANGED) -->
-    <div class="controls">
-        <button id="shuffleBtn">Shuffle</button>
-        <button id="loopBtn">Loop</button>
-    </div>
+<div class="controls">
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="loopBtn">Loop</button>
+</div>
 
-    {% for video in videos %}
-        <a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
-            <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
-                {{ video.title }}
-            </div>
-        </a>
-    {% endfor %}
+{% for video in videos %}
+<a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
+    <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
+        {{ video.title }}
+    </div>
+</a>
+{% endfor %}
+
 </div>
 </div>
 
@@ -512,37 +500,51 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
 });
 
 /* PLAYER */
-let shuffle = false;
-let loop = false;
+document.addEventListener("DOMContentLoaded", function () {
 
-shuffleBtn.onclick = () => {
-    shuffle = !shuffle;
-    shuffleBtn.classList.toggle("active");
-};
+    const videoPlayer = document.getElementById("videoPlayer");
+    const shuffleBtn = document.getElementById("shuffleBtn");
+    const loopBtn = document.getElementById("loopBtn");
 
-loopBtn.onclick = () => {
-    loop = !loop;
-    loopBtn.classList.toggle("active");
-};
+    let shuffle = false;
+    let loop = false;
 
-videoPlayer?.addEventListener("ended", function () {
-    if (loop) {
-        videoPlayer.currentTime = 0;
-        videoPlayer.play();
-        return;
-    }
+    shuffleBtn?.addEventListener("click", function () {
+        shuffle = !shuffle;
+        this.classList.toggle("active");
+    });
 
-    const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
+    loopBtn?.addEventListener("click", function () {
+        loop = !loop;
+        this.classList.toggle("active");
+    });
 
-    if (shuffle) {
-        const randomIndex = Math.floor(Math.random() * ids.length);
-        window.location.href = "?video=" + ids[randomIndex];
-        return;
-    }
+    if (!videoPlayer) return;
 
-    {% if next_video %}
-        window.location.href = "?video={{ next_video.id }}";
-    {% endif %}
+    videoPlayer.play().catch(() => {});
+
+    videoPlayer.addEventListener("ended", function () {
+
+        if (loop) {
+            videoPlayer.currentTime = 0;
+            videoPlayer.play();
+            return;
+        }
+
+        const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
+
+        if (shuffle) {
+            const randomIndex = Math.floor(Math.random() * ids.length);
+            window.location.href = window.location.pathname + "?video=" + ids[randomIndex];
+            return;
+        }
+
+        {% if next_video %}
+            window.location.href = window.location.pathname + "?video={{ next_video.id }}";
+        {% endif %}
+
+    });
+
 });
 </script>
 

@@ -3,6 +3,9 @@ from django import forms
 from django.contrib.auth.models import User
 from .validators import validate_video_size
 from django.utils import timezone
+import os
+import subprocess
+from django.conf import settings
 
 
 # class Profile(models.Model):
@@ -27,20 +30,59 @@ class Video(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     video_file = models.FileField(upload_to="videos/")
-    thumbnail = models.ImageField(upload_to="thumbnails/", default="thumbnails/default.jpg")
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_private = models.BooleanField(default=False)
     is_premium = models.BooleanField(default=False)
+    duration = models.PositiveIntegerField(default=0)  
 
     views = models.PositiveIntegerField(default=0)  
+
+    CATEGORY_CHOICES = [ ("music", "Music"),("education", "Education"),("gaming", "Gaming"),("tech", "Technology"), ("vlog", "Vlog"),]
 
     created_at = models.DateTimeField(auto_now_add=True)
     comments_enabled = models.BooleanField(default=True)
 
+    def formatted_duration(self):
+        minutes = self.duration // 60
+        seconds = self.duration % 60
+        return f"{minutes}:{seconds:02d}"
+    
+    def save(self, *args, **kwargs):
+     is_new = self.pk is None
+     super().save(*args, **kwargs)
+
+     if is_new and self.video_file:
+      generate_thumbnail(self)
     def __str__(self):
         return self.title
     
+def generate_thumbnail(video_instance):
+    if not video_instance.video_file:
+        return
+
+    video_path = video_instance.video_file.path
+
+    thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
+    os.makedirs(thumbnail_dir, exist_ok=True)
+
+    thumbnail_name = f"{video_instance.id}.jpg"
+    thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
+
+    command = [
+        "ffmpeg",
+        "-i", video_path,
+        "-ss", "00:00:02",
+        "-vframes", "1",
+        thumbnail_path
+    ]
+
+    result = subprocess.run(command)
+
+    if result.returncode == 0:
+        video_instance.thumbnail = f"thumbnails/{thumbnail_name}"
+        video_instance.save()
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist

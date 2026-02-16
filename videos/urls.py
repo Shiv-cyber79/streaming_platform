@@ -18,4 +18,17 @@ urlpatterns = [
     path("playlists/<int:playlist_id>/edit/",views.edit_playlist, name="edit_playlist"),
     path("playlists/<int:playlist_id>/", views.playlist_detail, name="playlist_detail"),
     path("playlists/new/", views.create_playlist, name="create_playlist"),
+
+
+    # path("settings/", views.user_settings, name="user_settings"),
+    # path("subscription-plans/", views.subscription_plans, name="subscription_plans"),
+    # # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),
+
+    # path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
+    # path("stripe-success/", views.stripe_success, name="stripe_success"),
+
+    # path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
+    
+    # path('watch/', views.upload_video_detail, name='watch_all'),
+    # path('watch/<int:video_id>/', views.upload_video_detail, name='watch_video'),
 ]

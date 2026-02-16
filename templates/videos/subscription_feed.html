@@ -9,29 +9,83 @@
     padding: 20px;
 }
 
+.feed h2 {
+    margin-bottom: 20px;
+}
+
 .video-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 20px;
+    gap: 22px;
 }
 
 .video-card {
     cursor: pointer;
+    transition: transform 0.2s ease;
+    position: relative;
 }
 
-.video-card img {
+.video-card:hover {
+    transform: scale(1.03);
+}
+
+.thumbnail-wrapper {
+    position: relative;
+}
+
+.thumbnail {
     width: 100%;
-    border-radius: 10px;
+    height: 170px;
+    object-fit: cover;
+    border-radius: 12px;
 }
 
-.video-card h4 {
-    margin: 8px 0 2px;
+/* 🔒 Premium Badge */
+.premium-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: gold;
+    color: black;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 6px;
+}
+
+/* 🔐 Private Badge */
+.private-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #ff4d4d;
+    color: white;
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 6px;
+}
+
+.video-info {
+    padding-top: 8px;
+}
+
+.video-info h4 {
+    margin: 6px 0 4px;
     font-size: 15px;
+    font-weight: 600;
+    color: white;
 }
 
-.video-card span {
-    font-size: 13px;
+.video-info p {
+    margin: 0;
+    font-size: 14px;
     color: #aaa;
+}
+
+.video-info small {
+    color: #888;
+    font-size: 12px;
 }
 </style>
 
@@ -41,13 +95,37 @@
     {% if videos %}
     <div class="video-grid">
         {% for video in videos %}
-        <a href="{% url 'video_detail' video.id %}" style="color:white;text-decoration:none;">
-            <div class="video-card">
-                <img src="{{ video.thumbnail.url }}">
+        <div class="video-card">
+            <a href="{% url 'video_detail' video.id %}" style="text-decoration:none;">
+
+                <div class="thumbnail-wrapper">
+
+                    {% if video.thumbnail %}
+                        <img src="{{ video.thumbnail.url }}" class="thumbnail">
+                    {% else %}
+                        <img src="https://via.placeholder.com/400x225?text=No+Thumbnail" class="thumbnail">
+                    {% endif %}
+
+                    {% if video.is_premium %}
+                        <div class="premium-badge">🔒 Premium</div>
+                    {% endif %}
+
+                    {% if video.is_private %}
+                        <div class="private-badge">🔐 Private</div>
+                    {% endif %}
+
+                </div>
+
+            </a>
+
+            <div class="video-info">
                 <h4>{{ video.title }}</h4>
-                <span>{{ video.user.username }} • {{ video.views }} views</span>
+                <p>{{ video.user.username }}</p>
+                <small>
+                    {{ video.views }} views • {{ video.created_at|timesince }} ago
+                </small>
             </div>
-        </a>
+        </div>
         {% endfor %}
     </div>
     {% else %}
