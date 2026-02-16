@@ -40,14 +40,18 @@
         .banner {
             height: 260px;
             background: linear-gradient(135deg, #1f1f1f, #333);
+            margin-bottom: 10px;
         }
 
         .channel-info {
             display: flex;
+            margin: auto;
             align-items: center;
             gap: 20px;
             padding: 0 40px;
-            margin-top: -60px;
+            margin-top: 0px;
+            background: #0f0f0f; 
+            border-bottom: 1px solid #222;
         }
 
         .profile-img {
@@ -99,6 +103,43 @@
             cursor: pointer;
             font-weight: 600;
             transition: all 0.3s ease;
+        }
+        .channel-description {
+            margin-top: 6px;
+            max-width: 600px;
+        }
+
+        .desc {
+            color: #ccc;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* collapsed text */
+        .collapsed {
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .featured-desc.collapsed {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+
+        line-clamp: 3;
+        -webkit-line-clamp: 3;
+
+        overflow: hidden;
+    }
+
+        .view-more-btn {
+            background: none;
+            border: none;
+            color: #3ea6ff;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 0;
+            margin-top: 4px;
         }
 
         .subscribe {
@@ -247,8 +288,7 @@
         }
 
         .featured-desc {
-            color: #ddd;
-            line-height: 1.5;
+            margin-top: 6px;
         }
 
         /* -------------------- RESPONSIVE -------------------- */
@@ -279,6 +319,17 @@
                 <span class="badge"></span>
             </h1>
             <p>{{ subscriber_count }} subscribers</p>
+            {% if channel_user.profile.description %}
+            <div class="channel-description">
+                <p id="channelDesc" class="desc collapsed">
+                    {{ channel_user.profile.description }}
+                </p>
+
+                <button id="toggleDesc" class="view-more-btn">
+                    View more
+                </button>
+            </div>
+            {% endif %}
         </div>
 
         <div class="channel-actions">
@@ -300,67 +351,12 @@
 
 <!-- ==================== NAV ==================== -->
 <nav class="nav-tabs">
-    <a href="{% url 'user_profile' channel_user.username %}" class="">Home</a>
-    <a href="{% url 'user_profile_videos' channel_user.username %}">Videos</a>
-    <a href="{% url 'playlist_list' %}">Playlists</a>
-    <a href="#">Posts</a>
+    <a href="{% url 'user_profile' channel_user %}" >Home</a>
+    <a href="{% url 'user_profile_videos' channel_user %}">Videos</a>
+    <a href="{% url 'user_profile_playlists' channel_user %}" class="active">Playlists</a>
+    <a href="{% url 'user_profile_posts' channel_user %}">Posts</a>
 </nav>
 
-<!-- ==================== CONTENT ==================== -->
-{% if latest_video %}
-<section class="featured-video">
-
-    <!-- Video player -->
-    <div class="featured-player">
-        <video controls autoplay muted>
-            <source src="{{ latest_video.video_file.url }}">
-        </video>
-    </div>
-
-    <!-- Video info -->
-    <div class="featured-info">
-
-        <h2 class="featured-title">
-            {{ latest_video.title }}
-        </h2>
-
-        <p class="featured-meta">
-            {{ latest_video.views }} views •
-            {{ latest_video.created_at|timesince }} ago
-        </p>
-
-        <p class="featured-desc">
-            {{ latest_video.description|truncatechars:150 }}
-        </p>
-
-    </div>
-
-</section>
-{% endif %}
-<section class="content">
-    <h4>More Videos</h4>
-    <br>
-    <div class="video-grid">
-        {% for video in other_videos %}
-            <a href="{% url 'video_detail' video.id %}" class="video-link">
-                <div class="video-card">
-                    <div class="thumbnail"> 
-                        {{ video.thumbnail }}
-                    </div>
-
-                    <div class="video-info">
-                        <h3>{{ video.title }}</h3>
-                        <span>{{ video.views }} views • {{ video.created_at|timesince }} ago</span>
-                    </div>
-                </div>
-            </a>
-        {% empty %}
-            <p style="color:#aaa;">No videos uploaded yet.</p>
-        {% endfor %}
-    </div>
-</section>
-
-<!-- ==================== JAVASCRIPT ==================== -->
 <script>
 /* SUBSCRIBE */
 document.getElementById("subscribeBtn")?.addEventListener("click", function () {
@@ -370,11 +366,23 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     })
     .then(res => res.json())
     .then(data => {
-        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
+        this.innerText = data.subscribed ? "Unsubscribe" : "Subscribe";
     });
 });
 
-</script>
+/* CHANNEL DESCRIPTION */
+const desc = document.getElementById("channelDesc");
+const btn = document.getElementById("toggleDesc");
 
+if (btn) {
+    btn.onclick = () => {
+        desc.classList.toggle("collapsed");
+        btn.innerText =
+            desc.classList.contains("collapsed")
+            ? "View more"
+            : "Show less";
+    };
+}
+</script>
 
 {% endblock %}

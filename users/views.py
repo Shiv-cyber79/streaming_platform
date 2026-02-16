@@ -7,7 +7,7 @@ from django.utils import timezone
 from django.conf import settings
 
 from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
-from videos.models import Video,VideoLike
+from videos.models import Video,VideoLike, Playlist
 from videos.forms import ProfilePhotoForm,NameChangeForm
 import razorpay
 from datetime import timedelta
@@ -17,8 +17,9 @@ from datetime import timedelta
 def user_profile(request, username):
     channel_user = get_object_or_404(User,username=username)
     print("Channel username",channel_user,"request username",request.user)
-    videos = Video.objects.filter(user=channel_user).order_by("created_at")
+    videos = Video.objects.filter(user=channel_user).order_by("-created_at")
     latest_video = videos.first()
+    # print("latest video",latest_video)
     other_videos = videos[1:]
     print(type(videos))
     subscriber_count = Subscription.objects.filter(
@@ -41,21 +42,39 @@ def user_profile(request, username):
         "subscriber_count":subscriber_count,
         "is_subscribed":is_subscribed
     }
-    return render(request, "videos/user_page.html", context)
+    return render(request, "videos/channel_page.html", context)
 
 @login_required
 def user_profile_videos(request, username):
     channel_user = get_object_or_404(User, username=username)
+    print("inside channel videos:",channel_user)
     videos = Video.objects.filter(user=channel_user)
     subscriber_count = Subscription.objects.filter(
         channel=channel_user
     ).count()
-    return render(request, "videos/channel_user_videos.html", {
+    return render(request, "videos/channel_videos.html", {
         "channel_user": channel_user,
         "subscriber_count":subscriber_count,
         "videos": videos
     })
 
+def user_profile_playlists(request, username):
+    channel_user = get_object_or_404(User,username=username)
+    playlists = Playlist.objects.filter(user=channel_user.id)
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    print("playlists:\n",playlists)
+    context = {
+        "channel_user":channel_user,
+        "subscriber_count":subscriber_count,
+        "playlists": playlists
+    }
+    return render(request,"videos/channel_playlists.html",context)
+
+def user_profile_posts(request,username):
+    # return HttpResponse("Posts page")
+    return render(request,'videos/channel_posts.html',{'channel_user':username})
 
 @login_required
 def create_payment(request, plan_id):
