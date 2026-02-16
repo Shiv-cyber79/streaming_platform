@@ -13,15 +13,38 @@ from django.utils import timezone
 from datetime import timedelta
 from django.urls import reverse
 from django.db.models import Q
+from django.contrib import messages
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
-    playlists = Playlist.objects.all()
+    category = request.GET.get("category")
+    query = request.GET.get("q")   
+
+    if request.user.is_authenticated:
+        videos = Video.objects.filter(
+            Q(is_private=False) | Q(user=request.user)
+        )
+    else:
+        videos = Video.objects.filter(
+            is_private=False
+        )
+        
+    if query:
+        videos = videos.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query) |
+            Q(user__username__icontains=query)
+        )
+
+    videos = videos.order_by("-created_at")
+
     return render(request, "videos/home.html", {
-        "playlists": playlists
+        "videos": videos,
+        "query": query   
     })
+
 
 def playlist_list(request):
     playlists = Playlist.objects.filter(user=request.user)
@@ -36,7 +59,7 @@ def stream_video(request, video_id):
     if video.is_private and video.user != request.user:
         return HttpResponseForbidden("Private video")
 
-    return FileResponse(video.video_file.open(), content_type="video/mp4")@login_required
+    return FileResponse(video.video_file.open(), content_type="video/mp4")
 
 @login_required
 def subscription_plans(request):
@@ -166,6 +189,24 @@ def upload_video(request):
 
     return render(request, "videos/upload_video.html", {"form": form})
 
+def upload_video_detail(request, video_id=None):
+    videos = Video.objects.filter(is_private=False).order_by('-created_at')
+
+    if video_id:
+        video = Video.objects.get(id=video_id)
+    else:
+        video = videos.first()
+
+    subscribed_channels = Subscription.objects.filter(subscriber=request.user)
+    playlists = Playlist.objects.filter(user=request.user)
+    suggested_videos = videos.exclude(id=video.id)
+
+    return render(request, 'videos/upload_video_detail.html', {
+        'video': video,
+        'suggested_videos': suggested_videos,
+        'subscribed_channels': subscribed_channels,
+        'playlists': playlists,
+    })
 @login_required
 def notifications(request):
     notifications = (
@@ -187,16 +228,26 @@ def video_list(request):
         "playlists": playlists
     })
 
-@login_required(login_url="login")
 def video_detail(request, video_id):
-    video = get_object_or_404(Video, id=video_id)
+    video = Video.objects.get(id=video_id)
 
-  
-    if video.is_private:
-        if not request.user.is_authenticated or video.user != request.user:
-            return HttpResponseForbidden("This video is private.")
+    suggested_videos = Video.objects.exclude(id=video_id)[:10]
 
-    return render(request, "videos/video_detail.html", {"video": video})
+    from_page = request.GET.get("from")  # 👈 IMPORTANT
+
+    subscribed_channels = []
+    if request.user.is_authenticated:
+        from .models import Subscription
+        subscribed_channels = Subscription.objects.filter(
+            subscriber=request.user
+        ).select_related("channel")
+
+    return render(request, "videos/video_detail.html", {
+        "video": video,
+        "suggested_videos": suggested_videos,
+        "subscribed_channels": subscribed_channels,
+        "from_page": from_page
+    })
 
 @require_POST
 @login_required
@@ -245,6 +296,16 @@ def toggle_subscribe(request, user_id):
         "subscribed": subscribed,
         "count": channel.subscribers.count()
     })
+
+@login_required
+def unsubscribe(request, channel_id):
+    if request.method == "POST":
+        Subscription.objects.filter(
+            subscriber=request.user,
+            channel_id=channel_id
+        ).delete()
+
+    return redirect(request.META.get("HTTP_REFERER", "home"))
 
 @login_required
 def subscription_feed(request):
@@ -337,13 +398,14 @@ def create_playlist(request):
             playlist = Playlist.objects.create(
                 name=form.cleaned_data["playlist_name"],
                 user=request.user,
-                is_public=form.cleaned_data("is_public",False)
+                is_public=form.cleaned_data.get("is_public", False)
             )
 
             video = Video.objects.create(
-                title=form.cleaned_data["video_title"],
-                video_file=form.cleaned_data["video_file"],
-                user=request.user
+               title=form.cleaned_data["video_title"],
+               video_file=form.cleaned_data["video_file"],
+               thumbnail=form.cleaned_data.get("thumbnail"),
+               user=request.user
             )
 
             playlist.videos.add(video)
@@ -380,25 +442,64 @@ def user_settings(request):
     name_form = NameChangeForm(instance=request.user)
 
     if request.method == "POST":
+     
         if "photo_submit" in request.POST:
             photo_form = ProfilePhotoForm(
                 request.POST,
                 request.FILES,
                 instance=profile
             )
-            if photo_form.is_valid():
-                photo_form.save()
 
+            if photo_form.is_valid():
+                new_avatar = photo_form.cleaned_data["avatar"]
+
+                if profile.avatar_requested_at:
+                 time_diff = timezone.now() - profile.avatar_requested_at
+                 if time_diff < timedelta(hours=3):
+                    remaining_time = timedelta(hours=3) - time_diff
+                    minutes_left = int(remaining_time.total_seconds() // 60)
+
+                    messages.error(
+                        request,
+                        f"You can change your profile picture after {minutes_left} minutes."
+                    )
+                    return redirect("user_settings")
+               
+                profile.avatar = new_avatar
+                profile.avatar_requested_at = timezone.now()
+                profile.save()
+
+                messages.success(
+                    request,
+                    "Profile picture update request submitted successfully."
+                )
+                return redirect("user_settings")
+
+       
         elif "name_submit" in request.POST:
             name_form = NameChangeForm(
                 request.POST,
                 instance=request.user
             )
+            print("Name Submit Pressed")
             if name_form.is_valid():
+                if profile.username_requested_at:
+                    time_diff = timezone.now() - profile.username_requested_at
+                    if time_diff < timedelta(hours=3):
+                        remaining_time = timedelta(hours=3) - time_diff
+                        minutes_left = int(remaining_time.total_seconds() // 60)
+
+                        messages.error(
+                            request,
+                            f"You can change your name after {minutes_left} minutes."
+                        )
+                        return redirect("user_settings")
                 name_form.save()
-
-        return redirect("user_settings")
-
+                profile.username_requested_at = timezone.now()
+                profile.save()
+                messages.success(request, "Profile name updated successfully.")
+                return redirect("user_settings")
+            
     return render(request, "videos/settings.html", {
         "photo_form": photo_form,
         "name_form": name_form,

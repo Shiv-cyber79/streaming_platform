@@ -34,6 +34,7 @@ def login_view(request):
         password = request.POST.get("password")
 
         user = authenticate(request, username=username, password=password)
+        print(user,"Completed")
 
         if user is None:
             messages.error(request, "Invalid username or password")

@@ -90,12 +90,39 @@
             display: none;
             position: absolute;
             right: 0;
-            top: 45px;
+            top: 48px;
             background: #1f1f1f;
-            border-radius: 6px;
-            width: 160px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            border-radius: 14px;
+            width: 250px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             z-index: 2000;
+            overflow: hidden;
+            border: 1px solid #303030;
+        }
+
+        .profile-dropdown a,
+        .dropdown-logout {
+           display: block;
+           padding: 12px 18px;
+           color: white;
+           text-decoration: none;
+           background: none;
+           border: none;
+           text-align: left;
+           cursor: pointer;
+           font-size: 14px;
+           transition: 0.2s ease;
+        }
+
+        .profile-dropdown a:hover,
+        .dropdown-logout:hover {
+           background: #2a2a2a;
+        }
+
+       .profile-divider {
+           height: 1px;
+           background: #303030;
+           margin: 6px 0;
         }
 
         .profile-dropdown a,
@@ -156,6 +183,61 @@
             cursor: pointer;
             color: #777;
         }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #000;
+            border-bottom: 1px solid #222;
+        }
+
+        /* LEFT */
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* CENTER (IMPORTANT 🔥) */
+            .nav-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* SEARCH BAR */
+        .search-form {
+            display: flex;
+            width: 60%;
+            max-width: 600px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 25px 0 0 25px;
+            border: 1px solid #333;
+            background: #121212;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 10px 18px;
+            border-radius: 0 25px 25px 0;
+            border: 1px solid #333;
+            background: #222;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background: #333;
+        }
+
     </style>
 </head>
 
@@ -163,22 +245,38 @@
 
 <div class="navbar">
 
-    <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
-        ▶ Stream
-    </a>
+    <!-- LEFT -->
+    <div class="nav-left">
+        <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
+            ▶ Stream
+        </a>
 
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
 
-    <div class="nav-links">
-        <a href="{% url 'home' %}">Home</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'subscription_feed' %}">Subscriptions</a>
+                <a href="{% url 'playlist_list' %}">Playlists</a>
+                <a href="{% url 'upload_video' %}">Upload</a>
+            {% else %}
+                <button onclick="openLoginPopup()">Playlists</button>
+                <button onclick="openLoginPopup()">Upload</button>
+            {% endif %}
+        </div>
+    </div>
 
-        {% if user.is_authenticated %}
-            <a href="{% url 'subscription_feed' %}">Subscriptions</a>
-            <a href="{% url 'playlist_list' %}">Playlists</a>
-            <a href="{% url 'upload_video' %}">Upload</a>
-        {% else %}
-            <button onclick="openLoginPopup()">Playlists</button>
-            <button onclick="openLoginPopup()">Upload</button>
-        {% endif %}
+    <!-- CENTER 🔥 -->
+    <div class="nav-center">
+        <form method="GET" action="{% url 'home' %}" class="search-form">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search" 
+                value="{{ request.GET.q }}"
+                class="search-input"
+            >
+            <button type="submit" class="search-btn">🔍</button>
+        </form>
     </div>
 
     <div class="nav-right">
@@ -239,14 +337,22 @@
                             <small>{{ user.email }}</small>
                         </div>
 
+                        <div class="profile-divider"></div>
+
+                        <a href="{% url 'subscription_plans' %}">💎 Purchase</a>
+
+                        <a href="{% url 'subscription_feed' %}">⭐ Membership</a>
+
+                        <div class="profile-divider"></div>
+
                         <a href="{% url 'user_settings' %}">⚙️ Settings</a>
 
                         <form method="post" action="{% url 'logout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-logout">
-                                🚪 Logout
-                            </button>
-                        </form>
+                              {% csrf_token %}
+                              <button type="submit" class="dropdown-logout">
+                                  🚪 Logout
+                              </button>
+                          </form>
                     </div>
                 </div>
             {% else %}

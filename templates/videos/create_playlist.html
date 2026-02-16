@@ -1,32 +1,120 @@
 {% extends "videos/base.html" %}
-
+{% block title %}Create Playlist{% endblock %}
 {% block content %}
-<div style="max-width:500px; margin-left:1em;" class="container">
-    <h2>Create New Playlist</h2>
 
-    <form method="post" enctype="multipart/form-data">
+<style>
+.create-container {
+    max-width: 600px;
+    margin: 60px auto;
+    background: #1f1f1f;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+}
+
+.create-container h2 {
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    color: #aaa;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: white;
+    font-size: 14px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #ff0000;
+    box-shadow: 0 0 5px rgba(255,0,0,0.5);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    background: #ff0000;
+    color: white;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+input[type="file"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    background: #2a2a2a;
+    color: #ccc;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+input[type="file"]:hover {
+    border-color: #ff0000;
+    background: #333;
+}
+
+.submit-btn:hover {
+    background: #cc0000;
+    transform: translateY(-2px);
+}
+</style>
+
+<div class="create-container">
+    <h2>🎬 Create New Playlist</h2>
+
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <label>Playlist Name</label><br>
-        {{ form.playlist_name }}<br><br>
-        
-        <label>Video Title</label><br>
-        {{ form.video_title }}<br><br>
+        <div class="form-group">
+            <label>Playlist Name</label>
+            {{ form.playlist_name }}
+        </div>
 
-        <label>Upload Video</label><br>
-        {{ form.video_file }}<br><br>
+        <div class="form-group">
+            <label>Upload Thumbnail</label>
+            {{ form.thumbnail }}
+        </div>
 
-        <button type="submit"
-                style="background:#ff0000;color:white;
-                       padding:5px 20px;border:none;
-                       border-radius:20px;">
-            Create Playlist
+        <div class="form-group">
+            <label>Video Title</label>
+            {{ form.video_title }}
+        </div>
+
+        <div class="form-group">
+            <label>Upload Video</label>
+            {{ form.video_file }}
+        </div>
+
+        <div class="form-group">
+            <label>
+                {{ form.is_public }} Make Playlist Public
+            </label>
+        </div>
+
+        <button type="submit" class="submit-btn">
+             Create Playlist
         </button>
-
-        <a href="{% url 'playlist_list' %}" style="margin-left:15px;">
-            Cancel
-        </a>
     </form>
-
 </div>
+
 {% endblock %}

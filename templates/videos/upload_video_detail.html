@@ -1,0 +1,111 @@
+{% extends "videos/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+.layout {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* LEFT */
+.sidebar {
+    width: 220px;
+    border-right: 1px solid #222;
+    padding: 10px;
+}
+
+/* CENTER */
+.player {
+    flex: 3;
+}
+
+/* RIGHT */
+.right-panel {
+    flex: 1.5;
+}
+
+/* PLAYER */
+.yt-player {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.yt-player video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* CHANNEL */
+.channel-item {
+    padding: 6px;
+    border-radius: 6px;
+}
+
+.channel-item:hover {
+    background: #1f1f1f;
+}
+
+/* PLAYLIST */
+.playlist-item {
+    padding: 6px;
+    border-radius: 6px;
+    background: #111;
+    margin-bottom: 5px;
+}
+</style>
+
+<div class="layout">
+
+    <!-- LEFT: SUBSCRIPTIONS -->
+    <div class="sidebar">
+        <h3>Subscriptions</h3>
+
+        {% for sub in subscribed_channels %}
+            <div class="channel-item">
+                {{ sub.channel.username }}
+            </div>
+        {% empty %}
+            <p>No subscriptions</p>
+        {% endfor %}
+    </div>
+
+
+    <!-- CENTER: VIDEO -->
+    <div class="player">
+
+        <h2>{{ video.title }}</h2>
+
+        <div class="yt-player">
+            <video controls autoplay>
+                <source src="{{ video.video_file.url }}" type="video/mp4">
+            </video>
+        </div>
+
+        <p>{{ video.description }}</p>
+
+    </div>
+
+
+    <!-- RIGHT: SUGGESTED + PLAYLIST -->
+    <div class="right-panel">
+
+        
+        <h3>Suggested</h3>
+        {% for v in suggested_videos %}
+            <a href="{% url 'watch_video' v.id %}
+                {{ v.title }}
+            </a>
+        {% endfor %}
+
+    </div>
+
+</div>
+
+{% endblock %}

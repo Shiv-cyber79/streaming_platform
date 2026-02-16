@@ -1,6 +1,8 @@
 # Media files
 media/
 
+migrations/
+
 # Python
 __pycache__/
 *.pyc
@@ -11,3 +13,6 @@ venv/
 
 # DB
 db.sqlite3
+
+*.jpg
+*.mp4

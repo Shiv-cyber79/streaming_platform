@@ -28,5 +28,8 @@ urlpatterns = [
     path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
     path("stripe-success/", views.stripe_success, name="stripe_success"),
 
+    path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
     
+    path('watch/', views.upload_video_detail, name='watch_all'),
+    path('watch/<int:video_id>/', views.upload_video_detail, name='watch_video'),
 ]
