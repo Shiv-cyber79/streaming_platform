@@ -1,10 +1,164 @@
-<h2>Signup</h2>
-<form method="post" action="{% url 'signup' %}?next={{ request.GET.next }}">
-    {% csrf_token %}
-    <input type="text" name="username" placeholder="Username" required><br><br>
-    <input type="email" name="email" placeholder="Email" required><br><br>
-    <input type="password" name="password" placeholder="Password" required><br><br>
-    <button type="submit">Create Account</button>
-</form>
+{% load static %}
+{% load socialaccount %}
+<style>
+    body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0f0f0f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: Roboto, Arial, sans-serif;
+    }
 
-<a href="/users/login/">Login</a>
+    .signup-card {
+        width: 100%;
+        max-width: 380px;
+        background: #181818;
+        padding: 32px;
+        border-radius: 14px;
+        box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+        text-align: center;
+    }
+
+    .brand {
+        font-size: 22px;
+        font-weight: bold;
+        color: red;
+        margin-bottom: 10px;
+    }
+
+    h2 {
+        color: white;
+        margin-bottom: 6px;
+    }
+
+    .subtitle {
+        color: #aaa;
+        font-size: 14px;
+        margin-bottom: 22px;
+    }
+
+    /* inputs */
+    .signup-card input {
+        width: 100%;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        border-radius: 8px;
+        border: 1px solid #333;
+        background: #0f0f0f;
+        color: white;
+        outline: none;
+    }
+
+    .signup-card input:focus {
+        border-color: red;
+    }
+
+    /* main button */
+    .create-btn {
+        width: 100%;
+        padding: 13px;
+        border: none;
+        border-radius: 999px;
+        background: #ff0000;
+        color: white;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-top: 6px;
+    }
+
+    .create-btn:hover {
+        background: #e60000;
+    }
+
+    /* divider */
+    .divider {
+        margin: 18px 0;
+        color: #777;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #333;
+    }
+
+    /* google button */
+    .google-btn {
+        width: 100%;
+        padding: 11px;
+        border-radius: 999px;
+        border: 1px solid #333;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 14px;
+        text-decoration: none;   /* important */
+    }
+    .google-btn:hover {
+        background: #222;
+    }
+
+    .google-icon {
+        width: 18px;
+    }
+
+    /* login link */
+    .login-link {
+        margin-top: 18px;
+        font-size: 14px;
+        color: #aaa;
+    }
+
+    .login-link a {
+        color: #3ea6ff;
+        text-decoration: none;
+    }
+
+</style>
+
+
+<div class="signup-card">
+
+    <div class="brand">▶ Stream</div>
+
+    <h2>Create account</h2>
+    <p class="subtitle">Welcome to Stream...</p>
+
+    <form method="post" action="{% url 'signup' %}?next={{ request.GET.next }}">
+        {% csrf_token %}
+
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+
+        <button type="submit" class="create-btn">Create account</button>
+    </form>
+
+    <div class="divider">OR</div>
+
+    <!-- Google login UI -->
+    <a href="{% provider_login_url 'google' %}" class="google-btn">
+        <img class="google-icon"
+            src="https://www.svgrepo.com/show/475656/google-color.svg">
+        Continue with Google
+    </a>
+
+    <div class="login-link">
+        Already have an account?
+        <a href="{% url 'login' %}">Log in</a>
+    </div>
+
+</div>

@@ -10,7 +10,6 @@ from django.db.models import F
 from .utils import has_active_subscription
 import stripe
 from django.conf import settings
-from django.urls import reverse
 from django.db.models import Q
 
 from users.models import Subscription

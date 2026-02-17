@@ -19,7 +19,7 @@ def signup(request):
             email=email,
             password=password
         )
-
+        user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
 
         next_url = request.POST.get("next") or request.GET.get("next")

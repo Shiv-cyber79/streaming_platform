@@ -13,10 +13,6 @@ venv/
 
 # DB
 db.sqlite3
-<<<<<<< HEAD
-.envy
-=======
 
 *.jpg
 *.mp4
->>>>>>> shivraj

@@ -1,1 +1,2 @@
 # streaming_platform
+# google cloud console client: https://console.cloud.google.com/auth/clients/394836133117-t6k5061gdj8igrot4aihgrlo64r6k900.apps.googleusercontent.com?project=inspired-gear-487709-p5

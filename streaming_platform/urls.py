@@ -15,6 +15,7 @@ urlpatterns = [
     # path("logout/", auth_views.LogoutView.as_view(), name="logout"),
 
     path("user_auth/", include("userauth.urls")),
+    path("accounts/", include("allauth.urls")),
    
     path("channel/<str:username>/", views.user_profile, name="user_profile"),
     path("channel/<str:username>/videos/", views.user_profile_videos, name="user_profile_videos"),

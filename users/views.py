@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
+from django.urls import reverse
+import stripe
 
 from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
 from videos.models import Video,VideoLike, Playlist
@@ -192,6 +194,47 @@ def unsubscribe(request, channel_id):
 
     return redirect(request.META.get("HTTP_REFERER", "home"))
 
+def create_stripe_checkout(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+ 
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "inr",
+                "product_data": {
+                    "name": plan.name,
+                },
+                "unit_amount": plan.price * 100,  # paise
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=request.build_absolute_uri(
+            reverse("stripe_success")
+        ) + "?plan_id=" + str(plan.id),
+        cancel_url=request.build_absolute_uri(
+            reverse("subscription_plans")
+        ),
+    )
+ 
+    return redirect(session.url, code=303)
+
+@login_required
+def stripe_success(request):
+    plan_id = request.GET.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+ 
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+ 
+    return render(request, "videos/stripe_success.html", {
+        "plan": plan
+    })
 # @login_required
 # def user_settings(request):
 #     profile, _ = Channel.objects.get_or_create(user=request.user)
