@@ -1,5 +1,5 @@
 {% extends "videos/base.html" %}
-{% block title %}Home{% endblock %}
+{% load static %}
 
 {% block content %}
 
@@ -150,6 +150,68 @@
     {% endif %}
 </div>
 
+{% if live_streams %}
+<div style="margin-bottom:30px;">
+
+    <h3 style="margin-bottom:15px;">🔴 Live Now</h3>
+
+    <div style="
+        display:grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap:20px;
+    ">
+
+        {% for live in live_streams %}
+        <a href="{% url 'live_page' live.user.username %}" style="text-decoration:none;">
+
+            <div style="
+                background:#181818;
+                border-radius:12px;
+                overflow:hidden;
+                transition:0.3s;
+            "
+            onmouseover="this.style.transform='scale(1.03)'"
+            onmouseout="this.style.transform='scale(1)'">
+
+                <div style="position:relative;">
+                    <img src="{% static 'images/default_thumbnail.jpg' %}" style="width:100%;height:150px;object-fit:cover;">
+
+                    <span style="
+                        position:absolute;
+                        top:10px;
+                        left:10px;
+                        background:red;
+                        padding:4px 8px;
+                        border-radius:5px;
+                        font-size:12px;
+                        color:white;
+                    ">LIVE</span>
+
+                    <span style="
+                        position:absolute;
+                        bottom:10px;
+                        left:10px;
+                        background:rgba(0,0,0,0.7);
+                        padding:4px 8px;
+                        border-radius:5px;
+                        font-size:12px;
+                        color:white;
+                    ">👀 {{ live.viewers }}</span>
+                </div>
+
+                <div style="padding:10px;color:white;">
+                    <p style="margin:0;font-weight:600;">{{ live.user.username }}</p>
+                </div>
+
+            </div>
+
+        </a>
+        {% endfor %}
+
+    </div>
+
+</div>
+{% endif %}
     <!-- VIDEO GRID -->
     <div class="video-grid" id="videoGrid">
         {% for video in videos %}

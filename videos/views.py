@@ -1,8 +1,8 @@
-from django.http import HttpResponseForbidden, HttpResponse,FileResponse
+from django.http import HttpResponseForbidden,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm,ProfilePhotoForm,NameChangeForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan,Notification,Profile
+from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan,Notification,Profile,LiveStream
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
@@ -14,6 +14,7 @@ from datetime import timedelta
 from django.urls import reverse
 from django.db.models import Q
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -39,21 +40,33 @@ def home(request):
         )
 
     videos = videos.order_by("-created_at")
+    Live_streams = LiveStream.objects.filter(is_live=True)
 
     return render(request, "videos/home.html", {
         "videos": videos,
-        "query": query   
+        "query": query,
+        "LiveStream": LiveStream  
     })
+
+
 
 
 def live_page(request, username):
     is_broadcaster = request.user.username == username
 
+    if is_broadcaster:
+        LiveStream.objects.update_or_create(
+            user=request.user,
+            defaults={
+                "room_name": username,
+                "is_live": True
+            }
+        )
+
     return render(request, "videos/live.html", {
         "room_name": username,
         "is_broadcaster": is_broadcaster
     })
-
 def live_view(request, room_name):
     return render(request, "live.html", {
         "room_name": room_name
@@ -65,6 +78,23 @@ def live_stream(request, username):
         "is_broadcaster": is_broadcaster
     })
 
+@csrf_exempt
+def upload_live_video(request):
+    if request.method == "POST":
+        file = request.FILES.get("video")
+
+        video = Video.objects.create(
+            user=request.user,
+            title="Live Stream",
+            video_file=file,
+            
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "video_id": video.id
+        })
+        return JsonResponse({"error": "Invalid request"}, status=400)
 def playlist_list(request):
     playlists = Playlist.objects.filter(user=request.user)
     return render(request, "videos/playlist_list.html", {

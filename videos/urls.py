@@ -37,4 +37,5 @@ urlpatterns = [
 
     path('live/<str:username>/', views.live_page, name='live_page'),
     # path('live/<str:room_name>/', live_view, name='live'),
+    path("upload-live/", views.upload_live_video, name="upload_live"),
 ]
