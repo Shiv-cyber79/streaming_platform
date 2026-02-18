@@ -126,7 +126,15 @@
         color: #3ea6ff;
         text-decoration: none;
     }
-
+    .error-msg {
+        background: rgba(255,0,0,0.15);
+        border: 1px solid #ff4d4d;
+        color: #ff4d4d;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
 </style>
 
 
@@ -136,7 +144,11 @@
 
     <h2>Create account</h2>
     <p class="subtitle">Welcome to Stream...</p>
-
+    {% if messages %}
+        {% for message in messages %}
+            <div class="error-msg">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
     <form method="post" action="{% url 'signup' %}?next={{ request.GET.next }}">
         {% csrf_token %}
 

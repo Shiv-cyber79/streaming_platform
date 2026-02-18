@@ -12,13 +12,17 @@ def signup(request):
         password = request.POST.get("password")
 
         if User.objects.filter(username=username).exists():
+            messages.error(request,"Username already exists. Try another.")
             return redirect(request.path)
-
+        if User.objects.filter(email=email).exists():
+            messages.error(request, "Email already registered. Please login.")
+            return redirect(request.path)
         user = User.objects.create_user(
             username=username,
             email=email,
             password=password
         )
+        print("inside views/signup after user object created:",user)
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
 

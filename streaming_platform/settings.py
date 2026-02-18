@@ -42,7 +42,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-    'userauth',
+    'userauth.apps.UserauthConfig',
     'users',
     'videos',
 
@@ -142,7 +142,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
