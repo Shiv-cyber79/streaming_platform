@@ -1,67 +1,343 @@
-from django.shortcuts import render, redirect
-from django.http import HttpResponse,JsonResponse
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.http import HttpResponse,FileResponse,JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
-from django.contrib.auth import login,authenticate,logout
+from django.utils import timezone
+from django.conf import settings
 from django.contrib import messages
+from django.urls import reverse
+import stripe
 
-def signup(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        email = request.POST.get("email")
-        password = request.POST.get("password")
+from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
+from videos.models import Video,VideoLike, Playlist
+from videos.forms import ProfilePhotoForm,NameChangeForm
+import razorpay
+from datetime import timedelta
 
-        if User.objects.filter(username=username).exists():
-            return redirect(request.path)
 
-        user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password
+@login_required
+def user_profile(request, username):
+    channel_user = get_object_or_404(User,username=username)
+    print("Channel username",channel_user,"request username",request.user)
+    videos = Video.objects.filter(user=channel_user).order_by("-created_at")
+    latest_video = videos.first()
+    # print("latest video",latest_video)
+    other_videos = videos[1:]
+    print(type(videos))
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    print(subscriber_count)
+    is_subscribed = False
+    if request.user.is_authenticated:
+        is_subscribed = Subscription.objects.filter(
+            subscriber=request.user,
+            channel=channel_user
+        ).exists() 
+    print(is_subscribed)
+
+    context = {
+        "channel_user":channel_user,
+        "request_user":request.user,
+        "latest_video":latest_video,
+        "other_videos":other_videos,
+        "subscriber_count":subscriber_count,
+        "is_subscribed":is_subscribed
+    }
+    return render(request, "videos/channel_page.html", context)
+
+@login_required
+def user_profile_videos(request, username):
+    channel_user = get_object_or_404(User, username=username)
+    print("inside channel videos:",channel_user)
+    videos = Video.objects.filter(user=channel_user)
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    return render(request, "videos/channel_videos.html", {
+        "channel_user": channel_user,
+        "subscriber_count":subscriber_count,
+        "videos": videos
+    })
+
+def user_profile_playlists(request, username):
+    channel_user = get_object_or_404(User,username=username)
+    playlists = Playlist.objects.filter(user=channel_user.id)
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
+    print("playlists:\n",playlists)
+    context = {
+        "channel_user":channel_user,
+        "subscriber_count":subscriber_count,
+        "playlists": playlists
+    }
+    return render(request,"videos/channel_playlists.html",context)
+
+def user_profile_posts(request,username):
+    # return HttpResponse("Posts page")
+    return render(request,'videos/channel_posts.html',{'channel_user':username})
+
+@login_required
+def create_payment(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+
+    order = client.order.create({
+        "amount": plan.price * 100,
+        "currency": "INR",
+        "payment_capture": 1
+    })
+
+    request.session["plan_id"] = plan.id
+
+    return JsonResponse({
+        "order_id": order["id"],
+        "amount": plan.price,
+        "key": settings.RAZORPAY_KEY_ID
+    })
+
+@require_POST
+@login_required
+def payment_success(request):
+    plan_id = request.session.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+
+    return redirect("home")
+@require_POST
+@login_required
+def toggle_subscribe(request, user_id):
+    channel_user = get_object_or_404(User, id=user_id)
+    print("Inside toggle subs",channel_user)
+    if channel_user == request.user:
+        return JsonResponse(
+            {"error": "You cannot subscribe to yourself"},
+            status=400
         )
 
-        login(request, user)
+    sub, created = Subscription.objects.get_or_create(
+        subscriber=request.user,
+        channel=channel_user
+    )
+    print(sub,created)
+    print(not created)
 
-        next_url = request.POST.get("next") or request.GET.get("next")
-        return redirect(next_url or "/")
+    if not created:
+        sub.delete()
+        subscribed = False
+    else:
+        subscribed = True
+    context = {
+        "subscribed": subscribed,
+        "count": channel_user.subscribers.count()
+    }
+    return JsonResponse(context)
 
-    return render(request, "signup.html")
+@require_POST
+@login_required
+def toggle_like(request, video_id):
+    video = get_object_or_404(Video, id=video_id)
 
+    like, created = VideoLike.objects.get_or_create(
+        user=request.user,
+        video=video
+    )
 
-def login_view(request):
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    return JsonResponse({
+        "liked": liked,
+        "count": video.likes.count()
+    })
+
+@login_required
+def subscription_feed(request):
+    videos = (
+        Video.objects
+        .filter(user__subscribers__subscriber=request.user)
+        .order_by("-created_at")
+    )
+
+    return render(request, "videos/subscription_feed.html", {
+        "videos": videos
+    })
+@login_required
+def subscription_plans(request):
+    plans = SubscriptionPlan.objects.all()
+
+    return render(request, "videos/subscription_plans.html", {
+        "plans": plans
+    })
+
+@login_required
+def unsubscribe(request, channel_id):
     if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
+        Subscription.objects.filter(
+            subscriber=request.user,
+            channel_id=channel_id
+        ).delete()
 
-        user = authenticate(request, username=username, password=password)
+    return redirect(request.META.get("HTTP_REFERER", "home"))
 
-        if user is None:
-            messages.error(request, "Invalid username or password")
-            return render(request, "login.html")
+def create_stripe_checkout(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+ 
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "inr",
+                "product_data": {
+                    "name": plan.name,
+                },
+                "unit_amount": plan.price * 100,  # paise
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=request.build_absolute_uri(
+            reverse("stripe_success")
+        ) + "?plan_id=" + str(plan.id),
+        cancel_url=request.build_absolute_uri(
+            reverse("subscription_plans")
+        ),
+    )
+ 
+    return redirect(session.url, code=303)
 
-        login(request, user)
-        return redirect("home")  
+@login_required
+def stripe_success(request):
+    plan_id = request.GET.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+ 
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+ 
+    return render(request, "videos/stripe_success.html", {
+        "plan": plan
+    })
+# @login_required
+# def user_settings(request):
+#     profile, _ = Channel.objects.get_or_create(user=request.user)
 
-    return render(request, "login.html")
+#     photo_form = ProfilePhotoForm(instance=profile)
+#     name_form = NameChangeForm(instance=request.user)
 
+#     if request.method == "POST":
+#         if "photo_submit" in request.POST:
+#             photo_form = ProfilePhotoForm(
+#                 request.POST,
+#                 request.FILES,
+#                 instance=profile
+#             )
+#             if photo_form.is_valid():
+#                 photo_form.save()
 
-def logout_view(request):
-    logout(request)
-    return redirect("home") 
+#         elif "name_submit" in request.POST:
+#             name_form = NameChangeForm(
+#                 request.POST,
+#                 instance=request.user
+#             )
+#             if name_form.is_valid():
+#                 name_form.save()
+#         # user = authenticate(request, username=username, password=password)
+#         # print(user,"Completed")
 
-def refresh_access_token(request):
-    refresh_token = request.session.get("refresh_token")
+#         return redirect("user_settings")
 
-    if not refresh_token:
-        return JsonResponse({"error": "No refresh token"}, status=401)
+#     return render(request, "videos/settings.html", {
+#         "photo_form": photo_form,
+#         "name_form": name_form,
+#         "profile": profile
+#     })
 
-    try:
-        refresh = RefreshToken(refresh_token)
-        new_access = str(refresh.access_token)
+@login_required
+def user_settings(request):
+    profile, _ = Channel.objects.get_or_create(user=request.user)
 
-        request.session["access_token"] = new_access
+    photo_form = ProfilePhotoForm(instance=profile)
+    name_form = NameChangeForm(instance=request.user)
 
-        return JsonResponse({"access": new_access})
+    if request.method == "POST":
+     
+        if "photo_submit" in request.POST:
+            photo_form = ProfilePhotoForm(
+                request.POST,
+                request.FILES,
+                instance=profile
+            )
 
-    except Exception:
-        return JsonResponse({"error": "Invalid refresh token"}, status=401)
+            if photo_form.is_valid():
+                new_avatar = photo_form.cleaned_data["avatar"]
+
+                if profile.avatar_requested_at:
+                 time_diff = timezone.now() - profile.avatar_requested_at
+                 if time_diff < timedelta(hours=3):
+                    remaining_time = timedelta(hours=3) - time_diff
+                    minutes_left = int(remaining_time.total_seconds() // 60)
+
+                    messages.error(
+                        request,
+                        f"You can change your profile picture after {minutes_left} minutes."
+                    )
+                    return redirect("user_settings")
+               
+                profile.avatar = new_avatar
+                profile.avatar_requested_at = timezone.now()
+                profile.save()
+
+                messages.success(
+                    request,
+                    "Profile picture update request submitted successfully."
+                )
+                return redirect("user_settings")
+
+       
+        elif "name_submit" in request.POST:
+            name_form = NameChangeForm(
+                request.POST,
+                instance=request.user
+            )
+            print("Name Submit Pressed")
+            if name_form.is_valid():
+                if profile.username_requested_at:
+                    time_diff = timezone.now() - profile.username_requested_at
+                    if time_diff < timedelta(hours=3):
+                        remaining_time = timedelta(hours=3) - time_diff
+                        minutes_left = int(remaining_time.total_seconds() // 60)
+
+                        messages.error(
+                            request,
+                            f"You can change your name after {minutes_left} minutes."
+                        )
+                        return redirect("user_settings")
+                name_form.save()
+                profile.username_requested_at = timezone.now()
+                profile.save()
+                messages.success(request, "Profile name updated successfully.")
+                return redirect("user_settings")
+            
+    return render(request, "videos/settings.html", {
+        "photo_form": photo_form,
+        "name_form": name_form,
+        "profile": profile
+    })
