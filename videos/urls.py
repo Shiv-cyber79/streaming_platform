@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 from .api import PlaylistAPI
+from.views import live_view
+
 
 urlpatterns = [
   
@@ -31,5 +33,8 @@ urlpatterns = [
     path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
     
     path('watch/', views.upload_video_detail, name='watch_all'),
-    path('watch/<int:video_id>/', views.upload_video_detail, name='watch_video'),
+    path('watch/<int:video_id>/', views.upload_video_detail, name='upload_video_detail'),
+
+    path('live/<str:username>/', views.live_page, name='live_page'),
+    # path('live/<str:room_name>/', live_view, name='live'),
 ]

@@ -207,9 +207,22 @@
 
         <!-- ACTION BUTTONS -->
         <div class="actions">
-            <button class="action-btn">👍 Like</button>
-            <button class="action-btn">🔗 Share</button>
-            <button class="action-btn">💾 Save</button>
+            <form method="POST" action="{% url 'toggle_like' video.id %}">
+                {% csrf_token %}
+               <button type="submit" class="action-btn">👍 Like</button>
+            </form>
+            <form method="POST" action="{% url 'toggle_subscribe' video.user.id %}">
+                {% csrf_token %}
+              <button type="submit" class="action-btn">🔔 Subscribe</button>
+            </form>
+            <button class="action-btn" onclick="copyLink()">
+                🔗 Share
+            </button>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="comment" placeholder="Add comment">
+            <button type="submit">Post</button>
+        </form>
         </div>
 
         <!-- DESCRIPTION -->
@@ -248,6 +261,13 @@
     </div>
 
 </div>
+
+<script>
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copied!");
+}
+</script>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {

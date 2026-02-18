@@ -46,6 +46,25 @@ def home(request):
     })
 
 
+def live_page(request, username):
+    is_broadcaster = request.user.username == username
+
+    return render(request, "videos/live.html", {
+        "room_name": username,
+        "is_broadcaster": is_broadcaster
+    })
+
+def live_view(request, room_name):
+    return render(request, "live.html", {
+        "room_name": room_name
+    })
+
+def live_stream(request, username):
+    is_broadcaster = request.user.username == username
+    return render(request, "live.html", {
+        "is_broadcaster": is_broadcaster
+    })
+
 def playlist_list(request):
     playlists = Playlist.objects.filter(user=request.user)
     return render(request, "videos/playlist_list.html", {
@@ -189,17 +208,22 @@ def upload_video(request):
 
     return render(request, "videos/upload_video.html", {"form": form})
 
+@login_required
 def upload_video_detail(request, video_id=None):
     videos = Video.objects.filter(is_private=False).order_by('-created_at')
 
     if video_id:
-        video = Video.objects.get(id=video_id)
+        video = get_object_or_404(Video, id=video_id)
     else:
         video = videos.first()
 
-    subscribed_channels = Subscription.objects.filter(subscriber=request.user)
+    subscribed_channels = Subscription.objects.filter(
+        subscriber=request.user
+    ).select_related("channel")
+
     playlists = Playlist.objects.filter(user=request.user)
-    suggested_videos = videos.exclude(id=video.id)
+
+    suggested_videos = videos.exclude(id=video.id)[:10]
 
     return render(request, 'videos/upload_video_detail.html', {
         'video': video,
@@ -264,6 +288,8 @@ def toggle_like(request, video_id):
         liked = False
     else:
         liked = True
+
+    return redirect('video_detail', video_id=video_id)
 
     return JsonResponse({
         "liked": liked,

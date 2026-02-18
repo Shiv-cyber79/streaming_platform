@@ -116,6 +116,16 @@
     font-size: 13px;
     color: #aaa;
 }
+.go-live-btn {
+    background: red;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left: auto;
+}
 </style>
 
 <div class="home-container">
@@ -128,7 +138,17 @@
         <a href="?category=gaming">Gaming</a>
         <a href="?category=tech">Technology</a>
         <a href="?category=vlog">Vlog</a>
-    </div>
+    
+         {% if request.user.is_authenticated %}
+        <a href="{% url 'live_page' request.user.username %}" class="go-live-btn">
+            🔴 Go Live
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}" class="go-live-btn">
+            🔴 Login to Go Live
+        </a>
+    {% endif %}
+</div>
 
     <!-- VIDEO GRID -->
     <div class="video-grid" id="videoGrid">

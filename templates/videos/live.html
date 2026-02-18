@@ -1,0 +1,188 @@
+{% extends "videos/base.html" %}
+
+{% block content %}
+
+<h2>🔴 Live Room: {{ room_name }}</h2>
+
+<!-- 🎥 Broadcaster Video -->
+<video id="localVideo" autoplay playsinline muted width="300"
+       style="border:2px solid red;"></video>
+
+<!-- 👀 Viewer Video -->
+<video id="remoteVideo" autoplay playsinline controls width="300"
+       style="border:2px solid green;"></video>
+
+<br><br>
+
+{% if is_broadcaster %}
+<button onclick="startStreaming()" style="
+    padding:10px 20px;
+    background:red;
+    color:white;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+">
+    🔴 Start Live
+</button>
+{% else %}
+<p>👀 Watching Live...</p>
+{% endif %}
+
+{% endblock %}
+
+
+
+{% block script %}
+<script>
+console.log("JS Loaded ✅");
+
+// ✅ ROLE
+let isBroadcaster = {{ is_broadcaster|yesno:"true,false" }};
+console.log("Role:", isBroadcaster ? "Broadcaster 🎥" : "Viewer 👀");
+
+let localStream;
+let peerConnection = null;
+let pendingCandidates = [];
+
+const roomName = "{{ room_name }}";
+
+const socket = new WebSocket(
+    "ws://" + window.location.host + "/ws/live/" + roomName + "/"
+);
+
+// STUN server
+const config = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ]
+};
+
+
+
+// ================= SOCKET =================
+socket.onmessage = async function(event) {
+    const data = JSON.parse(event.data);
+    console.log("📩 Received:", data);
+
+    // 👀 VIEWER receives offer
+    if (data.offer && !isBroadcaster) {
+        console.log("👀 Viewer received offer");
+        await handleOffer(data.offer);
+    }
+
+    // 🎥 BROADCASTER receives answer
+    else if (data.answer && isBroadcaster) {
+        console.log("🎥 Broadcaster received answer");
+
+        if (peerConnection && peerConnection.signalingState !== "stable") {
+            await peerConnection.setRemoteDescription(data.answer);
+
+            // 🔥 APPLY PENDING ICE
+            while (pendingCandidates.length > 0) {
+                await peerConnection.addIceCandidate(pendingCandidates.shift());
+            }
+        }
+    }
+
+    // ICE candidates
+    else if (data.candidate) {
+        if (peerConnection && peerConnection.remoteDescription) {
+            await peerConnection.addIceCandidate(data.candidate);
+        } else {
+            pendingCandidates.push(data.candidate);
+        }
+    }
+};
+
+
+
+// ================= VIEWER =================
+async function handleOffer(offer) {
+    console.log("👀 Handling offer...");
+
+    peerConnection = new RTCPeerConnection(config);
+
+    peerConnection.ontrack = event => {
+        console.log("🎥 TRACK RECEIVED");
+        const remoteVideo = document.getElementById("remoteVideo");
+
+        if (remoteVideo.srcObject !== event.streams[0]) {
+            remoteVideo.srcObject = event.streams[0];
+            remoteVideo.play();
+        }
+    };
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({
+                candidate: event.candidate
+            }));
+        }
+    };
+
+    await peerConnection.setRemoteDescription(offer);
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    console.log("📤 Sending answer...");
+    socket.send(JSON.stringify({ answer }));
+
+    // 🔥 APPLY PENDING ICE
+    while (pendingCandidates.length > 0) {
+        await peerConnection.addIceCandidate(pendingCandidates.shift());
+    }
+}
+
+
+
+// ================= BROADCASTER =================
+window.startStreaming = async function() {
+
+    if (!isBroadcaster) {
+        alert("Only broadcaster can start live");
+        return;
+    }
+
+    console.log("🎥 Broadcaster starting...");
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    });
+
+    document.getElementById("localVideo").srcObject = localStream;
+
+    peerConnection = new RTCPeerConnection(config);
+
+    // 🔥 ADD THIS (IMPORTANT)
+    peerConnection.ontrack = event => {
+        console.log("🎥 Broadcaster receiving track");
+        const remoteVideo = document.getElementById("remoteVideo");
+        remoteVideo.srcObject = event.streams[0];
+    };
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({
+                candidate: event.candidate
+            }));
+        }
+    };
+
+    // 🔥 ADD TRACKS PROPERLY
+    for (const track of localStream.getTracks()) {
+        console.log("🎥 Adding track:", track.kind);
+        peerConnection.addTrack(track, localStream);
+    }
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    console.log("📤 Sending offer...");
+    socket.send(JSON.stringify({ offer }));
+};
+
+</script>
+{% endblock %}
