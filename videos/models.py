@@ -17,6 +17,13 @@ from django.conf import settings
 def video_upload_path(instance, filename):
     return f"videos/user_{instance.user.id}/{filename}"
 
+class LiveStream(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room_name = models.CharField(max_length=255)
+    is_live = models.BooleanField(default=True)
+    viewers = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
 class Playlist(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -28,7 +35,7 @@ class Playlist(models.Model):
 
 class Video(models.Model):
     title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    description = models.TextField(max_length =255,blank=True)
     video_file = models.FileField(upload_to="videos/")
     thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )

@@ -3,7 +3,7 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,User,Notification
+from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
@@ -15,6 +15,7 @@ from django.db.models import Q
 from users.models import Subscription
 
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
 
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -40,13 +41,61 @@ def home(request):
         )
 
     videos = videos.order_by("-created_at")
+    Live_streams = LiveStream.objects.filter(is_live=True)
 
     return render(request, "videos/home.html", {
         "videos": videos,
-        "query": query   
+        "query": query,
+        "LiveStream": LiveStream  
     })
 
 
+
+
+def live_page(request, username):
+    is_broadcaster = request.user.username == username
+
+    if is_broadcaster:
+        LiveStream.objects.update_or_create(
+            user=request.user,
+            defaults={
+                "room_name": username,
+                "is_live": True
+            }
+        )
+
+    return render(request, "videos/live.html", {
+        "room_name": username,
+        "is_broadcaster": is_broadcaster
+    })
+def live_view(request, room_name):
+    return render(request, "live.html", {
+        "room_name": room_name
+    })
+
+def live_stream(request, username):
+    is_broadcaster = request.user.username == username
+    return render(request, "live.html", {
+        "is_broadcaster": is_broadcaster
+    })
+
+@csrf_exempt
+def upload_live_video(request):
+    if request.method == "POST":
+        file = request.FILES.get("video")
+
+        video = Video.objects.create(
+            user=request.user,
+            title="Live Stream",
+            video_file=file,
+            
+        )
+
+        return JsonResponse({
+            "status": "success",
+            "video_id": video.id
+        })
+        return JsonResponse({"error": "Invalid request"}, status=400)
 def playlist_list(request):
     playlists = Playlist.objects.filter(user=request.user)
     return render(request, "videos/playlist_list.html", {
@@ -112,6 +161,48 @@ def playlist_detail(request, playlist_id):
             "next_video": next_video,
         }
     )
+ login_required
+def create_stripe_checkout(request, plan_id):
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    session = stripe.checkout.Session.create(
+        payment_method_types=["card"],
+        line_items=[{
+            "price_data": {
+                "currency": "inr",
+                "product_data": {
+                    "name": plan.name,
+                },
+                "unit_amount": plan.price * 100,  # paise
+            },
+            "quantity": 1,
+        }],
+        mode="payment",
+        success_url=request.build_absolute_uri(
+            reverse("stripe_success")
+        ) + "?plan_id=" + str(plan.id),
+        cancel_url=request.build_absolute_uri(
+            reverse("subscription_plans")
+        ),
+    )
+
+    return redirect(session.url, code=303)
+
+@login_required
+def stripe_success(request):
+    plan_id = request.GET.get("plan_id")
+    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+    UserSubscription.objects.create(
+        user=request.user,
+        plan=plan,
+        end_date=timezone.now() + timedelta(days=plan.duration_days),
+        active=True
+    )
+
+    return render(request, "videos/stripe_success.html", {
+        "plan": plan
+    })
 
 # @login_required
 # def create_payment(request, plan_id):
@@ -180,17 +271,22 @@ def upload_video(request):
 
     return render(request, "videos/upload_video.html", {"form": form})
 
+@login_required
 def upload_video_detail(request, video_id=None):
     videos = Video.objects.filter(is_private=False).order_by('-created_at')
 
     if video_id:
-        video = Video.objects.get(id=video_id)
+        video = get_object_or_404(Video, id=video_id)
     else:
         video = videos.first()
 
-    subscribed_channels = Subscription.objects.filter(subscriber=request.user)
+    subscribed_channels = Subscription.objects.filter(
+        subscriber=request.user
+    ).select_related("channel")
+
     playlists = Playlist.objects.filter(user=request.user)
-    suggested_videos = videos.exclude(id=video.id)
+
+    suggested_videos = videos.exclude(id=video.id)[:10]
 
     return render(request, 'videos/upload_video_detail.html', {
         'video': video,

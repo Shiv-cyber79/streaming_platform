@@ -1,7 +1,10 @@
 <!DOCTYPE html>
+{% block script %}{% endblock %}
 <html>
 <head>
+ {% load static %} 
     <title>{% block title %}Streaming{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}"> 
 
     <style>
         body {
@@ -45,10 +48,13 @@
         }
 
         .nav-right {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
-        }
+           margin-left: auto;
+           display: flex;
+           align-items: center;
+           gap: 15px;
+           min-width: 300px;   /* 👈 ADD THIS */
+           justify-content: flex-end;
+                                 }
 
 
         .profile-initial {
@@ -199,6 +205,7 @@
             display: flex;
             align-items: center;
             gap: 20px;
+            min-width: 300px;
         }
 
         /* CENTER (IMPORTANT 🔥) */
@@ -211,8 +218,8 @@
         /* SEARCH BAR */
         .search-form {
             display: flex;
-            width: 60%;
-            max-width: 600px;
+            width: 100%;
+            max-width: 550px;
         }
 
         .search-input {
@@ -238,6 +245,29 @@
         .search-btn:hover {
             background: #333;
         }
+
+        body {
+           background: #0f0f0f;
+        }
+
+        /* Smooth UI */
+      *   {
+            transition: all 0.2s ease;
+        }
+
+        /* Card hover feel */
+        .video-card:hover {
+            transform: scale(1.02);
+        }
+
+       /* Scrollbar */
+       ::-webkit-scrollbar {
+    width: 6px;
+        }
+       ::-webkit-scrollbar-thumb {
+           background: #333;
+           border-radius: 10px;
+        } 
 
     </style>
 </head>
