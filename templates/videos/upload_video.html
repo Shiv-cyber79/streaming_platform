@@ -134,6 +134,24 @@
 .secondary-btn:hover {
     background: #008ad6;
 }
+.upload-wrapper textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 8px;
+    background: #0f0f0f;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 8px;
+    font-size: 14px;
+    resize: none;
+    max-height: 100px;
+    line-height: 1.5;
+}
+
+.upload-wrapper textarea:focus {
+    border-color: #ff0000;
+    outline: none;
+}
 </style>
 
 <!-- <label>Upload Video</label>
@@ -149,7 +167,7 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
-        <div>
+        <div> 
            <label>Thumbnail</label>
            {{ form.thumbnail }}
         </div>
@@ -157,6 +175,10 @@
         <label>Video Title</label>
         {{ form.title }}
 
+        <label>Video Description</label>
+        {{ form.description }}
+      
+        
         <label>Upload Video</label>
         {{ form.video_file }}
 
@@ -190,4 +212,12 @@
 
 </div>
 
+<script>
+    document.addEventListener("input", function(e) {
+    if (e.target.tagName.toLowerCase() === "textarea") {
+        e.target.style.height = "auto";
+        e.target.style.height = e.target.scrollHeight + "px";
+    }
+});
+</script>
 {% endblock %}

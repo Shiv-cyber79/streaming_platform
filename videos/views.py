@@ -1,18 +1,19 @@
-from django.http import HttpResponseForbidden,FileResponse
+from datetime import timedelta
+from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm,ProfilePhotoForm,NameChangeForm
-from .models import Video, Comment, Playlist,VideoLike,Subscription, User,UserSubscription,SubscriptionPlan,Notification,Profile,LiveStream
+from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
+from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
 from .utils import has_active_subscription
 import stripe
 from django.conf import settings
-from django.utils import timezone
-from datetime import timedelta
-from django.urls import reverse
 from django.db.models import Q
+
+from users.models import Subscription
+
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
@@ -110,12 +111,6 @@ def stream_video(request, video_id):
 
     return FileResponse(video.video_file.open(), content_type="video/mp4")
 
-@login_required
-def subscription_plans(request):
-    plans = SubscriptionPlan.objects.all()
-    return render(request, "videos/subscription_plans.html", {
-        "plans": plans
-    })
 
 @login_required
 def playlist_detail(request, playlist_id):
@@ -154,6 +149,8 @@ def playlist_detail(request, playlist_id):
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
 
+    print("playlist details: ",current_video.user, current_video.user.id)
+    
     return render(
         request,
         "videos/playlist_player.html",  
@@ -164,8 +161,7 @@ def playlist_detail(request, playlist_id):
             "next_video": next_video,
         }
     )
-
-@login_required
+ login_required
 def create_stripe_checkout(request, plan_id):
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
@@ -207,6 +203,43 @@ def stripe_success(request):
     return render(request, "videos/stripe_success.html", {
         "plan": plan
     })
+
+# @login_required
+# def create_payment(request, plan_id):
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+#     client = razorpay.Client(
+#         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+#     )
+
+#     order = client.order.create({
+#         "amount": plan.price * 100,
+#         "currency": "INR",
+#         "payment_capture": 1
+#     })
+
+#     request.session["plan_id"] = plan.id
+
+#     return JsonResponse({
+#         "order_id": order["id"],
+#         "amount": plan.price,
+#         "key": settings.RAZORPAY_KEY_ID
+#     })
+
+# @require_POST
+# @login_required
+# def payment_success(request):
+#     plan_id = request.session.get("plan_id")
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+#     UserSubscription.objects.create(
+#         user=request.user,
+#         plan=plan,
+#         end_date=timezone.now() + timedelta(days=plan.duration_days),
+#         active=True
+#     )
+
+#     return redirect("home")
 
 
 @login_required(login_url="login")
@@ -283,7 +316,9 @@ def video_list(request):
     })
 
 def video_detail(request, video_id):
-    video = Video.objects.get(id=video_id)
+
+    print("video detail",video_id)
+    video = get_object_or_404(Video, id=video_id)
 
     suggested_videos = Video.objects.exclude(id=video_id)[:10]
 
@@ -308,80 +343,82 @@ def video_detail(request, video_id):
 def toggle_like(request, video_id):
     video = get_object_or_404(Video, id=video_id)
 
-    like, created = VideoLike.objects.get_or_create(
-        user=request.user,
-        video=video
-    )
+# @require_POST
+# @login_required
+# def toggle_like(request, video_id):
+#     video = get_object_or_404(Video, id=video_id)
 
-    if not created:
-        like.delete()
-        liked = False
-    else:
-        liked = True
+#     like, created = VideoLike.objects.get_or_create(
+#         user=request.user,
+#         video=video
+#     )
 
-    return redirect('video_detail', video_id=video_id)
+#     if not created:
+#         like.delete()
+#         liked = False
+#     else:
+#         liked = True
 
-    return JsonResponse({
-        "liked": liked,
-        "count": video.likes.count()
-    })
+#     return JsonResponse({
+#         "liked": liked,
+#         "count": video.likes.count()
+#     })
 
-@require_POST
-@login_required
-def toggle_subscribe(request, user_id):
-    channel = get_object_or_404(User, id=user_id)
+# @require_POST
+# @login_required
+# def toggle_subscribe(request, user_id):
+#     channel = get_object_or_404(User, id=user_id)
 
-    if channel == request.user:
-        return JsonResponse(
-            {"error": "You cannot subscribe to yourself"},
-            status=400
-        )
+#     if channel == request.user:
+#         return JsonResponse(
+#             {"error": "You cannot subscribe to yourself"},
+#             status=400
+#         )
 
-    sub, created = Subscription.objects.get_or_create(
-        subscriber=request.user,
-        channel=channel
-    )
+#     sub, created = Subscription.objects.get_or_create(
+#         subscriber=request.user,
+#         channel=channel
+#     )
 
-    if not created:
-        sub.delete()
-        subscribed = False
-    else:
-        subscribed = True
+#     if not created:
+#         sub.delete()
+#         subscribed = False
+#     else:
+#         subscribed = True
 
-    return JsonResponse({
-        "subscribed": subscribed,
-        "count": channel.subscribers.count()
-    })
+#     return JsonResponse({
+#         "subscribed": subscribed,
+#         "count": channel.subscribers.count()
+#     })
+# @login_required
+# def unsubscribe(request, channel_id):
+#     if request.method == "POST":
+#         Subscription.objects.filter(
+#             subscriber=request.user,
+#             channel_id=channel_id
+#         ).delete()
 
-@login_required
-def unsubscribe(request, channel_id):
-    if request.method == "POST":
-        Subscription.objects.filter(
-            subscriber=request.user,
-            channel_id=channel_id
-        ).delete()
+#     return redirect(request.META.get("HTTP_REFERER", "home"))
 
-    return redirect(request.META.get("HTTP_REFERER", "home"))
+# @login_required
+# def subscription_feed(request):
+#     videos = (
+#         Video.objects
+#         .filter(user__subscribers__subscriber=request.user)
+#         .order_by("-created_at")
+#     )
 
-@login_required
-def subscription_feed(request):
-    videos = (
-        Video.objects
-        .filter(user__subscribers__subscriber=request.user)
-        .order_by("-created_at")
-    )
+# @login_required
+# def subscription_feed(request):
+#     videos = (
+#         Video.objects
+#         .filter(user__subscribers__subscriber=request.user)
+#         .order_by("-created_at")
+#     )
 
-    return render(request, "videos/subscription_feed.html", {
-        "videos": videos
-    })
-
-@login_required
-def subscription_plans(request):
-    plans = SubscriptionPlan.objects.all()
-
-    return render(request, "videos/subscription_plans.html", {
-        "plans": plans
-    })
+#     return render(request, "videos/subscription_feed.html", {
+#         "videos": videos
+#     })
 
 @login_required
 def add_comment(request, video_id):
@@ -490,74 +527,74 @@ def all_videos(request):
         "videos": videos
     })
 
-@login_required
-def user_settings(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
+# @login_required
+# def user_settings(request):
+#     profile, _ = Profile.objects.get_or_create(user=request.user)
 
-    photo_form = ProfilePhotoForm(instance=profile)
-    name_form = NameChangeForm(instance=request.user)
+#     photo_form = ProfilePhotoForm(instance=profile)
+#     name_form = NameChangeForm(instance=request.user)
 
-    if request.method == "POST":
+#     if request.method == "POST":
      
-        if "photo_submit" in request.POST:
-            photo_form = ProfilePhotoForm(
-                request.POST,
-                request.FILES,
-                instance=profile
-            )
+#         if "photo_submit" in request.POST:
+#             photo_form = ProfilePhotoForm(
+#                 request.POST,
+#                 request.FILES,
+#                 instance=profile
+#             )
 
-            if photo_form.is_valid():
-                new_avatar = photo_form.cleaned_data["avatar"]
+#             if photo_form.is_valid():
+#                 new_avatar = photo_form.cleaned_data["avatar"]
 
-                if profile.avatar_requested_at:
-                 time_diff = timezone.now() - profile.avatar_requested_at
-                 if time_diff < timedelta(hours=3):
-                    remaining_time = timedelta(hours=3) - time_diff
-                    minutes_left = int(remaining_time.total_seconds() // 60)
+#                 if profile.avatar_requested_at:
+#                  time_diff = timezone.now() - profile.avatar_requested_at
+#                  if time_diff < timedelta(hours=3):
+#                     remaining_time = timedelta(hours=3) - time_diff
+#                     minutes_left = int(remaining_time.total_seconds() // 60)
 
-                    messages.error(
-                        request,
-                        f"You can change your profile picture after {minutes_left} minutes."
-                    )
-                    return redirect("user_settings")
+#                     messages.error(
+#                         request,
+#                         f"You can change your profile picture after {minutes_left} minutes."
+#                     )
+#                     return redirect("user_settings")
                
-                profile.avatar = new_avatar
-                profile.avatar_requested_at = timezone.now()
-                profile.save()
+#                 profile.avatar = new_avatar
+#                 profile.avatar_requested_at = timezone.now()
+#                 profile.save()
 
-                messages.success(
-                    request,
-                    "Profile picture update request submitted successfully."
-                )
-                return redirect("user_settings")
+#                 messages.success(
+#                     request,
+#                     "Profile picture update request submitted successfully."
+#                 )
+#                 return redirect("user_settings")
 
        
-        elif "name_submit" in request.POST:
-            name_form = NameChangeForm(
-                request.POST,
-                instance=request.user
-            )
-            print("Name Submit Pressed")
-            if name_form.is_valid():
-                if profile.username_requested_at:
-                    time_diff = timezone.now() - profile.username_requested_at
-                    if time_diff < timedelta(hours=3):
-                        remaining_time = timedelta(hours=3) - time_diff
-                        minutes_left = int(remaining_time.total_seconds() // 60)
+#         elif "name_submit" in request.POST:
+#             name_form = NameChangeForm(
+#                 request.POST,
+#                 instance=request.user
+#             )
+#             print("Name Submit Pressed")
+#             if name_form.is_valid():
+#                 if profile.username_requested_at:
+#                     time_diff = timezone.now() - profile.username_requested_at
+#                     if time_diff < timedelta(hours=3):
+#                         remaining_time = timedelta(hours=3) - time_diff
+#                         minutes_left = int(remaining_time.total_seconds() // 60)
 
-                        messages.error(
-                            request,
-                            f"You can change your name after {minutes_left} minutes."
-                        )
-                        return redirect("user_settings")
-                name_form.save()
-                profile.username_requested_at = timezone.now()
-                profile.save()
-                messages.success(request, "Profile name updated successfully.")
-                return redirect("user_settings")
+#                         messages.error(
+#                             request,
+#                             f"You can change your name after {minutes_left} minutes."
+#                         )
+#                         return redirect("user_settings")
+#                 name_form.save()
+#                 profile.username_requested_at = timezone.now()
+#                 profile.save()
+#                 messages.success(request, "Profile name updated successfully.")
+#                 return redirect("user_settings")
             
-    return render(request, "videos/settings.html", {
-        "photo_form": photo_form,
-        "name_form": name_form,
-        "profile": profile
-    })
+#     return render(request, "videos/settings.html", {
+#         "photo_form": photo_form,
+#         "name_form": name_form,
+#         "profile": profile
+#     })

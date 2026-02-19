@@ -8,17 +8,12 @@ import subprocess
 from django.conf import settings
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
-    pending_username = models.CharField(max_length=150, blank=True, null=True)
-    username_requested_at = models.DateTimeField(blank=True, null=True)
-    pending_avatar = models.ImageField(upload_to="avatars/pending/", blank=True, null=True)
-    avatar_requested_at = models.DateTimeField(blank=True, null=True)
+# class Profile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
 
-    def __str__(self):
-        return self.user.username
-    
+#     def __str__(self):
+#         return self.user.username
 def video_upload_path(instance, filename):
     return f"videos/user_{instance.user.id}/{filename}"
 
@@ -129,45 +124,6 @@ class VideoLike(models.Model):
 
     class Meta:
         unique_together = ("user", "video")
-
-
-class Subscription(models.Model):
-    subscriber = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="subscriptions"
-    )
-    channel = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="subscribers"
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ("subscriber", "channel")
-
-    def __str__(self):
-        return f"{self.subscriber} → {self.channel}"
-
-class SubscriptionPlan(models.Model):
-    name = models.CharField(max_length=100)
-    price = models.IntegerField()  
-    duration_days = models.IntegerField()
-
-    def __str__(self):
-        return self.name
-    
-class UserSubscription(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    plan = models.ForeignKey(SubscriptionPlan, on_delete=models.CASCADE)
-    start_date = models.DateTimeField(auto_now_add=True)
-    end_date = models.DateTimeField()
-    active = models.BooleanField(default=True)
-
-    def is_active(self):
-        return self.active and self.end_date > timezone.now()
-    
 class Notification(models.Model):
     recipient = models.ForeignKey(
         User,

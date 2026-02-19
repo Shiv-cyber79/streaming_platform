@@ -6,4 +6,4 @@ class VideosConfig(AppConfig):
     name = "videos"
 
     def ready(self):
-        import videos.signals
+        import users.signals

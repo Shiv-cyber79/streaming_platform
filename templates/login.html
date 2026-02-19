@@ -1,3 +1,4 @@
+{% load socialaccount %}
 <!DOCTYPE html>
 <html>
 <head>
@@ -107,6 +108,47 @@
         .login-footer a:hover {
             text-decoration: underline;
         }
+         /* divider */
+        .divider {
+            margin: 18px 0;
+            color: #777;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #333;
+        }
+
+        /* google button */
+        .google-btn {
+            width: 100%;
+            padding: 11px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 14px;
+            text-decoration: none;   /* important */
+        }
+        .google-btn:hover {
+            background: #222;
+        }
+
+        .google-icon {
+            width: 18px;
+        }
     </style>
 </head>
 
@@ -142,6 +184,14 @@
 
         <button type="submit">Log in</button>
     </form>
+    <div class="divider">OR</div>
+
+    <!-- Google login UI -->
+    <a href="{% provider_login_url 'google' %}" class="google-btn">
+        <img class="google-icon"
+            src="https://www.svgrepo.com/show/475656/google-color.svg">
+        Continue with Google
+    </a>
 
     <div class="login-footer">
         <a href="/users/password-reset/">Forgot password?</a>

@@ -1,0 +1,116 @@
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Continue with Google</title>
+
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0f0f0f;
+            font-family: Roboto, Arial, sans-serif;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 380px;
+            background: #181818;
+            padding: 32px;
+            border-radius: 14px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: bold;
+            color: red;
+            margin-bottom: 14px;
+        }
+
+        h2 {
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .google-box {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .google-box img {
+            width: 32px;
+            margin-bottom: 10px;
+        }
+
+        .google-box p {
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .continue-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 999px;
+            border: none;
+            background: #ff0000;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        .continue-btn:hover {
+            background: #e60000;
+        }
+
+        .cancel {
+            margin-top: 14px;
+            display: inline-block;
+            color: #3ea6ff;
+            font-size: 14px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="card">
+
+    <div class="brand">▶ Stream</div>
+
+    <h2>Continue with Google</h2>
+    <p class="subtitle">You are signing in with your Google account</p>
+
+    <div class="google-box">
+        <img src="https://www.svgrepo.com/show/475656/google-color.svg">
+        <p>We will securely authenticate your account using Google.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="continue-btn">
+            Continue
+        </button>
+    </form>
+
+    <a href="/" class="cancel">Cancel</a>
+
+</div>
+
+</body>
+</html>

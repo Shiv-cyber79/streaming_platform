@@ -1,10 +1,10 @@
 from django import forms
-from .models import Playlist, Video, Profile, User
-
+from .models import Playlist, Video, User
+from users.models import Channel
 class ProfilePhotoForm(forms.ModelForm):
     class Meta:
-        model = Profile
-        fields = ["avatar"]
+        model = Channel
+        fields = ["profile_picture"]
 
 class NameChangeForm(forms.ModelForm):
     class Meta:
@@ -38,10 +38,18 @@ class VideoForm(forms.ModelForm):
             "title",
             "video_file",
             "is_private",
+            "description",
             "comments_enabled",
             "thumbnail",
             "is_premium",   
         ]
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "placeholder": "Write something about your video..."
+                }
+            )
+        }
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist
