@@ -24,13 +24,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
+print(MEDIA_ROOT)
 
 SECRET_KEY = 'django-insecure-wco%#4=l-(ie!2l2y$1b45s@@#s%j5+0k^2p&37-gp$=)-2@oe'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1:8000","localhost:8000","127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1:8000","localhost:8000","127.0.0.1","aplam"]
 
 
 
@@ -56,6 +56,8 @@ INSTALLED_APPS = [
     "allauth.socialaccount",
     # google provider
     "allauth.socialaccount.providers.google",
+
+    "django.contrib.humanize",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -125,23 +127,24 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_USE_TLS = True  
 
 EMAIL_HOST_USER = "rshiv9900@gmail.com"
 EMAIL_HOST_PASSWORD = "xjyjznnvgfeqmmyb"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
-print("STRIPE:", STRIPE_SECRET_KEY)
+# print("STRIPE:", STRIPE_SECRET_KEY)
 
 
 

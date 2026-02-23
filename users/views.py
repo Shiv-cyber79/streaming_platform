@@ -12,9 +12,9 @@ import stripe
 from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
 from videos.models import Video,VideoLike, Playlist
 from videos.forms import ProfilePhotoForm,NameChangeForm
-import razorpay
 from datetime import timedelta
 
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @login_required
 def user_profile(request, username):
@@ -79,32 +79,73 @@ def user_profile_posts(request,username):
     # return HttpResponse("Posts page")
     return render(request,'videos/channel_posts.html',{'channel_user':username})
 
+# @login_required
+# def create_payment(request, plan_id):
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+#     client = razorpay.Client(
+#         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+#     )
+
+#     order = client.order.create({
+#         "amount": plan.price * 100,
+#         "currency": "INR",
+#         "payment_capture": 1
+#     })
+
+#     request.session["plan_id"] = plan.id
+
+#     return JsonResponse({
+#         "order_id": order["id"],
+#         "amount": plan.price,
+#         "key": settings.RAZORPAY_KEY_ID
+#     })
+
+# @require_POST
+# @login_required
+# def payment_success(request):
+#     plan_id = request.session.get("plan_id")
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+#     UserSubscription.objects.create(
+#         user=request.user,
+#         plan=plan,
+#         end_date=timezone.now() + timedelta(days=plan.duration_days),
+#         active=True
+#     )
+
+#     return redirect("home")
+
+# @login_required
+# def create_stripe_checkout(request, plan_id):
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+
+#     session = stripe.checkout.Session.create(
+#         payment_method_types=["card"],
+#         line_items=[{
+#             "price_data": {
+#                 "currency": "inr",
+#                 "product_data": {
+#                     "name": plan.name,
+#                 },
+#                 "unit_amount": plan.price * 100,  # paise
+#             },
+#             "quantity": 1,
+#         }],
+#         mode="payment",
+#         success_url=request.build_absolute_uri(
+#             reverse("stripe_success")
+#         ) + "?plan_id=" + str(plan.id),
+#         cancel_url=request.build_absolute_uri(
+#             reverse("subscription_plans")
+#         ),
+#     )
+
+#     return redirect(session.url, code=303)
+
 @login_required
-def create_payment(request, plan_id):
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
-
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
-
-    order = client.order.create({
-        "amount": plan.price * 100,
-        "currency": "INR",
-        "payment_capture": 1
-    })
-
-    request.session["plan_id"] = plan.id
-
-    return JsonResponse({
-        "order_id": order["id"],
-        "amount": plan.price,
-        "key": settings.RAZORPAY_KEY_ID
-    })
-
-@require_POST
-@login_required
-def payment_success(request):
-    plan_id = request.session.get("plan_id")
+def stripe_success(request):
+    plan_id = request.GET.get("plan_id")
     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
     UserSubscription.objects.create(
@@ -114,7 +155,9 @@ def payment_success(request):
         active=True
     )
 
-    return redirect("home")
+    return render(request, "videos/stripe_success.html", {
+        "plan": plan
+    })
 @require_POST
 @login_required
 def toggle_subscribe(request, user_id):
@@ -287,7 +330,7 @@ def user_settings(request):
             )
 
             if photo_form.is_valid():
-                new_avatar = photo_form.cleaned_data["avatar"]
+                new_avatar = photo_form.cleaned_data["profile_picture"]
 
                 if profile.avatar_requested_at:
                  time_diff = timezone.now() - profile.avatar_requested_at

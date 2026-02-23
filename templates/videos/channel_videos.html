@@ -4,7 +4,7 @@
 
 {% block content %}
 {% csrf_token %}
-
+{% load time_filters %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -194,8 +194,13 @@
         .thumbnail {
             height: 150px;
             background: linear-gradient(135deg, #444, #666);
-            position: relative;
+            
         }
+        .thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
         .duration {
             position: absolute;
@@ -316,12 +321,16 @@
             <a href="{% url 'video_detail' video.id %}" class="video-link">
                 <div class="video-card">
                     <div class="thumbnail"> 
-                        {{ video.thumbnail }}
+                        {% if video.thumbnail %}
+                            <img src="{{ video.thumbnails.url }}" alt="">
+                        {% else %}
+                            <p>No thumbnail</p>
+                        {% endif %}
                     </div>
 
                     <div class="video-info">
                         <h3>{{ video.title }}</h3>
-                        <span>{{ video.views }} views • {{ video.created_at|timesince }} ago</span>
+                        <span>{{ video.views }} views • {{ video.created_at|youtube_time }}</span>
                     </div>
                 </div>
             </a>

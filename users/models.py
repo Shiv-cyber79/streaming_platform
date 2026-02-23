@@ -17,7 +17,8 @@ class Channel(models.Model):
 
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    avatar_requested_at = models.DateTimeField(null=True, blank=True)
+    username_requested_at = models.DateTimeField(null=True, blank=True)
     def __str__(self):
         return self.user.username
     

@@ -7,8 +7,8 @@ from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStr
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
-from .utils import has_active_subscription
-import stripe
+from users.utils import has_active_subscription
+# import stripe
 from django.conf import settings
 from django.db.models import Q
 
@@ -18,7 +18,7 @@ from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 
 
-stripe.api_key = settings.STRIPE_SECRET_KEY
+# stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
     category = request.GET.get("category")
@@ -161,48 +161,48 @@ def playlist_detail(request, playlist_id):
             "next_video": next_video,
         }
     )
- login_required
-def create_stripe_checkout(request, plan_id):
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+# @login_required
+# def create_stripe_checkout(request, plan_id):
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
-    session = stripe.checkout.Session.create(
-        payment_method_types=["card"],
-        line_items=[{
-            "price_data": {
-                "currency": "inr",
-                "product_data": {
-                    "name": plan.name,
-                },
-                "unit_amount": plan.price * 100,  # paise
-            },
-            "quantity": 1,
-        }],
-        mode="payment",
-        success_url=request.build_absolute_uri(
-            reverse("stripe_success")
-        ) + "?plan_id=" + str(plan.id),
-        cancel_url=request.build_absolute_uri(
-            reverse("subscription_plans")
-        ),
-    )
+#     session = stripe.checkout.Session.create(
+#         payment_method_types=["card"],
+#         line_items=[{
+#             "price_data": {
+#                 "currency": "inr",
+#                 "product_data": {
+#                     "name": plan.name,
+#                 },
+#                 "unit_amount": plan.price * 100,  # paise
+#             },
+#             "quantity": 1,
+#         }],
+#         mode="payment",
+#         success_url=request.build_absolute_uri(
+#             reverse("stripe_success")
+#         ) + "?plan_id=" + str(plan.id),
+#         cancel_url=request.build_absolute_uri(
+#             reverse("subscription_plans")
+#         ),
+#     )
 
-    return redirect(session.url, code=303)
+#     return redirect(session.url, code=303)
 
-@login_required
-def stripe_success(request):
-    plan_id = request.GET.get("plan_id")
-    plan = get_object_or_404(SubscriptionPlan, id=plan_id)
+# @login_required
+# def stripe_success(request):
+#     plan_id = request.GET.get("plan_id")
+#     plan = get_object_or_404(SubscriptionPlan, id=plan_id)
 
-    UserSubscription.objects.create(
-        user=request.user,
-        plan=plan,
-        end_date=timezone.now() + timedelta(days=plan.duration_days),
-        active=True
-    )
+#     UserSubscription.objects.create(
+#         user=request.user,
+#         plan=plan,
+#         end_date=timezone.now() + timedelta(days=plan.duration_days),
+#         active=True
+#     )
 
-    return render(request, "videos/stripe_success.html", {
-        "plan": plan
-    })
+#     return render(request, "videos/stripe_success.html", {
+#         "plan": plan
+#     })
 
 # @login_required
 # def create_payment(request, plan_id):
@@ -250,6 +250,7 @@ def upload_video(request):
         if form.is_valid():
             video = form.save(commit=False)
             video.user = request.user
+            print(video.user,request.user)
             video.save()
          
             subscribers = Subscription.objects.filter(
@@ -264,7 +265,7 @@ def upload_video(request):
                     message=f"{request.user.username} uploaded a new video"
                 )
 
-            return redirect("playlist_list")  
+            return redirect("/")  
 
     else:
         form = VideoForm()
@@ -286,14 +287,16 @@ def upload_video_detail(request, video_id=None):
 
     playlists = Playlist.objects.filter(user=request.user)
 
-    suggested_videos = videos.exclude(id=video.id)[:10]
-
-    return render(request, 'videos/upload_video_detail.html', {
-        'video': video,
-        'suggested_videos': suggested_videos,
-        'subscribed_channels': subscribed_channels,
-        'playlists': playlists,
-    })
+    if video_id:    
+        suggested_videos = videos.exclude(id=video.id)[:10]
+        return render(request, 'videos/upload_video_detail.html', {
+            'video': video,
+            'suggested_videos': suggested_videos,
+            'subscribed_channels': subscribed_channels,
+            'playlists': playlists,
+        })
+    else:
+        return render(request,'videos/upload_video_detail.html')
 @login_required
 def notifications(request):
     notifications = (
@@ -326,7 +329,7 @@ def video_detail(request, video_id):
 
     subscribed_channels = []
     if request.user.is_authenticated:
-        from .models import Subscription
+        
         subscribed_channels = Subscription.objects.filter(
             subscriber=request.user
         ).select_related("channel")
