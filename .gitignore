@@ -1,7 +1,8 @@
 # Media files
 media/
 
-migrations/
+*/migrations/*
+!*/migrations/__init__.py
 
 # Python
 __pycache__/

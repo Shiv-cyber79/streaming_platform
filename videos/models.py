@@ -7,7 +7,6 @@ import os
 import subprocess
 from django.conf import settings
 
-
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
@@ -60,7 +59,7 @@ class Video(models.Model):
      is_new = self.pk is None
      super().save(*args, **kwargs)
 
-     if is_new and self.video_file:
+     if is_new and self.video_file and not self.thumbnail:
       generate_thumbnail(self)
     def __str__(self):
         return self.title
@@ -68,28 +67,35 @@ class Video(models.Model):
 def generate_thumbnail(video_instance):
     if not video_instance.video_file:
         return
+    try:
+        video_path = video_instance.video_file.path
 
-    video_path = video_instance.video_file.path
+        thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
+        os.makedirs(thumbnail_dir, exist_ok=True)
 
-    thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
-    os.makedirs(thumbnail_dir, exist_ok=True)
+        thumbnail_name = f"{video_instance.id}.jpg"
+        thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
+        print("thumbnail_path",thumbnail_path)
+        command = [
+            r"C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
+            "-i", video_path,
+            "-ss", "00:00:02",
+            "-vframes", "1",
+            thumbnail_path
+        ]
 
-    thumbnail_name = f"{video_instance.id}.jpg"
-    thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
+        result = subprocess.run(command)
 
-    command = [
-        "ffmpeg",
-        "-i", video_path,
-        "-ss", "00:00:02",
-        "-vframes", "1",
-        thumbnail_path
-    ]
+        if result.returncode == 0:
+            video_instance.thumbnail = f"thumbnails/{thumbnail_name}"
+            video_instance.save()
+        else:
+            print("FFmpeg failed:", result.stderr.decode())
+    except FileNotFoundError:
+        print("FFmpeg not installed or not in PATH")
 
-    result = subprocess.run(command)
-
-    if result.returncode == 0:
-        video_instance.thumbnail = f"thumbnails/{thumbnail_name}"
-        video_instance.save()
+    except Exception as e:
+        print("Thumbnail generation error:", e)
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist

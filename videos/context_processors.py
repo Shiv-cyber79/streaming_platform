@@ -1,4 +1,5 @@
-from .models import Notification, Subscription
+from .models import Notification
+from users.models import Subscription
 
 def notification_count(request):
     if request.user.is_authenticated:

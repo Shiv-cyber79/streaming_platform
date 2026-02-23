@@ -13,7 +13,10 @@
     gap: 24px;
     padding: 20px;
 }
-
+a {
+    text-decoration: none;
+    color: inherit;
+}
 /* ===== LEFT ===== */
 .video-player-section {
     flex: 3;
@@ -171,13 +174,13 @@
     color: #aaa;
 }
 
-</style>
-
 .channel-info {
     display: flex;
     align-items: center;
     gap: 12px;
 }
+</style>
+
 
 <div class="video-page">
 
@@ -201,7 +204,9 @@
                 <div class="channel-avatar"></div>
 
                 <div class="channel-info">
-                    <strong>{{ video.user.username }}</strong>
+                    <a href="{% url 'user_profile' video.user.username %}">
+                        <strong>{{ video.user.username }}</strong>
+                    </a>
                     <span>{{ video.views }} views</span>
                 </div>
             </div>

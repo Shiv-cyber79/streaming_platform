@@ -26,8 +26,8 @@ urlpatterns = [
     # path("subscription-plans/", views.subscription_plans, name="subscription_plans"),
     # # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),
 
-    path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
-    path("stripe-success/", views.stripe_success, name="stripe_success"),
+    # path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
+    # path("stripe-success/", views.stripe_success, name="stripe_success"),
 
     # path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
     

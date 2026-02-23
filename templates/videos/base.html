@@ -12,8 +12,11 @@
             font-family: Arial, sans-serif;
             background: #000;
             color: white;
+            padding-top: var(--navbar-height);
         }
-
+        :root {
+            --navbar-height: 60px;
+        }
         .navbar {
             display: flex;
             align-items: center;
@@ -21,7 +24,85 @@
             background: #000;
             border-bottom: 1px solid #222;
         }
+            /* NAV LEFT */
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
 
+    .hamburger {
+        font-size: 22px;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 8px;
+    }
+
+    .hamburger:hover {
+        background: #222;
+    }
+
+
+    /* OVERLAY */
+    .sidebar-overlay {
+        position: fixed;
+        top: var(--navbar-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        background: rgba(0,0,0,0.5);
+        display: none;
+        z-index: 1999;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        position: fixed;
+        left: -260px;
+
+        top: var(--navbar-height);   /* start below navbar */
+        height: calc(100vh - var(--navbar-height));
+
+        width: 260px;
+        background: #0f0f0f;
+        transition: 0.3s ease;
+        z-index: 2000;
+        border-right: 1px solid #222;
+    }
+    /* open state */
+    .sidebar.open {
+        left: 0;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+
+    /* menu items */
+    .sidebar a {
+        display: block;
+        padding: 14px 22px;
+        color: #ddd;
+        text-decoration: none;
+        font-size: 15px;
+    }
+
+    .sidebar a:hover {
+        background: #222;
+    }
+
+    .sidebar a.active {
+        background: #2a2a2a;
+        color: white;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background: #222;
+        margin: 12px 0;
+    }
         .logo {
             font-size: 20px;
             font-weight: bold;
@@ -54,8 +135,61 @@
            gap: 15px;
            min-width: 300px;   /* 👈 ADD THIS */
            justify-content: flex-end;
-                                 }
+        }
 
+        /* ================= CREATE MENU ================= */
+
+        .create-menu {
+            position: relative;
+            margin-right: 12px;
+        }
+
+        /* + button */
+        .create-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid #3ea6ff;
+            color: #3ea6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .create-btn:hover {
+            background: rgba(62,166,255,0.15);
+        }
+
+        /* dropdown */
+        .create-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            width: 220px;
+            background: #1f1f1f;
+            border-radius: 14px;
+            border: 1px solid #303030;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            overflow: hidden;
+            z-index: 2000;
+        }
+
+        .create-dropdown a {
+            display: block;
+            padding: 12px 18px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .create-dropdown a:hover {
+            background: #2a2a2a;
+        }
 
         .profile-initial {
             width: 36px;
@@ -198,15 +332,15 @@
             padding: 10px 20px;
             background: #000;
             border-bottom: 1px solid #222;
+               position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
         }
 
         /* LEFT */
-        .nav-left {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            min-width: 300px;
-        }
+       
 
         /* CENTER (IMPORTANT 🔥) */
             .nav-center {
@@ -278,6 +412,10 @@
 
     <!-- LEFT -->
     <div class="nav-left">
+        <div class="hamburger" onclick="toggleSidebar()">
+            ☰
+        </div>
+
         <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
             ▶ Stream
         </a>
@@ -312,6 +450,21 @@
 
     <div class="nav-right">
             {% if user.is_authenticated %} 
+
+            <!-- ➕ CREATE MENU START -->
+            <div class="create-menu">
+
+                <div class="create-btn" onclick="toggleCreateMenu()">+</div>
+
+                <div id="createDropdown" class="create-dropdown">
+                    <a href="{% url 'upload_video' %}">📤 Upload Video</a>
+                    <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
+                    <div class="profile-divider"></div>
+                    <a href="#">📝 Create Post</a>
+                </div>
+
+            </div>
+            <!-- ➕ CREATE MENU END -->
 
             <!-- 🔔 Notification Bell START -->
                <a href="{% url 'notifications' %}" 
@@ -408,7 +561,26 @@
                      👤 Log in
                  </button>
             {% endif %}
-        </div>
+    </div>
+</div>
+<!-- Sidebar Overlay -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+
+    <a href="/" class="sidebar-item active">🏠  Home</a>
+    <a href="{% url 'subscription_feed' %}">🎬  Subscriptions</a>
+    <a href="#">📚  Library</a>
+    <a href="#">⏱  History</a>
+    <a href="#">👍  Liked videos</a>
+    <a href="#">📺  Your videos</a>
+
+    <div class="sidebar-divider"></div>
+
+    <a href="#">⚙ Settings</a>
+    <a href="#">❓ Help</a>
+
 </div>
 
 {% block content %}{% endblock %}
@@ -426,6 +598,10 @@
 </div>
 
 <script>
+    function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("sidebarOverlay").classList.toggle("show");
+}
 function openLoginPopup() {
     document.getElementById("loginPopup").style.display = "block";
 }
@@ -441,6 +617,19 @@ document.addEventListener("click", function (e) {
     const dropdown = document.getElementById("profileDropdown");
     if (profileMenu && !profileMenu.contains(e.target)) {
         dropdown.style.display = "none";
+    }
+});
+
+function toggleCreateMenu() {
+    const menu = document.getElementById("createDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+/* close when clicking outside */
+document.addEventListener("click", function(e) {
+    const createMenu = document.querySelector(".create-menu");
+    if (!createMenu.contains(e.target)) {
+        document.getElementById("createDropdown").style.display = "none";
     }
 });
 </script>
