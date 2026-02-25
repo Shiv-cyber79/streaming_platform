@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Studio Dashboard</title>
+
+
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<style>
+    :root{
+    --bg:#0f0f0f;
+    --card:#1f1f1f;
+    --hover:#2a2a2a;
+    --text:#fff;
+    --accent:#ff0000;
+}
+
+/* Reset */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Roboto;}
+body{background:var(--bg);color:var(--text);}
+
+/* ================= NAVBAR ================= */
+.navbar{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    height:64px;
+    background:#181818;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:0 20px;
+    z-index:1000;
+}
+
+.nav-left{display:flex;align-items:center;gap:15px;}
+.logo{font-weight:bold;color:red;}
+
+.search{
+    width:400px;
+    padding:10px 18px;
+    border-radius:25px;
+    border:none;
+    background:#121212;
+    color:white;
+    transition:.3s;
+}
+.search:focus{width:480px;outline:none;}
+
+.icon{cursor:pointer;}
+.create-btn{
+    display:flex;
+    gap:6px;
+    background:#2a2a2a;
+    border:none;
+    padding:8px 16px;
+    border-radius:20px;
+    color:white;
+    cursor:pointer;
+}
+
+.avatar{width:36px;border-radius:50%;}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+    position:fixed;
+    top:64px;
+    left:0;
+    width:240px;
+    height:100%;
+    background:#181818;
+    padding:15px;
+    transition:.3s;
+    overflow:auto;
+}
+
+.sidebar.collapsed{
+    width:70px;
+}
+
+.channel-box{
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+}
+.channel-box img{width:50px;border-radius:50%;}
+
+.menu-item{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+}
+.menu-item:hover{background:var(--hover);}
+.menu-item.active{background:#333;}
+
+.sidebar.collapsed .label{display:none;}
+
+/* ================= MAIN ================= */
+.main{
+    margin-left:240px;
+    padding:90px 30px;
+    transition:.3s;
+}
+.sidebar.collapsed + .overlay + .main{
+    margin-left:70px;
+}
+
+/* ================= GRID ================= */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:var(--card);
+    padding:20px;
+    border-radius:16px;
+    transition:.3s;
+}
+.card:hover{transform:translateY(-5px);}
+
+.upload button{
+    margin-top:10px;
+    padding:10px 20px;
+    border-radius:20px;
+    border:none;
+}
+
+.insider img{
+    width:100%;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+/* ================= MOBILE ================= */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    display:none;
+}
+
+.sidebar.mobile{
+    transform:translateX(-100%);
+}
+.sidebar.mobile.open{
+    transform:translateX(0);
+}
+.overlay.show{display:block;}
+
+@media(max-width:900px){
+    .sidebar{transform:translateX(-100%);}
+    .main{margin-left:0;}
+}
+</style>
+
+</head>
+
+<body>
+
+<!-- ================= NAVBAR ================= -->
+<header class="navbar">
+
+    <div class="nav-left">
+        <span class="material-icons menu-btn">menu</span>
+        <div class="logo">
+            ▶ Studio
+        </div>
+    </div>
+
+    <div class="nav-center">
+        <input class="search" placeholder="Search across your channel">
+    </div>
+
+    <div class="nav-right">
+        <span class="material-icons icon">help_outline</span>
+        <span class="material-icons icon">notifications</span>
+
+        <button class="create-btn">
+            <span class="material-icons">add</span>
+            Create
+        </button>
+
+        <img src="https://i.pravatar.cc/40" class="avatar">
+    </div>
+
+</header>
+
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar">
+
+    <div class="channel-box">
+        <img src="https://i.pravatar.cc/80">
+        <div>
+            <small>Your channel</small>
+            <strong>Creator Name</strong>
+        </div>
+    </div>
+
+    <nav class="menu">
+
+        <a class="menu-item active">
+            <span class="material-icons">dashboard</span>
+            <span class="label">Dashboard</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">smart_display</span>
+            <span class="label">Content</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">bar_chart</span>
+            <span class="label">Analytics</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">groups</span>
+            <span class="label">Community</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">subtitles</span>
+            <span class="label">Subtitles</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">policy</span>
+            <span class="label">Content detection</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">payments</span>
+            <span class="label">Earn</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">settings</span>
+            <span class="label">Settings</span>
+        </a>
+
+        <a class="menu-item">
+            <span class="material-icons">feedback</span>
+            <span class="label">Send feedback</span>
+        </a>
+
+    </nav>
+
+</aside>
+
+
+<!-- ================= OVERLAY (mobile) ================= -->
+<div class="overlay"></div>
+
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="main">
+    <h1 style="margin-bottom:20px;">Channel Dashboard</h1>
+
+    <!-- DATE FILTER -->
+    <form method="get" style="display:flex;gap:10px;margin-bottom:30px;align-items:center;">
+        <input type="date" name="start_date" value="{{ start_date }}" required
+            style="padding:8px 14px;border-radius:8px;border:none;background:#1f1f1f;color:white;">
+        <input type="date" name="end_date" value="{{ end_date }}" required
+            style="padding:8px 14px;border-radius:8px;border:none;background:#1f1f1f;color:white;">
+        <button type="submit"
+            style="padding:8px 20px;border-radius:20px;border:none;background:red;color:white;cursor:pointer;">
+            Apply
+        </button>
+    </form>
+
+    {% if stats or subscriber_stats or view_stats %}
+
+    <!-- ===== TABLE 1: WATCH TIME ===== -->
+    <div class="card" style="margin-bottom:24px;">
+        <h2 style="margin-bottom:16px;">⏱️ Total Watch Time</h2>
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid #333;text-align:left;color:#aaa;font-size:13px;">
+                    <th style="padding:10px;">Video id</th>
+                    <th style="padding:10px;">Date</th>
+                    <th style="padding:10px;">Watch Time (seconds)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in stats %}
+                <tr style="border-bottom:1px solid #2a2a2a;">
+                    <td style="padding:10px">{{ stat.video_id_id }}</td>
+                    <td style="padding:10px;">{{ stat.date }}</td>
+                    <td style="padding:10px;">{{ stat.total_watch_time }}s</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" style="padding:10px;color:#aaa;">No data found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== TABLE 2: SUBSCRIBER GAINS ===== -->
+    <div class="card" style="margin-bottom:24px;">
+        <h2 style="margin-bottom:16px;">👥 Subscriber Gains</h2>
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid #333;text-align:left;color:#aaa;font-size:13px;">
+                    <th style="padding:10px;">Date</th>
+                    <th style="padding:10px;">New Subscribers</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in subscriber_stats %}
+                <tr style="border-bottom:1px solid #2a2a2a;">
+                    <td style="padding:10px;">{{ stat.date }}</td>
+                    <td style="padding:10px;">+{{ stat.total_subscribers }}</td>
+                </tr> 
+                {% empty %}
+                <tr><td colspan="2" style="padding:10px;color:#aaa;">No data found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== TABLE 3: VIEWS ===== -->
+    <div class="card" style="margin-bottom:24px;">
+        <h2 style="margin-bottom:16px;">👁️ Video Views</h2>
+        <table style="width:100%;border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid #333;text-align:left;color:#aaa;font-size:13px;">
+                    <th style="padding:10px;">Video</th>
+                    <th style="padding:10px;">Views</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in view_stats %}
+                <tr style="border-bottom:1px solid #2a2a2a;">
+                    <td style="padding:10px;">{{ stat.title }}</td>
+                    <td style="padding:10px;">{{ stat.views }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="2" style="padding:10px;color:#aaa;">No data found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+        <div style="color:#aaa;margin-top:20px;">Select a date range and click Apply to see your stats.</div>
+    {% endif %}
+
+</main>
+
+<script src="script.js"></script>
+
+<script>
+    const sidebar = document.querySelector(".sidebar");
+const menuBtn = document.querySelector(".menu-btn");
+const overlay = document.querySelector(".overlay");
+const menuItems = document.querySelectorAll(".menu-item");
+
+/* ===== Toggle sidebar ===== */
+menuBtn.onclick = () => {
+
+    if(window.innerWidth <= 900){
+        sidebar.classList.toggle("open");
+        overlay.classList.toggle("show");
+    }
+    else{
+        sidebar.classList.toggle("collapsed");
+    }
+};
+
+/* ===== Close mobile sidebar ===== */
+overlay.onclick = () => {
+    sidebar.classList.remove("open");
+    overlay.classList.remove("show");
+};
+
+/* ===== Active menu highlight ===== */
+menuItems.forEach(item=>{
+    item.onclick = ()=>{
+        menuItems.forEach(i=>i.classList.remove("active"));
+        item.classList.add("active");
+    }
+});
+</script>
+</body>
+</html>
+

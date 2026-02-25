@@ -467,84 +467,56 @@ textarea {
 </div>
 
 <script>
-let expanded = false;
-function toggleDesc() {
-    expanded = !expanded;
-    document.getElementById("descText").style.maxHeight =
-        expanded ? "none" : "60px";
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copied!");
 }
 
-/* LIKE */
-document.getElementById("likeBtn")?.addEventListener("click", function () {
-    fetch("{% url 'toggle_like' current_video.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    })
-    .then(res => res.json())
-    .then(data => {
-        document.getElementById("likeCount").innerText = data.count;
-        this.classList.toggle("liked", data.liked);
-    });
-});
-
-/* SUBSCRIBE */
-document.getElementById("subscribeBtn")?.addEventListener("click", function () {
-    fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
-        method: "POST",
-        headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    })
-    .then(res => res.json())
-    .then(data => {
-        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
-    });
-});
-
-/* PLAYER */
 document.addEventListener("DOMContentLoaded", function () {
+    const video = document.querySelector(".yt-player video"); // ✅ correct selector
+    const videoId = document.getElementById("videoId").value;
 
-    const videoPlayer = document.getElementById("videoPlayer");
-    const shuffleBtn = document.getElementById("shuffleBtn");
-    const loopBtn = document.getElementById("loopBtn");
+    let watchTime = 0;
+    let completed = false;
 
-    let shuffle = false;
-    let loop = false;
+    // Auto-play next video + track completion
+    video.addEventListener("ended", function () {
+        completed = true;
+        sendWatchData();
 
-    shuffleBtn?.addEventListener("click", function () {
-        shuffle = !shuffle;
-        this.classList.toggle("active");
-    });
-
-    loopBtn?.addEventListener("click", function () {
-        loop = !loop;
-        this.classList.toggle("active");
-    });
-
-    if (!videoPlayer) return;
-
-    videoPlayer.play().catch(() => {});
-
-    videoPlayer.addEventListener("ended", function () {
-
-        if (loop) {
-            videoPlayer.currentTime = 0;
-            videoPlayer.play();
-            return;
+        // Auto-play next suggested video
+        const nextVideo = document.querySelector(".suggestion-card");
+        if (nextVideo) {
+            window.location.href = nextVideo.href;
         }
-
-        const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
-
-        if (shuffle) {
-            const randomIndex = Math.floor(Math.random() * ids.length);
-            window.location.href = window.location.pathname + "?video=" + ids[randomIndex];
-            return;
-        }
-
-        {% if next_video %}
-            window.location.href = window.location.pathname + "?video={{ next_video.id }}";
-        {% endif %}
-
     });
 
+    // Track current playback time
+    video.addEventListener("timeupdate", () => {
+        watchTime = Math.floor(video.currentTime);
+    });
+
+    // Send data when user leaves page before finishing
+    window.addEventListener("beforeunload", () => {
+        if (!completed && watchTime > 0) {
+            sendWatchData();
+        }
+    });
+
+    function sendWatchData() {
+        fetch("{% url 'save_watch_data' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+                video_id: videoId,
+                watch_time: watchTime,
+                completed: completed
+            })
+        });
+    }
 });
 </script>
 

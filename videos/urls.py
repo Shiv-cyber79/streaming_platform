@@ -40,5 +40,6 @@ urlpatterns = [
     path("upload-live/", views.upload_live_video, name="upload_live"),
     # path('watch/', views.upload_video_detail, name='watch_all'),
     # path('watch/<int:video_id>/', views.upload_video_detail, name='watch_video'),
+    path("save-watch/", views.save_watch_data, name="save_watch_data"),
 
 ]

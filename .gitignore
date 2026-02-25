@@ -9,7 +9,8 @@ __pycache__/
 *.pyc
 
 # Virtual env
-venv/
+venv2/
+python==3.12/
 .env
 
 # DB

@@ -202,7 +202,7 @@
 </div>
 {% endif %}
 
-
+{% if videos %}
     <!-- VIDEO GRID -->
     <div class="video-grid" id="videoGrid">
         {% for video in videos %}
@@ -246,7 +246,7 @@
         </div>
         {% endfor %}
     </div>
-
+{% endif %}
 <script>
 /* Infinite Scroll */
 window.addEventListener("scroll", function () {

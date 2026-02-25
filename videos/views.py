@@ -3,12 +3,12 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream
+from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream,VideoWatch
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
 from users.utils import has_active_subscription
-# import stripe
+import json
 from django.conf import settings
 from django.db.models import Q
 
@@ -601,3 +601,38 @@ def all_videos(request):
 #         "name_form": name_form,
 #         "profile": profile
 #     })
+
+@csrf_exempt
+@require_POST
+def save_watch_data(request):
+    try:
+        data = json.loads(request.body)
+        print("DATA RECEIVED:", data)
+        print("USER:", request.user, "| Authenticated:", request.user.is_authenticated)
+
+        video_id = data.get("video_id")
+        watch_time = int(data.get("watch_time", 0))
+        completed = data.get("completed", False)
+
+        if not video_id or watch_time <= 0:
+            return JsonResponse({"status": "skipped"})
+
+        Video.objects.filter(id=video_id).update(views=F('views') + 1)
+        video = Video.objects.get(id=video_id)
+
+        # Only save if user is logged in
+        if request.user.is_authenticated:
+            VideoWatch.objects.create(
+                user=request.user,
+                video=video,
+                watch_time_sec=watch_time,
+                completed=completed
+            )
+        else:
+            print("USER NOT AUTHENTICATED — skipping DB save")
+
+        return JsonResponse({"status": "success"})
+
+    except Exception as e:
+        print("ERROR IN save_watch_data:", str(e))  # ✅ See exact error
+        return JsonResponse({"status": "error", "message": str(e)}, status=400)

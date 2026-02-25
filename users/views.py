@@ -7,12 +7,14 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib import messages
 from django.urls import reverse
+from django.db.models import Sum
 import stripe
 
+from .utils import Deshboard
 from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
-from videos.models import Video,VideoLike, Playlist
+from videos.models import Video,VideoLike, Playlist, VideoStatiscics
 from videos.forms import ProfilePhotoForm,NameChangeForm
-from datetime import timedelta
+from datetime import timedelta,datetime
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -384,3 +386,69 @@ def user_settings(request):
         "name_form": name_form,
         "profile": profile
     })
+
+
+
+@login_required
+def channel_dashboard(request):
+    # start_date = request.GET.get("start_date")
+    # end_date = request.GET.get("end_date")
+
+    # stats = None
+    # print("id:",request.user.id)
+    # if start_date and end_date:
+    #     start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+    #     end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+
+    #     stats = (
+    #         VideoStatiscics.objects
+    #         .filter(
+    #             channel_id_id=request.user,
+    #             date__range=[start_date, end_date]
+    #         )
+    #         .values("video_id_id","date")
+    #         .annotate(total_watch_time=Sum("day_watch_time"))
+    #         .order_by("video_id_id")
+    #     )
+
+
+    # print(stats)
+    # return render(
+    #     request,
+    #     "videos/channel_dashboard.html",
+    #     {
+    #         "stats": stats,
+    #         "start_date": start_date,
+    #         "end_date": end_date,
+    #     }
+    # )
+    # return render(request,"videos/channel_dashboard.html",{"stats":stats})
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+    dash = Deshboard(request)
+
+    watch_stats = dash.watch_data(start_date,end_date)
+    subs_stats = dash.subscriber_data(start_date,end_date)
+    revenue_data = dash.revenue(start_date,end_date)
+    
+    if watch_stats or subs_stats or revenue_data:
+        return render(
+                request,
+                "videos/channel_dashboard.html",
+                {
+                    "stats": watch_stats,
+                    "subscriber_stats":subs_stats,
+                    "start_date": start_date,
+                    "end_date": end_date,
+                }
+            )
+    return render(
+    request,
+    "videos/channel_dashboard.html",
+    {
+        "message": "No data found",
+        "start_date": start_date,
+        "end_date": end_date,
+    }
+)
+            

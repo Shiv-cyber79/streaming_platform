@@ -33,7 +33,7 @@ class Subscription(models.Model):
         on_delete=models.CASCADE,
         related_name="subscribers"
     )
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
             constraints = [

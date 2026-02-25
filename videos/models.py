@@ -7,12 +7,6 @@ import os
 import subprocess
 from django.conf import settings
 
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
-
-#     def __str__(self):
-#         return self.user.username
 def video_upload_path(instance, filename):
     return f"videos/user_{instance.user.id}/{filename}"
 
@@ -153,3 +147,25 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"To {self.recipient.username}: {self.message}"
+
+class VideoWatch(models.Model):
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
+    video = models.ForeignKey(Video,on_delete=models.CASCADE)
+
+    watched_at = models.DateTimeField(default=timezone.now)
+    watch_time_sec = models.PositiveBigIntegerField(default=0)
+
+    completed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.user + "watched" + self.video
+
+class VideoStatiscics(models.Model):
+    video_id = models.ForeignKey(Video,on_delete=models.CASCADE)
+    channel_id = models.ForeignKey(User,on_delete=models.CASCADE)
+
+    date = models.DateField()
+    day_watch_time = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        unique_together = ("video_id","date")

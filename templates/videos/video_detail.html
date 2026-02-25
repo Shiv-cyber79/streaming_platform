@@ -193,7 +193,7 @@ a {
                 <source src="{{ video.video_file.url }}" type="video/mp4">
             </video>
         </div>
-
+        <input type="hidden" id="videoId" value="{{ video.id }}">
         <!-- TITLE -->
         <div class="video-title">{{ video.title }}</div>
 
@@ -277,19 +277,58 @@ function copyLink() {
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied!");
 }
-</script>
 
-<script>
 document.addEventListener("DOMContentLoaded", function () {
-    const video = document.querySelector("video");
+    const video = document.querySelector(".yt-player video");
+    const videoId = document.getElementById("videoId").value;
+    const csrfToken = "{{ csrf_token }}";
+    const saveUrl = "{% url 'save_watch_data' %}";
 
-    if (video) {
-        video.addEventListener("ended", function() {
-            const nextVideo = document.querySelector(".suggestion-card");
-            if (nextVideo) {
-                window.location.href = nextVideo.href;
-            }
+    let watchTime = 0;
+    let completed = false;
+    let dataSent = false;  // prevent double sending
+
+    video.addEventListener("timeupdate", () => {
+        watchTime = Math.floor(video.currentTime);
+    });
+
+    video.addEventListener("ended", function () {
+        completed = true;
+        sendWatchData();
+
+        // Auto-play next suggested video
+        const nextVideo = document.querySelector(".suggestion-card");
+        if (nextVideo) {
+            window.location.href = nextVideo.href;
+        }
+    });
+
+    // ✅ Use sendBeacon on page unload — reliable unlike fetch()
+    window.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "hidden" && !dataSent && watchTime > 0) {
+            sendWatchData();
+        }
+    });
+
+    window.addEventListener("beforeunload", () => {
+        if (!dataSent && watchTime > 0) {
+            sendWatchData();
+        }
+    });
+
+    function sendWatchData() {
+        if (dataSent) return;  // prevent duplicate entries
+        dataSent = true;
+
+        const payload = JSON.stringify({
+            video_id: videoId,
+            watch_time: watchTime,
+            completed: completed
         });
+
+        // ✅ sendBeacon is reliable on page unload
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon(saveUrl + "?csrf=" + csrfToken, blob);
     }
 });
 </script>
