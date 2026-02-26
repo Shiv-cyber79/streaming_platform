@@ -3,16 +3,20 @@ from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
-from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream
+from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream 
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.db.models import F
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 from users.utils import has_active_subscription
 # import stripe
 from django.conf import settings
 from django.db.models import Q
 
 from users.models import Subscription
+from.models import Post,PostLike,PostComment
+from .forms import PostForm
 
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
@@ -45,12 +49,10 @@ def home(request):
 
     return render(request, "videos/home.html", {
         "videos": videos,
+        "posts": PostForm,
         "query": query,
         "LiveStream": LiveStream  
     })
-
-
-
 
 def live_page(request, username):
     is_broadcaster = request.user.username == username
@@ -62,6 +64,23 @@ def live_page(request, username):
                 "room_name": username,
                 "is_live": True
             }
+        )
+
+        subscribers = Subscription.objects.filter(
+            channel=request.user
+        ).select_related("subscriber")
+
+        for sub in subscribers:
+            Notification.objects.create(
+                recipient=sub.subscriber,
+                sender=request.user,
+                message=f"{request.user.username} is LIVE 🔴"
+            )
+
+        send_email_to_subscribers(
+            subscribers,
+            request.user,
+            "is LIVE now 🔴"
         )
 
     return render(request, "videos/live.html", {
@@ -258,12 +277,9 @@ def upload_video(request):
             ).select_related("subscriber")
 
             for sub in subscribers:
-                Notification.objects.create(
-                    recipient=sub.subscriber,
-                    sender=request.user,
-                    video=video,
-                    message=f"{request.user.username} uploaded a new video"
-                )
+                Notification.objects.create(recipient=sub.subscriber,sender=request.user,video=video,message=f"{request.user.username} uploaded a new video" )
+
+            send_email_to_subscribers( subscribers, request.user, "uploaded a new video 🎥")
 
             return redirect("/")  
 
@@ -297,6 +313,32 @@ def upload_video_detail(request, video_id=None):
         })
     else:
         return render(request,'videos/upload_video_detail.html')
+    
+def send_email_to_subscribers(subscribers, creator, text, video=None):
+    emails = [sub.subscriber.email for sub in subscribers if sub.subscriber.email]
+
+    if not emails:
+        return
+
+    subject = f"{creator.username} {text}"
+
+    html_content = render_to_string("emails/notification_email.html", {
+        "creator": creator,
+        "text": text,
+        "video": video,
+        "site_url": "http://127.0.0.1:8000"
+    })
+
+    email = EmailMultiAlternatives(
+        subject,
+        "",
+        settings.DEFAULT_FROM_EMAIL,
+        emails
+    )
+
+    email.attach_alternative(html_content, "text/html")
+    email.send()
+    
 @login_required
 def notifications(request):
     notifications = (
@@ -345,6 +387,46 @@ def video_detail(request, video_id):
 @login_required
 def toggle_like(request, video_id):
     video = get_object_or_404(Video, id=video_id)
+
+@login_required
+def add_post_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if request.method == "POST":
+        text = request.POST.get("text")
+
+        if text:
+            PostComment.objects.create(
+                user=request.user,
+                post=post,
+                text=text
+            )
+
+    return redirect(request.META.get("HTTP_REFERER"))
+
+@login_required
+def delete_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if post.user != request.user:
+        return HttpResponseForbidden()
+
+    post.delete()
+    return redirect(request.META.get("HTTP_REFERER"))
+
+@login_required
+def edit_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    if post.user != request.user:
+        return HttpResponseForbidden()
+
+    if request.method == "POST":
+        post.content = request.POST.get("content")
+        post.save()
+        return redirect("user_profile_posts", username=request.user.username)
+
+    return render(request, "videos/edit_post.html", {"post": post})
 
 # @require_POST
 # @login_required
@@ -528,6 +610,60 @@ def all_videos(request):
 
     return render(request, "videos/all_videos.html", {
         "videos": videos
+    })
+
+@login_required
+def create_post(request):
+    
+    if request.method == 'POST':
+        form = PostForm(request.POST, request.FILES)
+        
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.user = request.user
+            post.save()
+
+            subscribers = Subscription.objects.filter(
+                channel=request.user
+            ).select_related("subscriber")
+
+            for sub in subscribers:
+                Notification.objects.create(
+                    recipient=sub.subscriber,
+                    sender=request.user,
+                    message=f"{request.user.username} added a new post 📝"
+                )
+
+            send_email_to_subscribers(
+                subscribers,
+                request.user,
+                "added a new post 📝"
+            )
+
+            return redirect('home')
+
+    else:
+        form = PostForm()
+
+    return render(request, 'videos/create_post.html', {'form': form})
+@login_required
+def toggle_post_like(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    like, created = PostLike.objects.get_or_create(
+        user=request.user,
+        post=post
+    )
+
+    if not created:
+        like.delete()
+        liked = False
+    else:
+        liked = True
+
+    return JsonResponse({
+        "liked": liked,
+        "count": post.likes.count()
     })
 
 # @login_required

@@ -40,5 +40,10 @@ urlpatterns = [
     path("upload-live/", views.upload_live_video, name="upload_live"),
     # path('watch/', views.upload_video_detail, name='watch_all'),
     # path('watch/<int:video_id>/', views.upload_video_detail, name='watch_video'),
+    path('post/create/', views.create_post, name='create_post'),
+    path('post/<int:post_id>/like/', views.toggle_post_like, name='toggle_post_like'),
+    path('post/<int:post_id>/comment/', views.add_post_comment, name='add_post_comment'),
+    path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
+    path('post/<int:post_id>/edit/', views.edit_post, name='edit_post'),
 
 ]
