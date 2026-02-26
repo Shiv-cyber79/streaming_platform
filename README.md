@@ -1,40 +1,48 @@
-StreamTube — Scalable Video Streaming Platform
+# StreamTube — Scalable Video Streaming Platform
 
 StreamTube is a full-stack video streaming platform inspired by YouTube, built using Django.
 It supports video uploads, live streaming, subscriptions, notifications, and email alerts with a focus on scalability and clean architecture.
 
+---
 
-✨ Features
+## ✨ Features
 
-🎥 Video upload & playback system
-🔴 Live streaming (WebSocket-based)
-👥 Channel & subscription system
-🔔 Real-time + email notifications
-📝 Post creation (community tab style)
-💬 Comments & likes system
-📊 View tracking & engagement metrics
-📧 Styled HTML email notifications
-📂 Playlist management
+- 🎥 Video upload & playback system
+- 🔴 Live streaming (WebSocket-based)
+- 👥 Channel & subscription system
+- 🔔 Real-time + email notifications
+- 📝 Post creation (community tab style)
+- 💬 Comments & likes system
+- 📊 View tracking & engagement metrics
+- 📧 Styled HTML email notifications
+- 📂 Playlist management
 
-🏗️ Tech Stack
+---
 
-Backend:** Django, Django Channels
-Frontend:** HTML, CSS, JavaScript
-Database:** SQLite
-Real-time:** WebSockets (Channels)
-Email Service:** SMTP (Gmail)
+## 🏗️ Tech Stack
 
-⚙️ Setup Instructions
+| Layer | Technology |
+|---|---|
+| **Backend** | Django, Django Channels |
+| **Frontend** | HTML, CSS, JavaScript |
+| **Database** | SQLite |
+| **Real-time** | WebSockets (Channels) |
+| **Email Service** | SMTP (Gmail) |
+
+---
+
+## ⚙️ Setup Instructions
 
 Follow these steps to run the project locally.
 
-1. Clone Repository
+### 1. Clone Repository
 
-bash
+```bash
 git clone https://github.com/Shiv123/streamtube.git
 cd streamtube
+```
 
-2. Create Virtual Environment
+### 2. Create Virtual Environment
 
 ```bash
 python -m venv venv
@@ -42,53 +50,55 @@ python -m venv venv
 
 Activate environment:
 
-Linux / Mac**
+**Linux / Mac**
 
-bash
+```bash
 source venv/bin/activate
+```
 
+**Windows**
 
-Windows**
-
-bash
+```bash
 venv\Scripts\activate
+```
 
+### 3. Install Dependencies
 
-3. Install Dependencies
-
-bash
+```bash
 pip install -r requirements.txt
+```
 
+### 4. Apply Migrations
 
-
-4. Apply Migrations
-
-bash
+```bash
 python manage.py makemigrations
 python manage.py migrate
+```
 
-5. Create Superuser
+### 5. Create Superuser
 
-bash
+```bash
 python manage.py createsuperuser
+```
 
+### 6. Run Server
 
-6. Run Server
-  bash
+```bash
 python manage.py runserver
+```
 
+### 7. Open in Browser
 
-7. Open in Browser
+- **Main App:** http://127.0.0.1:8000/
+- **Admin Panel:** http://127.0.0.1:8000/admin/
 
-* Main App: http://127.0.0.1:8000/
-* Admin Panel: http://127.0.0.1:8000/admin/
+---
 
-
-📧 Email Setup
+## 📧 Email Setup
 
 Update in `settings.py`:
 
-python
+```python
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
@@ -97,57 +107,62 @@ EMAIL_HOST_PASSWORD = "your_app_password"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 ```
 
-> Use Gmail App Password (not your normal password)
+> ⚠️ Use Gmail App Password (not your normal password)
 
+---
 
-📂 Project Structure
+## 📂 Project Structure
 
-
+```
 streaming_platform/
 │
-├── users/          
-├── videos/         
-├── templates/      
-├── media/          
-├── static/         
+├── users/          # User authentication & profiles
+├── videos/         # Video upload, playback, live streaming
+├── templates/      # HTML templates
+├── media/          # Uploaded media files
+├── static/         # Static assets (CSS, JS)
 └── manage.py
+```
 
+---
 
-🔔 Notifications
+## 🔔 Notifications
 
-* Stored in database
-* Email notifications sent on:
+- Stored in database
+- Email notifications sent on:
+  - Video upload
+  - Post creation
+  - Live streaming
 
-  * Video upload
-  * Post creation
-  * Live streaming
+---
 
+## 🔴 Live Streaming
 
-🔴 Live Streaming
+- Implemented using Django Channels
+- Real-time WebSocket communication
 
-* Implemented using Django Channels
-* Real-time WebSocket communication
+> **Note:** Production setup requires RTMP/CDN integration
 
-> Note: Production setup requires RTMP/CDN integration
+---
 
+## 📊 Limitations
 
-📊 Limitations
+- Media files stored locally
+- WebSocket scaling limited
+- No CDN integration
 
-* Media files stored locally
-* WebSocket scaling limited
-* No CDN integration
+---
 
+## 🚀 Future Improvements
 
-🚀 Future Improvements
+- Recommendation system
+- Analytics dashboard
+- Monetization system (Ads, SuperChat)
+- CDN + RTMP streaming
+- Docker deployment
 
-* Recommendation system
-* Analytics dashboard
-* Monetization system (Ads, SuperChat)
-* CDN + RTMP streaming
-* Docker deployment
+---
 
-
-📌 Note
+## 📌 Note
 
 This project is designed with a modular structure and can be extended into a production-grade streaming platform.
-
