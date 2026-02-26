@@ -2,32 +2,100 @@ from django.db import models
 from django import forms
 from django.contrib.auth.models import User
 from .validators import validate_video_size
+from django.utils import timezone
+import os
+import subprocess
+from django.conf import settings
 
+# class Profile(models.Model):
+#     user = models.OneToOneField(User, on_delete=models.CASCADE)
+#     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+
+#     def __str__(self):
+#         return self.user.username
 def video_upload_path(instance, filename):
     return f"videos/user_{instance.user.id}/{filename}"
+
+class LiveStream(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    room_name = models.CharField(max_length=255)
+    is_live = models.BooleanField(default=True)
+    viewers = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class Playlist(models.Model):
     name = models.CharField(max_length=255)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    
+    is_public = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
 
 class Video(models.Model):
     title = models.CharField(max_length=255)
+    description = models.TextField(max_length =255,blank=True)
     video_file = models.FileField(upload_to="videos/")
-    thumbnail = models.ImageField(upload_to="thumbnails/", default="thumbnails/default.jpg")
+    thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     is_private = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
+    duration = models.PositiveIntegerField(default=0)  
+
+    views = models.PositiveIntegerField(default=0)  
+
+    CATEGORY_CHOICES = [ ("music", "Music"),("education", "Education"),("gaming", "Gaming"),("tech", "Technology"), ("vlog", "Vlog"),]
+
     created_at = models.DateTimeField(auto_now_add=True)
     comments_enabled = models.BooleanField(default=True)
 
+    def formatted_duration(self):
+        minutes = self.duration // 60
+        seconds = self.duration % 60
+        return f"{minutes}:{seconds:02d}"
+    
+    def save(self, *args, **kwargs):
+     is_new = self.pk is None
+     super().save(*args, **kwargs)
+
+     if is_new and self.video_file and not self.thumbnail:
+      generate_thumbnail(self)
     def __str__(self):
         return self.title
+    
+def generate_thumbnail(video_instance):
+    if not video_instance.video_file:
+        return
+    try:
+        video_path = video_instance.video_file.path
 
+        thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
+        os.makedirs(thumbnail_dir, exist_ok=True)
 
+        thumbnail_name = f"{video_instance.id}.jpg"
+        thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
+        print("thumbnail_path",thumbnail_path)
+        command = [
+            r"C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
+            "-i", video_path,
+            "-ss", "00:00:02",
+            "-vframes", "1",
+            thumbnail_path
+        ]
 
+        result = subprocess.run(command)
+
+        if result.returncode == 0:
+            video_instance.thumbnail = f"thumbnails/{thumbnail_name}"
+            video_instance.save()
+        else:
+            print("FFmpeg failed:", result.stderr.decode())
+    except FileNotFoundError:
+        print("FFmpeg not installed or not in PATH")
+
+    except Exception as e:
+        print("Thumbnail generation error:", e)
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist
@@ -40,6 +108,9 @@ class PlaylistForm(forms.ModelForm):
         }
     def __str__(self):
         return self.name
+    
+    def __str__(self):
+        return f"{self.user.username} liked {self.video.title}"
 class Comment(models.Model):
     video = models.ForeignKey(
         Video,
@@ -52,4 +123,33 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.text[:20]}"
+    
+class VideoLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name="likes")
 
+    class Meta:
+        unique_together = ("user", "video")
+class Notification(models.Model):
+    recipient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notifications"
+    )
+    sender = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sent_notifications"
+    )
+    video = models.ForeignKey(
+        Video,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    message = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"To {self.recipient.username}: {self.message}"

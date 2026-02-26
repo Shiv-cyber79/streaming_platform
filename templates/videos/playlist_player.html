@@ -1,255 +1,551 @@
-{% include "videos/base.html" %}
+{% extends "videos/base.html" %}
+{% block title %}{{ playlist.name }}{% endblock %}
+{% block content %}
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>{{ playlist.name }}</title>
+<style>
+.container {
+    display: flex;
+    height: calc(100vh - 60px);
+    background: #0f0f0f;
+    color: white;
+}
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0f0f0f;
-            color: white;
-        }
+a {
+    text-decoration: none;
+    color: inherit;
+}
+.video-section {
+    flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+}
 
-    
-        .container {
-            display: flex;
-            height: calc(100vh - 50px);
-        }
+video {
+    width: 100%;
+    max-height: 75vh;
+    border-radius: 10px;
+    background: black;
+}
 
-        .video-section {
-            flex: 3;
-            padding: 20px;
-            overflow-y: auto;
-        }
+/* VIDEO META */
+.video-meta {
+    margin-top: 14px;
+}
 
-        video {
-            width: 100%;
-            max-height: 75vh;
-            border-radius: 10px;
-            background: black;
-        }
-        .comments {
-            margin-top: 20px;
-            border-top: 1px solid #303030;
-            padding-top: 15px;
-        }
+.video-title {
+    font-size: 20px;
+    font-weight: 500;
+}
 
-        .comment {
-            margin-bottom: 15px;
-        }
+.video-views {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 4px;
+}
 
-        .comment strong {
-            font-size: 14px;
-        }
+.channel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #303030;
+}
 
-        .comment small {
-            color: #aaa;
-            font-size: 12px;
-        }
+.channel-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        .comment p {
-            margin: 6px 0;
-            color: #ddd;
-        }
+.channel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #cc0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
 
-        textarea {
-            width: 100%;
-            height: 70px;
-            background: #181818;
-            color: white;
-            border: 1px solid #303030;
-            border-radius: 6px;
-            padding: 10px;
-        }
+/* ACTION BUTTONS */
+.action-row {
+    display: flex;
+    gap: 10px;
+}
 
-        .comment-btn {
-            background: #ff0000;
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 20px;
-            cursor: pointer;
-            margin-top: 8px;
-        }
+.like-btn {
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
 
-        .playlist-section {
-            flex: 1;
-            background: #181818;
-            padding: 15px;
-            overflow-y: auto;
-        }
+.like-btn.liked {
+    background: #065fd4;
+}
 
-        .playlist-header {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
+.subscribe-btn {
+    background: #cc0000;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
 
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+.premium-btn {
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+}
 
-        .controls button {
-            flex: 1;
-            background: #303030;
-            color: white;
-            border: none;
-            padding: 8px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
+/* DESCRIPTION */
+.description {
+    margin-top: 14px;
+}
 
-        .controls button.active {
-            background: #ff0000;
-        }
+.description p {
+    color: #ccc;
+    max-height: 60px;
+    overflow: hidden;
+}
 
-        .playlist-item {
-            padding: 10px;
-            cursor: pointer;
-            border-bottom: 1px solid #303030;
-        }
+.desc-toggle {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+}
 
-        .playlist-item:hover {
-            background: #303030;
-        }
+/* COMMENTS */
+.comments {
+    margin-top: 22px;
+    border-top: 1px solid #303030;
+    padding-top: 16px;
+}
 
-        .playlist-item.active {
-            background: #ff0000;
-        }
-    </style>
-</head>
+.comment {
+    margin-bottom: 14px;
+}
 
-<body>
+.comment small {
+    color: #aaa;
+    font-size: 12px;
+}
+
+textarea {
+    width: 100%;
+    height: 70px;
+    background: #181818;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+
+
+/* VIDEO AREA */
+.video-section {
+    flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* YouTube-style responsive video */
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* VIDEO META */
+.video-meta {
+    margin-top: 14px;
+}
+
+.video-meta h2 {
+    margin: 0;
+    font-weight: 500;
+}
+
+.video-meta span {
+    font-size: 13px;
+    color: #aaa;
+}
+
+.channel-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid #303030;
+}
+
+.channel-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.channel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #cc0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+/* ACTION BUTTONS */
+.action-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.like-btn {
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.like-btn.liked {
+    background: #065fd4;
+}
+
+.subscribe-btn {
+    background: #cc0000;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.premium-btn {
+    background: linear-gradient(90deg, #ff0000, #ff6a00);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+/* DESCRIPTION */
+.description {
+    margin-top: 14px;
+}
+
+.description p {
+    color: #ccc;
+    max-height: 60px;
+    overflow: hidden;
+}
+
+.desc-toggle {
+    background: none;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+}
+
+/* COMMENTS */
+.comments {
+    margin-top: 22px;
+    border-top: 1px solid #303030;
+    padding-top: 16px;
+}
+
+textarea {
+    width: 100%;
+    height: 70px;
+    background: #181818;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 10px;
+}
+
+.comment-btn {
+    background: #ff0000;
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+/* PLAYLIST */
+.playlist-section {
+    flex: 1;
+    background: #181818;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.playlist-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 6px;
+}
+
+.playlist-edit-btn {
+    font-size: 12px;
+    margin-left: 10px;
+    padding: 4px 10px;
+    border-radius: 14px;
+    background: #212121;
+    color: #aaa;
+    text-decoration: none;
+    border: 1px solid #303030;
+}
+
+.playlist-item {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #303030;
+}
+
+.playlist-item:hover {
+    background: #303030;
+}
+
+.playlist-item.active {
+    background: #272727;
+    border-left: 4px solid #ff0000;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.controls button {
+    flex: 1;
+    background: #303030;
+    color: white;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.controls button.active {
+    background: #ff0000;
+}
+</style>
 
 <div class="container">
 
+<div class="video-section">
+{% if current_video %}
 
-    <div class="video-section">
-
-        {% if current_video %}
-            <h2>{{ current_video.title }}</h2>
-
-            <video id="videoPlayer" controls>
-                <source src="{{ current_video.video_file.url }}">
-            </video>
-
-            <div class="comments">
-
-                <h3>Comments</h3>
-
-              
-                {% for comment in current_video.comments.all %}
-                    <div class="comment">
-                        <strong>{{ comment.user.username }}</strong>
-                        <small> • {{ comment.created_at|date:"M d, Y H:i" }}</small>
-                        <p>{{ comment.text }}</p>
-                    </div>
-                {% empty %}
-                    <p style="color:#aaa;">No comments yet.</p>
-                {% endfor %}
-
-                {% if user.is_authenticated %}
-                    <form method="post" action="{% url 'add_comment' current_video.id %}">
-                        {% csrf_token %}
-                        <textarea name="comment" placeholder="Add a comment..." required></textarea>
-                        <br>
-                        <button type="submit" class="comment-btn">
-                            Post Comment
-                        </button>
-                    </form>
-                {% else %}
-                    <p style="color:#aaa;">
-                        <a href="{% url 'login' %}" style="color:#ff0000;">Login</a> to comment
-                    </p>
-                {% endif %}
-
-            </div>
-
-        {% else %}
-            <p>No videos in this playlist.</p>
-        {% endif %}
-
-    </div>
-
-
-    <div class="playlist-section">
-
-        <div class="playlist-header">
-            {{ playlist.name }}
-        </div>
-
-        <div class="controls">
-            <button id="shuffleBtn">Shuffle</button>
-            <button id="loopBtn">Loop</button>
-        </div>
-
-    
-        <div id="playlist">
-            {% for video in videos %}
-                <div
-                    class="playlist-item {% if video.id == current_video.id %}active{% endif %}"
-                    data-src="{{ video.video_file.url }}"
-                >
-                    {{ video.title }}
-                </div>
-            {% endfor %}
-        </div>
-
-    </div>
-
+<div class="video-wrapper">
+    <video id="videoPlayer" controls autoplay muted playsinline>
+        <source src="{{ current_video.video_file.url }}" type="video/mp4">
+    </video>
 </div>
 
+<div class="video-meta">
+    <h2>{{ current_video.title }}</h2>
+    <span>{{ current_video.views }} views</span>
+
+    <div class="channel-row">
+        <div class="channel-info">
+            <div class="channel-avatar">
+                {{ current_video.user.username|first|upper }}
+            </div>
+            <div>
+                <a href="{% url 'user_profile' current_video.user.username %}">
+                <strong>{{ current_video.user.username }}</strong><br>
+                </a>
+                <small style="color:#aaa;">Number of Subscribers</small>
+
+            </div>
+        </div>
+
+        <div class="action-row">
+            <button id="likeBtn" class="like-btn">
+                👍 <span id="likeCount">{{ current_video.likes.count }}</span>
+            </button>
+
+            <button id="subscribeBtn" class="subscribe-btn">
+                Subscribe
+            </button>
+
+            {% if current_video.is_premium %}
+                <a href="{% url 'subscription_plans' %}" class="premium-btn">
+                    Join Premium
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="description">
+        <p id="descText">{{ current_video.description }}</p>
+        <button class="desc-toggle" onclick="toggleDesc()">Show more</button>
+    </div>
+</div>
+
+<div class="comments">
+    <h3>Comments</h3>
+
+    {% for comment in current_video.comments.all %}
+        <p><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</p>
+    {% empty %}
+        <p style="color:#aaa;">No comments yet.</p>
+    {% endfor %}
+
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'add_comment' current_video.id %}">
+            {% csrf_token %}
+            <textarea name="comment" required></textarea>
+            <button class="comment-btn">Post Comment</button>
+        </form>
+    {% endif %}
+</div>
+
+{% endif %}
+</div>
+
+<div class="playlist-section">
+
+<div class="playlist-header">
+    <strong>
+        {{ playlist.name }}
+        <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">✎</a>
+    </strong>
+</div>
+
+<div class="controls">
+    <button id="shuffleBtn">Shuffle</button>
+    <button id="loopBtn">Loop</button>
+</div>
+
+{% for video in videos %}
+<a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
+    <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
+        {{ video.title }}
+    </div>
+</a>
+{% endfor %}
+
+</div>
+</div>
 
 <script>
+let expanded = false;
+function toggleDesc() {
+    expanded = !expanded;
+    document.getElementById("descText").style.maxHeight =
+        expanded ? "none" : "60px";
+}
+
+/* LIKE */
+document.getElementById("likeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_like' current_video.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("likeCount").innerText = data.count;
+        this.classList.toggle("liked", data.liked);
+    });
+});
+
+/* SUBSCRIBE */
+document.getElementById("subscribeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
+    });
+});
+
+/* PLAYER */
+document.addEventListener("DOMContentLoaded", function () {
+
     const videoPlayer = document.getElementById("videoPlayer");
-    const items = Array.from(document.querySelectorAll(".playlist-item"));
     const shuffleBtn = document.getElementById("shuffleBtn");
     const loopBtn = document.getElementById("loopBtn");
 
     let shuffle = false;
     let loop = false;
-    let currentIndex = 0;
 
-    function playVideo(index) {
-        items.forEach(i => i.classList.remove("active"));
-        items[index].classList.add("active");
-
-        videoPlayer.src = items[index].dataset.src;
-        videoPlayer.play();
-        currentIndex = index;
-    }
-
-    items.forEach((item, index) => {
-        item.addEventListener("click", () => playVideo(index));
+    shuffleBtn?.addEventListener("click", function () {
+        shuffle = !shuffle;
+        this.classList.toggle("active");
     });
 
-    shuffleBtn.onclick = () => {
-        shuffle = !shuffle;
-        shuffleBtn.classList.toggle("active");
-    };
-
-    loopBtn.onclick = () => {
+    loopBtn?.addEventListener("click", function () {
         loop = !loop;
-        loopBtn.classList.toggle("active");
-    };
+        this.classList.toggle("active");
+    });
 
-    videoPlayer.onended = () => {
+    if (!videoPlayer) return;
+
+    videoPlayer.play().catch(() => {});
+
+    videoPlayer.addEventListener("ended", function () {
+
         if (loop) {
-            playVideo(currentIndex);
-        } else if (shuffle) {
-            const randomIndex = Math.floor(Math.random() * items.length);
-            playVideo(randomIndex);
-        } else {
-            if (currentIndex + 1 < items.length) {
-                playVideo(currentIndex + 1);
-            }
+            videoPlayer.currentTime = 0;
+            videoPlayer.play();
+            return;
         }
-    };
+
+        const ids = [{% for v in videos %}{{ v.id }},{% endfor %}];
+
+        if (shuffle) {
+            const randomIndex = Math.floor(Math.random() * ids.length);
+            window.location.href = window.location.pathname + "?video=" + ids[randomIndex];
+            return;
+        }
+
+        {% if next_video %}
+            window.location.href = window.location.pathname + "?video={{ next_video.id }}";
+        {% endif %}
+
+    });
+
+});
 </script>
 
-</body>
-</html>
+{% endblock %}

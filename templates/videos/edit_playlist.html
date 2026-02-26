@@ -1,45 +1,110 @@
 {% extends "videos/base.html" %}
-
 {% block title %}Edit Playlist{% endblock %}
-
 {% block content %}
-<div style="max-width:600px; margin-left:2em;" class="container">
 
-    <h2>Edit Playlist</h2>
+<style>
+/* Page center */
+.edit-wrapper {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    <form method="post">
-        {% csrf_token %}
+/* Card */
+.edit-card {
+    width: 100%;
+    max-width: 420px;
+    background: #181818;
+    padding: 28px;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
 
-        {{ form.as_p }}
+/* Title */
+.edit-card h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 20px;
+}
 
-        <button type="submit"
-                style="
-                    background:#ff0000;
-                    color:white;
-                    border:none;
-                    padding:4px 30px;
-                    border-radius:30px;
-                    font-weight:bold;
-                    cursor:pointer;
-                ">
-            Save Changes
-        </button>
+/* Input */
+.edit-card input {
+    width: 100%;
+    padding: 12px;
+    background: #121212;
+    border: 1px solid #303030;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 14px;
+}
 
-        <a href="{% url 'playlist_list' %}"
-           style="
-                display:inline-block;
-                background:#ae00ff;
-                color:white;
-                border:none;
-                padding:4px 30px;
-                border-radius:30px;
-                font-weight:bold;
-                text-decoration:none;
-                margin-left:10px;
-           ">
-            Cancel
-        </a>
-    </form>
+/* Buttons */
+.btn-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
 
+.save-btn {
+    background: #cc0000;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.save-btn:hover {
+    background: #ff0000;
+}
+
+.cancel-btn {
+    background: transparent;
+    color: #aaa;
+    border: 1px solid #303030;
+    padding: 10px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.cancel-btn:hover {
+    color: white;
+    border-color: #666;
+}
+</style>
+
+<div class="edit-wrapper">
+    <div class="edit-card">
+        <h2>Edit playlist</h2>
+
+        <form method="post">
+            {% csrf_token %}
+
+
+            {{ form.name }}
+
+            <div style="margin-top:14px;">
+                <label style="display:flex;align-items:center;gap:8px;">
+                    {{ form.is_public }}
+                    <span>Public playlist</span>
+                </label>
+                <small style="color:#aaa;font-size:12px;">
+                    Public playlists are visible to everyone
+                </small>
+             </div>
+
+            <div class="btn-row">
+                <a href="{% url 'playlist_list' %}" class="cancel-btn">
+                    Cancel
+                </a>
+                <button type="submit" class="save-btn">
+                    Save
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
 {% endblock %}

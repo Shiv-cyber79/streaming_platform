@@ -1,0 +1,379 @@
+{% extends "videos/base.html" %}
+
+{% block content %}
+
+<div style="display:flex; height:90vh; gap:20px; padding:20px;">
+
+    <!-- 🎥 MAIN VIDEO AREA -->
+    <div style="flex:3; position:relative;">
+
+        <!-- MAIN VIDEO (ONLY ONE BIG) -->
+        <video id="remoteVideo" autoplay playsinline controls
+            style="
+                width:100%;
+                height:100%;
+                background:black;
+                border-radius:12px;
+                object-fit:cover;
+            ">
+        </video>
+
+        <!-- 🔴 LIVE BADGE -->
+        <div style="
+            position:absolute;
+            top:15px;
+            left:15px;
+            background:red;
+            color:white;
+            padding:6px 12px;
+            border-radius:6px;
+            font-weight:bold;
+        ">
+            🔴 LIVE
+        </div>
+
+        <!-- 👀 VIEW COUNT -->
+        <div id="viewerCount" style="
+            position:absolute;
+            top:15px;
+            right:15px;
+            background:rgba(0,0,0,0.7);
+            padding:6px 12px;
+            border-radius:6px;
+        ">
+            👀 0 watching
+        </div>
+
+        <!-- 🎥 SMALL SELF VIDEO (ONLY FOR BROADCASTER) -->
+        {% if is_broadcaster %}
+        <video id="localVideo" autoplay playsinline muted
+            style="
+                position:absolute;
+                bottom:20px;
+                right:20px;
+                width:180px;
+                height:120px;
+                border-radius:10px;
+                border:2px solid white;
+                background:black;
+                object-fit:cover;
+            ">
+        </video>
+        {% endif %}
+
+    </div>
+
+
+    <!-- 💬 CHAT SECTION -->
+    <div style="
+        flex:1;
+        background:#181818;
+        border-radius:12px;
+        display:flex;
+        flex-direction:column;
+    ">
+
+        <div style="
+            padding:10px;
+            border-bottom:1px solid #333;
+            font-weight:bold;
+        ">
+            💬 Live Chat
+        </div>
+
+        <div id="chatBox" style="
+            flex:1;
+            overflow-y:auto;
+            padding:10px;
+            font-size:14px;
+        "></div>
+
+        <div style="display:flex; padding:10px; gap:10px;">
+            <input id="chatInput" placeholder="Type message..."
+                style="
+                    flex:1;
+                    padding:10px;
+                    border-radius:20px;
+                    border:none;
+                    background:#222;
+                    color:white;
+                ">
+
+            <button onclick="sendMessage()" style="
+                padding:10px 14px;
+                background:red;
+                border:none;
+                border-radius:20px;
+                color:white;
+                cursor:pointer;
+            ">Send</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- 🎮 CONTROLS -->
+<div style="text-align:center; margin-top:10px;">
+
+{% if is_broadcaster %}
+<button onclick="startStreaming()" style="
+    padding:10px 20px;
+    background:red;
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-weight:bold;
+    cursor:pointer;
+">🔴 Go Live</button>
+
+<button onclick="stopRecording()" style="
+    padding:10px 20px;
+    background:#333;
+    color:white;
+    border:none;
+    border-radius:8px;
+    margin-left:10px;
+    cursor:pointer;
+">⏹ Stop</button>
+{% endif %}
+
+</div>
+
+{% endblock %}
+
+
+
+{% block script %}
+<script>
+console.log("JS Loaded ✅");
+
+// ================= RECORDING =================
+let mediaRecorder;
+let recordedChunks = [];
+
+// ================= ROLE =================
+let isBroadcaster = "{{ is_broadcaster|yesno:'true,false' }}" === "true";
+console.log("Role:", isBroadcaster ? "Broadcaster 🎥" : "Viewer 👀");
+
+// ================= GLOBAL =================
+let localStream;
+let peerConnection = null;
+let pendingCandidates = [];
+
+const roomName = "{{ room_name }}";
+
+const socket = new WebSocket(
+    "ws://" + window.location.host + "/ws/live/" + roomName + "/"
+);
+
+// STUN
+const config = {
+    iceServers: [
+        { urls: "stun:stun.l.google.com:19302" }
+    ]
+};
+
+
+// ================= SOCKET =================
+socket.onmessage = async function(event) {
+    const data = JSON.parse(event.data);
+    console.log("📩 Received:", data);
+
+    // 👀 VIEWER COUNT
+    if (data.viewers !== undefined) {
+        document.getElementById("viewerCount").innerText =
+            "👀 " + data.viewers + " watching";
+        return;
+    }
+
+    // 💬 CHAT
+    if (data.chat) {
+        const box = document.getElementById("chatBox");
+        box.innerHTML += `<p>${data.chat}</p>`;
+        box.scrollTop = box.scrollHeight;
+        return;
+    }
+
+    // 👀 Viewer
+    if (data.offer && !isBroadcaster) {
+        console.log("👀 Viewer received offer");
+        await handleOffer(data.offer);
+    }
+
+    // 🎥 Broadcaster
+    else if (data.answer && isBroadcaster) {
+        console.log("🎥 Broadcaster received answer");
+
+        if (peerConnection && peerConnection.signalingState !== "stable") {
+            await peerConnection.setRemoteDescription(data.answer);
+
+            while (pendingCandidates.length > 0) {
+                await peerConnection.addIceCandidate(pendingCandidates.shift());
+            }
+        }
+    }
+
+    // ICE
+    else if (data.candidate) {
+        if (peerConnection && peerConnection.remoteDescription) {
+            await peerConnection.addIceCandidate(data.candidate);
+        } else {
+            pendingCandidates.push(data.candidate);
+        }
+    }
+};
+
+
+// ================= VIEWER =================
+async function handleOffer(offer) {
+    console.log("👀 Handling offer...");
+
+    peerConnection = new RTCPeerConnection(config);
+
+    peerConnection.ontrack = event => {
+        console.log("🎥 TRACK RECEIVED");
+
+        const remoteVideo = document.getElementById("remoteVideo");
+        if (remoteVideo.srcObject !== event.streams[0]) {
+            remoteVideo.srcObject = event.streams[0];
+        }
+    };
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({
+                candidate: event.candidate
+            }));
+        }
+    };
+
+    await peerConnection.setRemoteDescription(offer);
+
+    const answer = await peerConnection.createAnswer();
+    await peerConnection.setLocalDescription(answer);
+
+    console.log("📤 Sending answer...");
+    socket.send(JSON.stringify({ answer }));
+
+    while (pendingCandidates.length > 0) {
+        await peerConnection.addIceCandidate(pendingCandidates.shift());
+    }
+}
+
+
+// ================= BROADCASTER =================
+window.startStreaming = async function() {
+
+    if (!isBroadcaster) {
+        alert("Only broadcaster can start live");
+        return;
+    }
+
+    console.log("🎥 Broadcaster starting...");
+
+    localStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+    });
+
+    document.getElementById("localVideo").srcObject = localStream;
+
+    // 🔴 RECORDING START
+    recordedChunks = [];
+
+    mediaRecorder = new MediaRecorder(localStream);
+
+    mediaRecorder.ondataavailable = function(event) {
+        if (event.data.size > 0) {
+            recordedChunks.push(event.data);
+        }
+    };
+
+    mediaRecorder.start();
+    console.log("🔴 Recording started...");
+
+    peerConnection = new RTCPeerConnection(config);
+
+    peerConnection.ontrack = event => {
+        console.log("🎥 Broadcaster receiving track");
+        document.getElementById("remoteVideo").srcObject = event.streams[0];
+    };
+
+    peerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            socket.send(JSON.stringify({
+                candidate: event.candidate
+            }));
+        }
+    };
+
+    for (const track of localStream.getTracks()) {
+        console.log("🎥 Adding track:", track.kind);
+        peerConnection.addTrack(track, localStream);
+    }
+
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
+    console.log("📤 Sending offer...");
+    socket.send(JSON.stringify({ offer }));
+};
+
+
+// ================= STOP RECORDING =================
+function stopRecording() {
+
+    if (!mediaRecorder) {
+        alert("Recording not started!");
+        return;
+    }
+
+    mediaRecorder.stop();
+
+    mediaRecorder.onstop = async function() {
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+
+        console.log("📤 Uploading to server...");
+
+        let formData = new FormData();
+        formData.append("video", blob, "live.webm");
+
+        const response = await fetch("/upload-live/", {
+            method: "POST",
+            body: formData
+        });
+
+        const text = await response.text();
+        console.log("Server response:", text);
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            console.error("❌ Not JSON:", text);
+            alert("Upload failed. Check server.");
+            return;
+        }
+
+        alert("Video saved successfully!");
+    };
+}
+
+
+// ================= CHAT SEND =================
+function sendMessage() {
+    const input = document.getElementById("chatInput");
+
+    if (!input.value.trim()) return;
+
+    socket.send(JSON.stringify({
+        chat: input.value
+    }));
+
+    input.value = "";
+}
+
+</script>
+{% endblock %}

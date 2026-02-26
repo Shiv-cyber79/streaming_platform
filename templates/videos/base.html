@@ -1,107 +1,114 @@
 <!DOCTYPE html>
+{% block script %}{% endblock %}
 <html>
 <head>
+ {% load static %} 
     <title>{% block title %}Streaming{% endblock %}</title>
-
-    <script>
-async function refreshAccessToken() {
-    const response = await fetch("/users/refresh-token/");
-    if (!response.ok) {
-        window.location.href = "/login/";
-        return;
-    }
-    const data = await response.json();
-    return data.access;
-}
-</script>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}"> 
 
     <style>
-
-        .home-page {
-           background: #000000;
-           color: white;
-        }
-
-       
-        .profile-menu {
-           position: relative;
-        }
-
-
-        .profile-pic {
-           width: 36px;
-           height: 36px;
-           border-radius: 50%;
-           cursor: pointer;
-        }
-
-
-        .profile-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 45px;
-            background: #1f1f1f;
-            border-radius: 6px;
-            width: 160px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            padding: 8px 0;
-            z-index: 2000;
-        }
-
-
-        .profile-dropdown a {
-            display: block;
-            padding: 10px 15px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-
-        .dropdown-logout {
-            width: 100%;
-            background: none;
-            border: none;
-            color: white;
-            text-align: left;
-            padding: 10px 15px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-
-       .profile-dropdown a:hover,
-       .dropdown-logout:hover {
-           background: #333;
-        }
-
-
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background: #f9f9f9;
+            background: #000;
+            color: white;
+            padding-top: var(--navbar-height);
         }
-
-    
+        :root {
+            --navbar-height: 60px;
+        }
         .navbar {
             display: flex;
             align-items: center;
             padding: 10px 20px;
-            background: #000000;
+            background: #000;
             border-bottom: 1px solid #222;
         }
+            /* NAV LEFT */
+    .nav-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
 
+    .hamburger {
+        font-size: 22px;
+        cursor: pointer;
+        padding: 6px 10px;
+        border-radius: 8px;
+    }
+
+    .hamburger:hover {
+        background: #222;
+    }
+
+
+    /* OVERLAY */
+    .sidebar-overlay {
+        position: fixed;
+        top: var(--navbar-height);
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        background: rgba(0,0,0,0.5);
+        display: none;
+        z-index: 1999;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+        position: fixed;
+        left: -260px;
+
+        top: var(--navbar-height);   /* start below navbar */
+        height: calc(100vh - var(--navbar-height));
+
+        width: 260px;
+        background: #0f0f0f;
+        transition: 0.3s ease;
+        z-index: 2000;
+        border-right: 1px solid #222;
+    }
+    /* open state */
+    .sidebar.open {
+        left: 0;
+    }
+
+    .sidebar-overlay.show {
+        display: block;
+    }
+
+
+    /* menu items */
+    .sidebar a {
+        display: block;
+        padding: 14px 22px;
+        color: #ddd;
+        text-decoration: none;
+        font-size: 15px;
+    }
+
+    .sidebar a:hover {
+        background: #222;
+    }
+
+    .sidebar a.active {
+        background: #2a2a2a;
+        color: white;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background: #222;
+        margin: 12px 0;
+    }
         .logo {
             font-size: 20px;
             font-weight: bold;
             color: red;
             margin-right: 30px;
-        }
-
-        .logout-btn {
-           color: white;        
-           font-size: 13px;   
+            white-space: nowrap;
         }
 
         .nav-links a,
@@ -113,27 +120,177 @@ async function refreshAccessToken() {
             background: none;
             border: none;
             cursor: pointer;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover,
+        .nav-links button:hover {
+            color: #ff0000;
         }
 
         .nav-right {
-            margin-left: auto;
+           margin-left: auto;
+           display: flex;
+           align-items: center;
+           gap: 15px;
+           min-width: 300px;   /* 👈 ADD THIS */
+           justify-content: flex-end;
         }
 
-    
+        /* ================= CREATE MENU ================= */
+
+        .create-menu {
+            position: relative;
+            margin-right: 12px;
+        }
+
+        /* + button */
+        .create-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid #3ea6ff;
+            color: #3ea6ff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .create-btn:hover {
+            background: rgba(62,166,255,0.15);
+        }
+
+        /* dropdown */
+        .create-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            width: 220px;
+            background: #1f1f1f;
+            border-radius: 14px;
+            border: 1px solid #303030;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            overflow: hidden;
+            z-index: 2000;
+        }
+
+        .create-dropdown a {
+            display: block;
+            padding: 12px 18px;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .create-dropdown a:hover {
+            background: #2a2a2a;
+        }
+
+        .profile-initial {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #ff0000;
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+       .profile-info {
+           padding: 10px 15px;
+           border-bottom: 1px solid #333;
+        }
+
+        .profile-info small {
+           display: block;
+           font-size: 12px;
+           color: #aaa;
+        }
+     
+        .profile-menu {
+            position: relative;
+        }
+
+        .profile-pic {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .profile-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 48px;
+            background: #1f1f1f;
+            border-radius: 14px;
+            width: 250px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            z-index: 2000;
+            overflow: hidden;
+            border: 1px solid #303030;
+        }
+
+        .profile-dropdown a,
+        .dropdown-logout {
+           display: block;
+           padding: 12px 18px;
+           color: white;
+           text-decoration: none;
+           background: none;
+           border: none;
+           text-align: left;
+           cursor: pointer;
+           font-size: 14px;
+           transition: 0.2s ease;
+        }
+
+        .profile-dropdown a:hover,
+        .dropdown-logout:hover {
+           background: #2a2a2a;
+        }
+
+       .profile-divider {
+           height: 1px;
+           background: #303030;
+           margin: 6px 0;
+        }
+
+        .profile-dropdown a,
+        .dropdown-logout {
+            width: 100%;
+            display: block;
+            padding: 10px 15px;
+            color:inherit;
+            text-decoration: none;
+            background: transparent;
+            border: none;
+            text-align: left;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .profile-dropdown a:hover,
+        .dropdown-logout:hover {
+            background: #333;
+        }
+
+        
         .popup {
             display: none;
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.6);
             z-index: 1000;
-        }
-
-        .nav-btn {
-           background: none;
-           border: none;
-           font-weight: bold;
-           cursor: pointer;
-           color: white;  
         }
 
         .popup-content {
@@ -143,15 +300,7 @@ async function refreshAccessToken() {
             padding: 25px;
             text-align: center;
             border-radius: 8px;
-        }
-
-        .popup-content h3 {
-            margin-bottom: 10px;
-        }
-
-        .popup-content p {
-            color: #555;
-            margin-bottom: 20px;
+            color: black;
         }
 
         .popup-btn {
@@ -174,58 +323,265 @@ async function refreshAccessToken() {
             border: none;
             cursor: pointer;
             color: #777;
-            margin-top: 10px;
         }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background: #000;
+            border-bottom: 1px solid #222;
+               position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+        }
+
+        /* LEFT */
+       
+
+        /* CENTER (IMPORTANT 🔥) */
+            .nav-center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* SEARCH BAR */
+        .search-form {
+            display: flex;
+            width: 100%;
+            max-width: 550px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 25px 0 0 25px;
+            border: 1px solid #333;
+            background: #121212;
+            color: white;
+            outline: none;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            padding: 10px 18px;
+            border-radius: 0 25px 25px 0;
+            border: 1px solid #333;
+            background: #222;
+            color: white;
+            cursor: pointer;
+        }
+
+        .search-btn:hover {
+            background: #333;
+        }
+
+        body {
+           background: #0f0f0f;
+        }
+
+        /* Smooth UI */
+      *   {
+            transition: all 0.2s ease;
+        }
+
+        /* Card hover feel */
+        .video-card:hover {
+            transform: scale(1.02);
+        }
+
+       /* Scrollbar */
+       ::-webkit-scrollbar {
+    width: 6px;
+        }
+       ::-webkit-scrollbar-thumb {
+           background: #333;
+           border-radius: 10px;
+        } 
+
     </style>
 </head>
 
-<body class="{% block body_class %}{% endblock %}">
+<body>
 
 <div class="navbar">
-    <div class="logo">▶ Stream</div>
 
-    <div class="nav-links">
-      
-        <a href="{% url 'home' %}">Home</a>
+    <!-- LEFT -->
+    <div class="nav-left">
+        <div class="hamburger" onclick="toggleSidebar()">
+            ☰
+        </div>
 
-        {% if user.is_authenticated %}
-            <a href="{% url 'playlist_list' %}">Playlists</a>
-            <a href="{% url 'upload_video' %}">Upload</a>
-        {% else %}
-            <button onclick="openLoginPopup()">Playlists</button>
-            <button onclick="openLoginPopup()">Upload</button>
-        {% endif %}
+        <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
+            ▶ Stream
+        </a>
+
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Home</a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'subscription_feed' %}">Subscriptions</a>
+                <a href="{% url 'playlist_list' %}">Playlists</a>
+                <a href="{% url 'upload_video' %}">Upload</a>
+            {% else %}
+                <button onclick="openLoginPopup()">Playlists</button>
+                <button onclick="openLoginPopup()">Upload</button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CENTER 🔥 -->
+    <div class="nav-center">
+        <form method="GET" action="{% url 'home' %}" class="search-form">
+            <input 
+                type="text" 
+                name="q" 
+                placeholder="Search" 
+                value="{{ request.GET.q }}"
+                class="search-input"
+            >
+            <button type="submit" class="search-btn">🔍</button>
+        </form>
     </div>
 
     <div class="nav-right">
-    {% if user.is_authenticated %}
-        <div class="profile-menu">
-            
-            <img src="https://i.pravatar.cc/40"
-                 class="profile-pic"
-                 onclick="toggleProfileMenu()">
+            {% if user.is_authenticated %} 
 
-          
-            <div id="profileDropdown" class="profile-dropdown">
-                <a href="#">⚙️ Settings</a>
+            <!-- ➕ CREATE MENU START -->
+            <div class="create-menu">
 
-                <form method="post" action="{% url 'logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-logout">
-                        🚪 Logout
-                    </button>
-                </form>
+                <div class="create-btn" onclick="toggleCreateMenu()">+</div>
+
+                <div id="createDropdown" class="create-dropdown">
+                    <a href="{% url 'upload_video' %}">📤 Upload Video</a>
+                    <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
+                    <div class="profile-divider"></div>
+                    <a href="#">📝 Create Post</a>
+                </div>
+
             </div>
-        </div>
-        {% else %}
-            <button onclick="openLoginPopup()"
-                    style="background:none;border:none;font-weight:bold;cursor:pointer;color:white;">
-                Login
-            </button>
-        {% endif %}
+            <!-- ➕ CREATE MENU END -->
+
+            <!-- 🔔 Notification Bell START -->
+               <a href="{% url 'notifications' %}" 
+                  style="
+                      color:white;
+                      position:relative;
+                      margin-right:14px;
+                      font-size:20px;
+                      text-decoration:none;
+               ">
+
+               🔔
+
+               {% if unread_notifications_count > 0 %}
+                   <span style="
+                       position:absolute;
+                       top:-6px;
+                       right:-8px;
+                       background:red;
+                       color:white;
+                       border-radius:50%;
+                       padding:2px 6px;
+                       font-size:11px;
+                ">
+                    {{ unread_notifications_count }}
+                </span>
+            {% endif %}
+
+        </a>
+        <!-- 🔔 Notification Bell END -->
+
+                <div class="profile-menu">
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}"
+                             class="profile-pic"
+                             onclick="toggleProfileMenu()">
+                    {% else %}
+                        <div class="profile-initial"
+                             onclick="toggleProfileMenu()">
+                            {{ user.username|first|upper }}
+                        </div>
+                    {% endif %}
+
+                    <div id="profileDropdown" class="profile-dropdown">
+                        <div class="profile-info">
+                            <strong>
+                                {% if user.first_name %}
+                                    {{ user.first_name }} {{ user.last_name }}
+                                {% else %}
+                                    {{ user.username }}
+                               {% endif %}
+                           </strong>
+
+                            <small>{{ user.email }}</small>
+                        </div>
+
+                        <!-- <div class="profile-divider"></div> -->
+
+                        <a href="{% url 'subscription_plans' %}">💎 Purchase</a>
+
+                        <a href="{% url 'subscription_feed' %}">⭐ Membership</a>
+
+                        <div class="profile-divider"></div>
+
+                        <a href="{% url 'user_settings' %}">⚙️ Settings</a>
+
+                        <form method="post" action="{% url 'logout' %}">
+                              {% csrf_token %}
+                              <button type="submit" class="dropdown-logout">
+                                  🚪 Logout
+                              </button>
+                          </form>
+                    </div>
+                </div>
+            {% else %}
+                <button
+                    onclick="openLoginPopup()"
+                    style="
+                        display:flex;
+                        align-items:center;
+                        gap:6px;
+                        padding:6px 14px;
+                        border:1px solid #3ea6ff;
+                        border-radius:18px;
+                        background:transparent;
+                        color:#3ea6ff;
+                        font-weight:600;
+                        font-size:14px;
+                        cursor:pointer;
+                    "
+                    onmouseover="this.style.background='rgba(62,166,255,0.15)'"
+                    onmouseout="this.style.background='transparent'"
+                >
+                     👤 Log in
+                 </button>
+            {% endif %}
     </div>
 </div>
+<!-- Sidebar Overlay -->
+<div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
+<!-- Sidebar -->
+<div id="sidebar" class="sidebar">
+
+    <a href="/" class="sidebar-item active">🏠  Home</a>
+    <a href="{% url 'subscription_feed' %}">🎬  Subscriptions</a>
+    <a href="#">📚  Library</a>
+    <a href="#">⏱  History</a>
+    <a href="#">👍  Liked videos</a>
+    <a href="#">📺  Your videos</a>
+
+    <div class="sidebar-divider"></div>
+
+    <a href="#">⚙ Settings</a>
+    <a href="#">❓ Help</a>
+
+</div>
 
 {% block content %}{% endblock %}
 
@@ -234,65 +590,49 @@ async function refreshAccessToken() {
         <h3>Login required</h3>
         <p>Sign in or create an account to continue</p>
 
-        <a href="{% url 'login' %}?next={{ request.path }}" class="popup-btn">
-            Login
-        </a>
+        <a href="{% url 'login' %}?next={{ request.path }}" class="popup-btn">Login</a>
+        <a href="{% url 'signup' %}?next={{ request.path }}" class="popup-btn signup">Create account</a>
 
-        <a href="{% url 'signup' %}?next={{ request.path }}" class="popup-btn signup">
-            Create account
-        </a>
-
-        <button onclick="closeLoginPopup()" class="popup-cancel">
-            Cancel
-        </button>
+        <button onclick="closeLoginPopup()" class="popup-cancel">Cancel</button>
     </div>
 </div>
 
 <script>
+    function toggleSidebar() {
+    document.getElementById("sidebar").classList.toggle("open");
+    document.getElementById("sidebarOverlay").classList.toggle("show");
+}
 function openLoginPopup() {
     document.getElementById("loginPopup").style.display = "block";
 }
-
 function closeLoginPopup() {
     document.getElementById("loginPopup").style.display = "none";
 }
-</script>
-
-<script>
-async function callProtectedAPI() {
-    const response = await fetch("/videos/api/playlists/", {
-        headers: {
-            "Authorization": "Bearer {{ request.session.access_token }}"
-        }
-    });
-
-    if (response.status === 401) {
-        await refreshAccessToken();
-        return callProtectedAPI(); // retry
-    }
-
-    const data = await response.json();
-    console.log(data);
-}
-</script>
-
-<script>
 function toggleProfileMenu() {
     const menu = document.getElementById("profileDropdown");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
 }
-
-
 document.addEventListener("click", function (e) {
     const profileMenu = document.querySelector(".profile-menu");
     const dropdown = document.getElementById("profileDropdown");
-
     if (profileMenu && !profileMenu.contains(e.target)) {
         dropdown.style.display = "none";
     }
 });
-</script>
 
+function toggleCreateMenu() {
+    const menu = document.getElementById("createDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+/* close when clicking outside */
+document.addEventListener("click", function(e) {
+    const createMenu = document.querySelector(".create-menu");
+    if (!createMenu.contains(e.target)) {
+        document.getElementById("createDropdown").style.display = "none";
+    }
+});
+</script>
 
 </body>
 </html>

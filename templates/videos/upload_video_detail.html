@@ -1,0 +1,198 @@
+{% extends "videos/base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+.layout {
+    display: grid;
+    grid-template-columns: 240px 1fr 350px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.sidebar {
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    border-right: 1px solid #222;
+    padding: 10px;
+}
+
+.sidebar {
+    background-color: #0f0f0f;
+}
+
+.channel-item {
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.channel-item:hover {
+    background: #1f1f1f;
+}
+
+/* CENTER PLAYER */
+.player {
+    overflow-y: auto;
+    height: 100vh;
+    padding-right: 10px;
+}
+
+.video-title {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 12px;
+}
+
+.yt-player {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.yt-player {
+    width: 100%;
+    max-height: 70vh;
+}
+
+/* ACTION BUTTONS */
+.actions {
+    margin-top: 15px;
+    display: flex;
+    gap: 12px;
+}
+
+.action-btn {
+    background: #272727;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+.action-btn:hover {
+    background: #3a3a3a;
+}
+
+/* DESCRIPTION */
+.description {
+    margin-top: 15px;
+    color: #aaa;
+}
+
+/* RIGHT PANEL */
+.right-panel {
+    overflow-y: auto;
+    height: 100vh;
+}
+
+.right-panel h3 {
+    margin-bottom: 15px;
+}
+
+/* SUGGESTED VIDEO CARD */
+.suggested-video {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+}
+
+.suggested-video img {
+    width: 140px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.suggested-info {
+    font-size: 13px;
+}
+
+.suggested-info p {
+    margin: 0;
+}
+
+.suggested-info small {
+    color: #aaa;
+}
+</style>
+
+<div class="layout">
+
+    <!-- LEFT: SUBSCRIPTIONS -->
+    <div class="sidebar">
+        <h3>Subscriptions</h3>
+
+        {% for sub in subscribed_channels %}
+            <div class="channel-item">
+                {{ sub.channel.username }}
+            </div>
+        {% empty %}
+            <p>No subscriptions</p>
+        {% endfor %}
+    </div>
+
+    {% if video %}
+    <!-- CENTER: VIDEO PLAYER -->
+    <div class="player">
+
+        <div class="video-title">{{ video.title }}</div>
+
+        <div class="yt-player">
+            <video controls autoplay>
+                <source src="{{ video.video_file.url }}" type="video/mp4">
+            </video>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="actions">
+            <button class="action-btn">👍 Like</button>
+            <button class="action-btn">🔗 Share</button>
+            <button class="action-btn">🔔 Subscribe</button>
+        </div>
+
+        <!-- DESCRIPTION -->
+        <div class="description">
+            {{ video.description }}
+        </div>
+
+    </div>
+
+
+    <!-- RIGHT: SUGGESTED VIDEOS -->
+    <div class="right-panel">
+
+        <h3>Suggested Videos</h3>
+
+        {% for v in suggested_videos %}
+            <a href="{% url 'upload_video_detail' v.id %}" class="suggested-video">
+
+                {% if v.thumbnail %}
+                    <img src="{{ v.thumbnail.url }}">
+                {% else %}
+                    <img src="{% static 'default.jpg' %}">
+                {% endif %}
+
+                <div class="suggested-info">
+                    <p>{{ v.title|truncatechars:40 }}</p>
+                    <small>{{ v.user.username }}</small>
+                </div>
+
+            </a>
+        {% empty %}
+            <p>No suggested videos</p>
+        {% endfor %}
+
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

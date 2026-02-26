@@ -1,7 +1,11 @@
 from pathlib import Path
 from datetime import timedelta
 import os
+from dotenv import load_dotenv
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(os.path.join(BASE_DIR, ".env"))
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
@@ -20,17 +24,18 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
-
+print(MEDIA_ROOT)
 
 SECRET_KEY = 'django-insecure-wco%#4=l-(ie!2l2y$1b45s@@#s%j5+0k^2p&37-gp$=)-2@oe'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["127.0.0.1:8000","localhost:8000","127.0.0.1","aplam"]
 
 
 
 INSTALLED_APPS = [
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,9 +45,19 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
-
+    'userauth.apps.UserauthConfig',
     'users',
     'videos',
+
+    # allauth core
+    "django.contrib.sites",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    # google provider
+    "allauth.socialaccount.providers.google",
+
+    "django.contrib.humanize",
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -52,6 +67,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware'
 ]
 
 ROOT_URLCONF = 'streaming_platform.urls'
@@ -67,13 +83,20 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'videos.context_processors.subscriptions_processor',
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'streaming_platform.wsgi.application'
+ASGI_APPLICATION = "streaming_platform.asgi.application"
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -104,16 +127,25 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_USE_TLS = True  
 
 EMAIL_HOST_USER = "rshiv9900@gmail.com"
 EMAIL_HOST_PASSWORD = "xjyjznnvgfeqmmyb"
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+# DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
+
+# EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+# print("STRIPE:", STRIPE_SECRET_KEY)
+
 
 
 # DEFAULT_FROM_EMAIL = 'Streaming Platform xjyj znnv gfeq mmyb'
@@ -123,7 +155,7 @@ DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -134,6 +166,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -149,3 +183,39 @@ CSRF_COOKIE_HTTPONLY = True
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Configurations for google auth
+# Site ID 
+SITE_ID = 1
+
+AUTHENTICATION_BACKENDS = [
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+]
+
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
+SOCIALACCOUNT_AUTO_SIGNUP = True
+
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_EMAIL_REQUIRED = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+
+
+SOCIALACCOUNT_PROVIDERS = {
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email",
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online",
+        },
+    }
+}
+
+# SOCIALACCOUNT_FORMS = {
+#     "signup": None
+# }
+
+SOCIALACCOUNT_ADAPTER = "userauth.adapters.MySocialAccountAdapter"

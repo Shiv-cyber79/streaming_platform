@@ -1,87 +1,260 @@
 {% extends "videos/base.html" %}
-
-{% block body_class %}home-page{% endblock %}
+{% load static %}
 
 {% block content %}
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
-
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f0f, #1c1c1c);
-    font-family: 'Poppins', sans-serif;
-    color: white;
-}
-
 .home-container {
-    min-height: calc(100vh - 60px); 
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* Category Filter */
+.category-bar {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    gap: 10px;
+    overflow-x: auto;
+    margin-bottom: 25px;
 }
 
-.heading {
-    font-size: 48px;
-    margin-bottom: 40px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #f1f1f1;
-}
-
-.playlist-box {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-}
-
-
-.playlist-name {
-    font-size: 24px;
-    font-weight: 500;
+.category-bar a {
+    padding: 8px 16px;
+    background: #222;
+    border-radius: 20px;
     text-decoration: none;
-    color: #bdbdbd;
-    letter-spacing: 1px;
-    transition: all 0.3s ease;
+    color: white;
+    font-size: 13px;
+    white-space: nowrap;
+    transition: 0.2s;
+}
+
+.category-bar a:hover {
+    background: #ff0000;
+}
+
+/* Video Grid */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+/* Card */
+.video-card {
+    background: transparent;
     cursor: pointer;
 }
 
-.playlist-name:hover {
-    color: #ffffff;
-    transform: scale(1.06);
+/* Thumbnail */
+.thumbnail-wrapper {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-.no-playlist {
-    font-size: 18px;
-    color: #888;
+.thumbnail-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* Premium Badge */
+.premium-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: linear-gradient(45deg, gold, orange);
+    padding: 4px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    font-weight: bold;
+}
+
+/* Duration */
+.duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0,0,0,0.8);
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Info Section */
+.video-info {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.channel-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ff0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+}
+
+.video-meta {
+    flex: 1;
+}
+
+.video-title {
+    font-size: 15px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.video-submeta {
+    font-size: 13px;
+    color: #aaa;
+}
+.go-live-btn {
+    background: red;
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    font-size: 13px;
+    font-weight: bold;
+    margin-left: auto;
 }
 </style>
 
 <div class="home-container">
 
-    <h1 class="heading">Playlists</h1>
+    <!-- CATEGORY FILTER -->
+    <div class="category-bar">
+        <a href="{% url 'home' %}">All</a>
+        <a href="?category=music">Music</a>
+        <a href="?category=education">Education</a>
+        <a href="?category=gaming">Gaming</a>
+        <a href="?category=tech">Technology</a>
+        <a href="?category=vlog">Vlog</a>
 
-    <div class="playlist-box">
-        {% for playlist in playlists %}
-            {% if user.is_authenticated %}
-                <a href="{% url 'playlist_detail' playlist.id %}" class="playlist-name">
-                    {{ playlist.name }}
-                </a>
-            {% else %}
-                <a href="javascript:void(0)"
-                   onclick="openLoginPopup()"
-                   class="playlist-name">
-                    {{ playlist.name }}
-                </a>
-            {% endif %}
-        {% empty %}
-            <p class="no-playlist">No playlists available</p>
+</div>
+
+{% if live_streams %}
+<div style="margin-bottom:30px;">
+
+    <div style="
+        display:grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap:20px;
+    ">
+
+        {% for live in live_streams %}
+        <a href="{% url 'live_page' live.user.username %}" style="text-decoration:none;">
+
+            <div style="
+                background:#181818;
+                border-radius:12px;
+                overflow:hidden;
+                transition:0.3s;
+            "
+            onmouseover="this.style.transform='scale(1.03)'"
+            onmouseout="this.style.transform='scale(1)'">
+
+                <div style="position:relative;">
+                    <img src="{% static 'images/default_thumbnail.jpg' %}" style="width:100%;height:150px;object-fit:cover;">
+
+                    <span style="
+                        position:absolute;
+                        top:10px;
+                        left:10px;
+                        background:red;
+                        padding:4px 8px;
+                        border-radius:5px;
+                        font-size:12px;
+                        color:white;
+                    ">LIVE</span>
+
+                    <span style="
+                        position:absolute;
+                        bottom:10px;
+                        left:10px;
+                        background:rgba(0,0,0,0.7);
+                        padding:4px 8px;
+                        border-radius:5px;
+                        font-size:12px;
+                        color:white;
+                    ">👀 {{ live.viewers }}</span>
+                </div>
+
+                <div style="padding:10px;color:white;">
+                    <p style="margin:0;font-weight:600;">{{ live.user.username }}</p>
+                </div>
+
+            </div>
+
+        </a>
         {% endfor %}
+
     </div>
 
 </div>
+{% endif %}
+
+
+    <!-- VIDEO GRID -->
+    <div class="video-grid" id="videoGrid">
+        {% for video in videos %}
+        <div class="video-card">
+            <a href="{% url 'video_detail' video.id %}" style="text-decoration:none;color:white;">
+
+                <div class="thumbnail-wrapper">
+
+                    {% if video.thumbnail %}
+                        <img src="{{ video.thumbnail.url }}">
+                    {% endif %}
+
+                    {% if video.is_premium %}
+                        <div class="premium-badge">PREMIUM</div>
+                    {% endif %}
+
+                    {% if video.duration %}
+                        <div class="duration">
+                            {{ video.duration|floatformat:0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="video-info">
+                    <div class="channel-avatar">
+                        {{ video.user.username|first|upper }}
+                    </div>
+
+                    <div class="video-meta">
+                        <div class="video-title">
+                            {{ video.title }}
+                        </div>
+                        <div class="video-submeta">
+                            {{ video.user.username }} • 
+                            {{ video.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+<script>
+/* Infinite Scroll */
+window.addEventListener("scroll", function () {
+    if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 200) {
+        console.log("Load more videos...");
+        // You can later connect AJAX here
+    }
+});
+</script>
 
 {% endblock %}
