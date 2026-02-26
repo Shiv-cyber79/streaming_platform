@@ -38,7 +38,7 @@ Follow these steps to run the project locally.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/Shiv123/streamtube.git
+git clone https://github.com/Shiv-cyber79/streamtube.git
 cd streamtube
 ```
 
