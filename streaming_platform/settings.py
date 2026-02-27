@@ -89,6 +89,8 @@ TEMPLATES = [
     },
 ]
 
+
+
 WSGI_APPLICATION = 'streaming_platform.wsgi.application'
 ASGI_APPLICATION = "streaming_platform.asgi.application"
 
@@ -127,6 +129,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -134,7 +137,6 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = "rshiv9900@gmail.com"
 EMAIL_HOST_PASSWORD = "xjyjznnvgfeqmmyb"
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
@@ -174,7 +176,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = "/user_auth/login/"
+LOGIN_URL = '/user_auth/login/'
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 

@@ -460,40 +460,88 @@
                     <a href="{% url 'upload_video' %}">📤 Upload Video</a>
                     <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
                     <div class="profile-divider"></div>
-                    <a href="{% url 'create_post' %}">📝 Create Post</a>
+                    <a href="#">📝 Create Post</a>
                 </div>
 
             </div>
             <!-- ➕ CREATE MENU END -->
 
             <!-- 🔔 Notification Bell START -->
-               <a href="{% url 'notifications' %}" 
-                  style="
-                      color:white;
-                      position:relative;
-                      margin-right:14px;
-                      font-size:20px;
-                      text-decoration:none;
-               ">
+               <div style="position:relative; margin-right:14px;">
 
-               🔔
+                    <!-- Bell -->
+                    <div onclick="toggleNotif()" style="
+                       cursor:pointer;
+                       font-size:20px;
+                       position:relative;
+                   ">
+                       🔔
 
-               {% if unread_notifications_count > 0 %}
-                   <span style="
-                       position:absolute;
-                       top:-6px;
-                       right:-8px;
-                       background:red;
-                       color:white;
-                       border-radius:50%;
-                       padding:2px 6px;
-                       font-size:11px;
-                ">
-                    {{ unread_notifications_count }}
-                </span>
+                      {% if unread_notifications_count > 0 %}
+                          <span style="
+                              position:absolute;
+                              top:-6px;
+                              right:-8px;
+                              background:red;
+                              color:white;
+                              border-radius:50%;
+                              padding:2px 6px;
+                              font-size:11px;
+                         ">
+                             {{ unread_notifications_count }}
+                         </span>
+                     {% endif %}
+                 </div>
+
+    <!-- Dropdown -->
+    <div id="notifDropdown" style="
+        display:none;
+        position:absolute;
+        right:0;
+        top:35px;
+        width:320px;
+        max-height:400px;
+        overflow-y:auto;
+        background:#1f1f1f;
+        border-radius:12px;
+        box-shadow:0 10px 30px rgba(0,0,0,0.6);
+        padding:10px;
+        z-index:9999;
+    ">
+
+        {% for n in notifications %}
+
+            {% if n.video %}
+                <a href="{% url 'video_detail' video_id=n.video.id %}" style="text-decoration:none;color:white;">
+            {% elif n.post %}
+                <a href="{% url 'view_post' post_id=n.post.id %}" style="text-decoration:none;color:white;">
             {% endif %}
 
-        </a>
+            <div style="
+                padding:10px;
+                border-radius:8px;
+                margin-bottom:8px;
+                background:#2a2a2a;
+                transition:0.2s;
+            " onmouseover="this.style.background='#333'" onmouseout="this.style.background='#2a2a2a'">
+
+                <strong>{{ n.sender.username }}</strong><br>
+                <span style="font-size:13px;color:#aaa;">
+                    {{ n.message }}
+                </span>
+            </div>
+
+            {% if n.video or n.post %}
+                </a>
+            {% endif %}
+
+        {% empty %}
+            <p style="text-align:center;color:#aaa;">No notifications</p>
+        {% endfor %}
+
+    </div>
+
+</div>
         <!-- 🔔 Notification Bell END -->
 
                 <div class="profile-menu">
@@ -583,6 +631,60 @@
 
 </div>
 
+{% if messages %}
+<div id="toast-container">
+    {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+#toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast {
+    background: #ff0000;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    animation: slideIn 0.3s ease;
+    font-size: 14px;
+}
+
+.toast.success {
+    background: #00c853;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+</style>
+
+<script>
+setTimeout(() => {
+    document.querySelectorAll(".toast").forEach(el => {
+        el.style.display = "none";
+    });
+}, 3000);
+</script>
+<!-- ✅ TOAST NOTIFICATION END -->
+
 {% block content %}{% endblock %}
 
 <div id="loginPopup" class="popup">
@@ -630,6 +732,21 @@ document.addEventListener("click", function(e) {
     const createMenu = document.querySelector(".create-menu");
     if (!createMenu.contains(e.target)) {
         document.getElementById("createDropdown").style.display = "none";
+    }
+});
+</script>
+
+<script>
+function toggleNotif() {
+    const box = document.getElementById("notifDropdown");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+}
+
+/* close when clicking outside */
+document.addEventListener("click", function(e) {
+    const notif = document.getElementById("notifDropdown");
+    if (!e.target.closest('[onclick="toggleNotif()"]') && !e.target.closest('#notifDropdown')) {
+        notif.style.display = "none";
     }
 });
 </script>

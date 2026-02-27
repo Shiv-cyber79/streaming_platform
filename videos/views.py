@@ -428,6 +428,13 @@ def edit_post(request, post_id):
 
     return render(request, "videos/edit_post.html", {"post": post})
 
+@login_required
+def view_post(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+
+    return render(request, "videos/view_post.html", {
+        "post": post
+    })
 # @require_POST
 # @login_required
 # def toggle_like(request, video_id):
@@ -631,9 +638,9 @@ def create_post(request):
                 Notification.objects.create(
                     recipient=sub.subscriber,
                     sender=request.user,
+                    post=post,  
                     message=f"{request.user.username} added a new post 📝"
-                )
-
+            )
             send_email_to_subscribers(
                 subscribers,
                 request.user,

@@ -4,10 +4,9 @@
 
 <div style="display:flex; height:90vh; gap:20px; padding:20px;">
 
-    <!-- 🎥 MAIN VIDEO AREA -->
+    <!-- 🎥 VIDEO SECTION -->
     <div style="flex:3; position:relative;">
 
-        <!-- MAIN VIDEO (ONLY ONE BIG) -->
         <video id="remoteVideo" autoplay playsinline controls
             style="
                 width:100%;
@@ -44,7 +43,6 @@
             👀 0 watching
         </div>
 
-        <!-- 🎥 SMALL SELF VIDEO (ONLY FOR BROADCASTER) -->
         {% if is_broadcaster %}
         <video id="localVideo" autoplay playsinline muted
             style="
@@ -63,8 +61,7 @@
 
     </div>
 
-
-    <!-- 💬 CHAT SECTION -->
+    <!-- 💬 CHAT -->
     <div style="
         flex:1;
         background:#181818;
@@ -73,11 +70,7 @@
         flex-direction:column;
     ">
 
-        <div style="
-            padding:10px;
-            border-bottom:1px solid #333;
-            font-weight:bold;
-        ">
+        <div style="padding:10px; border-bottom:1px solid #333; font-weight:bold;">
             💬 Live Chat
         </div>
 
@@ -113,7 +106,6 @@
 
 </div>
 
-
 <!-- 🎮 CONTROLS -->
 <div style="text-align:center; margin-top:10px;">
 
@@ -147,11 +139,8 @@
 
 {% block script %}
 <script>
-console.log("JS Loaded ✅");
 
-// ================= RECORDING =================
-let mediaRecorder;
-let recordedChunks = [];
+console.log("JS Loaded ✅");
 
 // ================= ROLE =================
 let isBroadcaster = "{{ is_broadcaster|yesno:'true,false' }}" === "true";
@@ -161,6 +150,7 @@ console.log("Role:", isBroadcaster ? "Broadcaster 🎥" : "Viewer 👀");
 let localStream;
 let peerConnection = null;
 let pendingCandidates = [];
+let socketReady = false;
 
 const roomName = "{{ room_name }}";
 
@@ -168,20 +158,20 @@ const socket = new WebSocket(
     "ws://" + window.location.host + "/ws/live/" + roomName + "/"
 );
 
-// STUN
-const config = {
-    iceServers: [
-        { urls: "stun:stun.l.google.com:19302" }
-    ]
+// ✅ SOCKET READY FIX
+socket.onopen = function () {
+    console.log("✅ WebSocket Connected");
+    socketReady = true;
 };
 
 
-// ================= SOCKET =================
+// ================= SOCKET RECEIVE =================
 socket.onmessage = async function(event) {
+
     const data = JSON.parse(event.data);
     console.log("📩 Received:", data);
 
-    // 👀 VIEWER COUNT
+    // 👀 VIEWERS
     if (data.viewers !== undefined) {
         document.getElementById("viewerCount").innerText =
             "👀 " + data.viewers + " watching";
@@ -191,21 +181,23 @@ socket.onmessage = async function(event) {
     // 💬 CHAT
     if (data.chat) {
         const box = document.getElementById("chatBox");
-        box.innerHTML += `<p>${data.chat}</p>`;
+
+        const msg = document.createElement("div");
+        msg.innerText = data.chat;
+        msg.style.marginBottom = "6px";
+
+        box.appendChild(msg);
         box.scrollTop = box.scrollHeight;
         return;
     }
 
-    // 👀 Viewer
+    // 👀 VIEWER RECEIVES OFFER
     if (data.offer && !isBroadcaster) {
-        console.log("👀 Viewer received offer");
         await handleOffer(data.offer);
     }
 
-    // 🎥 Broadcaster
+    // 🎥 BROADCASTER RECEIVES ANSWER
     else if (data.answer && isBroadcaster) {
-        console.log("🎥 Broadcaster received answer");
-
         if (peerConnection && peerConnection.signalingState !== "stable") {
             await peerConnection.setRemoteDescription(data.answer);
 
@@ -225,24 +217,19 @@ socket.onmessage = async function(event) {
     }
 };
 
-
 // ================= VIEWER =================
 async function handleOffer(offer) {
-    console.log("👀 Handling offer...");
 
-    peerConnection = new RTCPeerConnection(config);
+    peerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
 
     peerConnection.ontrack = event => {
-        console.log("🎥 TRACK RECEIVED");
-
-        const remoteVideo = document.getElementById("remoteVideo");
-        if (remoteVideo.srcObject !== event.streams[0]) {
-            remoteVideo.srcObject = event.streams[0];
-        }
+        document.getElementById("remoteVideo").srcObject = event.streams[0];
     };
 
     peerConnection.onicecandidate = event => {
-        if (event.candidate) {
+        if (event.candidate && socketReady) {
             socket.send(JSON.stringify({
                 candidate: event.candidate
             }));
@@ -254,24 +241,20 @@ async function handleOffer(offer) {
     const answer = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(answer);
 
-    console.log("📤 Sending answer...");
     socket.send(JSON.stringify({ answer }));
-
-    while (pendingCandidates.length > 0) {
-        await peerConnection.addIceCandidate(pendingCandidates.shift());
-    }
 }
 
 
 // ================= BROADCASTER =================
-window.startStreaming = async function() {
+window.startStreaming = async function () {
 
-    if (!isBroadcaster) {
-        alert("Only broadcaster can start live");
-        return;
+    if (!isBroadcaster) return;
+
+    console.log("⏳ Waiting for socket...");
+
+    while (!socketReady) {
+        await new Promise(r => setTimeout(r, 100));
     }
-
-    console.log("🎥 Broadcaster starting...");
 
     localStream = await navigator.mediaDevices.getUserMedia({
         video: true,
@@ -280,39 +263,21 @@ window.startStreaming = async function() {
 
     document.getElementById("localVideo").srcObject = localStream;
 
-    // 🔴 RECORDING START
-    recordedChunks = [];
-
-    mediaRecorder = new MediaRecorder(localStream);
-
-    mediaRecorder.ondataavailable = function(event) {
-        if (event.data.size > 0) {
-            recordedChunks.push(event.data);
-        }
-    };
-
-    mediaRecorder.start();
-    console.log("🔴 Recording started...");
-
-    peerConnection = new RTCPeerConnection(config);
-
-    peerConnection.ontrack = event => {
-        console.log("🎥 Broadcaster receiving track");
-        document.getElementById("remoteVideo").srcObject = event.streams[0];
-    };
+    peerConnection = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+    });
 
     peerConnection.onicecandidate = event => {
-        if (event.candidate) {
+        if (event.candidate && socketReady) {
             socket.send(JSON.stringify({
                 candidate: event.candidate
             }));
         }
     };
 
-    for (const track of localStream.getTracks()) {
-        console.log("🎥 Adding track:", track.kind);
+    localStream.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStream);
-    }
+    });
 
     const offer = await peerConnection.createOffer();
     await peerConnection.setLocalDescription(offer);
@@ -322,55 +287,18 @@ window.startStreaming = async function() {
 };
 
 
-// ================= STOP RECORDING =================
-function stopRecording() {
-
-    if (!mediaRecorder) {
-        alert("Recording not started!");
-        return;
-    }
-
-    mediaRecorder.stop();
-
-    mediaRecorder.onstop = async function() {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-
-        console.log("📤 Uploading to server...");
-
-        let formData = new FormData();
-        formData.append("video", blob, "live.webm");
-
-        const response = await fetch("/upload-live/", {
-            method: "POST",
-            body: formData
-        });
-
-        const text = await response.text();
-        console.log("Server response:", text);
-
-        let data;
-        try {
-            data = JSON.parse(text);
-        } catch (e) {
-            console.error("❌ Not JSON:", text);
-            alert("Upload failed. Check server.");
-            return;
-        }
-
-        alert("Video saved successfully!");
-    };
-}
-
-
-// ================= CHAT SEND =================
+// ================= CHAT =================
 function sendMessage() {
+
     const input = document.getElementById("chatInput");
 
     if (!input.value.trim()) return;
 
-    socket.send(JSON.stringify({
-        chat: input.value
-    }));
+    if (socketReady) {
+        socket.send(JSON.stringify({
+            chat: input.value
+        }));
+    }
 
     input.value = "";
 }

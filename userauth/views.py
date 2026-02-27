@@ -7,9 +7,10 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from django.core.mail import send_mail
+from django.contrib.auth.views import PasswordResetView
 import random
 from .models import OTP
-
+from videos.forms import CustomPasswordResetForm
 
 def signup(request):
     if request.method == "POST":
@@ -132,3 +133,24 @@ def refresh_access_token(request):
 
     except Exception:
         return JsonResponse({"error": "Invalid refresh token"}, status=401)
+    
+class CustomPasswordResetView(PasswordResetView):
+    template_name = "registration/password_reset_form.html"
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+
+        if not User.objects.filter(email=email).exists():
+            messages.error(self.request, "❌ Email does not exist!")
+            return self.form_invalid(form)
+
+        return super().form_valid(form)
+    
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = "registration/password_reset_form.html"
+
+    def form_invalid(self, form):
+        for error in form.errors.values():
+            messages.error(self.request, error[0])
+        return super().form_invalid(form)

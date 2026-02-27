@@ -6,6 +6,17 @@
 
 <style>
 
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
 .upload-wrapper {
     max-width: 560px;
     margin: 48px auto;
@@ -160,12 +171,35 @@
     MP4 recommended • Max quality supported
 </small> -->
 
+<div id="errorToast" style="
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    background: #1f1f1f;
+    color: white;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+    display: none;
+    min-width: 280px;
+    z-index: 9999;
+    border-left: 5px solid #ff0000;
+    animation: slideIn 0.3s ease;
+">
+    <strong style="color:#ff4d4d;">Upload Error</strong><br>
+    <span id="errorText" style="font-size:13px;color:#ccc;"></span>
+</div>
+
 <div class="upload-wrapper">
 
     <h2>Upload Video</h2>
 
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
+
+        {% if form.errors %}
+        <!-- error handled by popup -->
+        {% endif %}
 
         <div> 
            <label>Thumbnail</label>
@@ -213,11 +247,37 @@
 </div>
 
 <script>
-    document.addEventListener("input", function(e) {
+document.addEventListener("input", function(e) {
     if (e.target.tagName.toLowerCase() === "textarea") {
         e.target.style.height = "auto";
         e.target.style.height = e.target.scrollHeight + "px";
     }
 });
+
+{% if form.errors %}
+    let errorMsg = "";
+
+    {% for field in form %}
+        {% for error in field.errors %}
+            errorMsg += "{{ error|escapejs }} ";
+        {% endfor %}
+    {% endfor %}
+
+    {% for error in form.non_field_errors %}
+        errorMsg += "{{ error|escapejs }} ";
+    {% endfor %}
+
+    if (errorMsg !== "") {
+        const toast = document.getElementById("errorToast");
+        const text = document.getElementById("errorText");
+
+        text.innerText = errorMsg;
+        toast.style.display = "block";
+
+        setTimeout(() => {
+            toast.style.display = "none";
+        }, 4000);
+    }
+{% endif %}
 </script>
 {% endblock %}

@@ -17,6 +17,7 @@ from videos.models import Post
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 @login_required
 def user_profile(request, username):
     channel_user = get_object_or_404(User,username=username)
