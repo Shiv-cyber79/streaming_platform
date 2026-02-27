@@ -5,7 +5,6 @@ User = get_user_model()
 from users.models import Channel
 from django.db import IntegrityError
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
-    print
     def is_auto_signup_allowed(self, request, sociallogin):
         print("is_auto_signup_allowed called")
         return True

@@ -84,6 +84,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'videos.context_processors.subscriptions_processor',
+                'userauth.context_processors.user_profile_picture',
             ],
         },
     },

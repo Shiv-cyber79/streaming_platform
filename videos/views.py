@@ -149,7 +149,7 @@ def playlist_detail(request, playlist_id):
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
 
-    print("playlist details: ",current_video.user, current_video.user.id)
+    # print("playlist details: ",current_video.user, current_video.user.id)
     
     return render(
         request,
@@ -244,6 +244,7 @@ def playlist_detail(request, playlist_id):
 
 @login_required(login_url="login")
 def upload_video(request):
+    playlist_id = request.GET.get('playlist') or request.POST.get('playlist')
     if request.method == "POST":
         form = VideoForm(request.POST, request.FILES)
 
@@ -252,7 +253,15 @@ def upload_video(request):
             video.user = request.user
             print(video.user,request.user)
             video.save()
-         
+
+            if playlist_id:
+                try:
+                    playlist = Playlist.objects.get(id=playlist_id, user=request.user)
+                    playlist.videos.add(video)
+                    return redirect('edit_playlist', playlist.id)  # ✅ go back to playlist
+                except Playlist.DoesNotExist:
+                    pass
+
             subscribers = Subscription.objects.filter(
                 channel=request.user
             ).select_related("subscriber")
@@ -478,12 +487,10 @@ def edit_playlist(request, playlist_id):
             return redirect("playlist_list")
     else:
         form = PlaylistForm(instance=playlist)
-
     return render(request, "videos/edit_playlist.html", {
         "form": form,
-        "playlist": playlist
+        "playlist": playlist,
     })
-
 
 @login_required
 def create_playlist(request):

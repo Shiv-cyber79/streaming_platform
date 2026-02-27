@@ -3,11 +3,17 @@
 <html>
 <head>
  {% load static %} 
-    <title>{% block title %}Streaming{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}"> 
+    <title>{% block title %}Stream{% endblock %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'app_logo.ico' %}"> 
 
     <style>
-        body {
+                html {
+    overflow-y: scroll;
+}
+   * {
+    box-sizing: border-box;
+}
+     body {
             margin: 0;
             font-family: Arial, sans-serif;
             background: #000;
@@ -17,27 +23,39 @@
         :root {
             --navbar-height: 60px;
         }
-        .navbar {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            background: #000;
-            border-bottom: 1px solid #222;
+        * {
+        transition: all 0.2s ease;
         }
-            /* NAV LEFT */
-    .nav-left {
+       .navbar {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    padding: 10px 20px;
+    background: #000;
+    border-bottom: 1px solid #222;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    width: 100%;
+    box-sizing: border-box;
+}/* NAV LEFT */
+    .nav-left{
         display: flex;
         align-items: center;
         gap: 16px;
     }
-
+  
     .hamburger {
         font-size: 22px;
         cursor: pointer;
         padding: 6px 10px;
         border-radius: 8px;
+        background: none;
+        border: none;
+        color: white;
     }
-
     .hamburger:hover {
         background: #222;
     }
@@ -129,19 +147,18 @@
         }
 
         .nav-right {
-           margin-left: auto;
-           display: flex;
-           align-items: center;
-           gap: 15px;
-           min-width: 300px;   /* 👈 ADD THIS */
-           justify-content: flex-end;
-        }
-
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-left: auto;
+    flex-shrink: 0;   /* prevents compression */
+}
         /* ================= CREATE MENU ================= */
 
         .create-menu {
             position: relative;
-            margin-right: 12px;
+            display: flex;
+            align-items: center;
         }
 
         /* + button */
@@ -169,7 +186,9 @@
             display: none;
             position: absolute;
             right: 0;
-            top: 48px;
+            /* anchor to the parent (.create-menu) so navbar height changes don't break positioning */
+            top: 100%;
+            margin-top: 8px;
             width: 220px;
             background: #1f1f1f;
             border-radius: 14px;
@@ -220,8 +239,8 @@
         }
 
         .profile-pic {
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
         }
@@ -230,7 +249,9 @@
             display: none;
             position: absolute;
             right: 0;
-            top: 48px;
+            /* anchor to the parent (.profile-menu) so navbar height changes don't break positioning */
+            top: 100%;
+            margin-top: 8px;
             background: #1f1f1f;
             border-radius: 14px;
             width: 250px;
@@ -325,26 +346,12 @@
             color: #777;
         }
 
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background: #000;
-            border-bottom: 1px solid #222;
-               position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-        }
-
         /* LEFT */
        
 
         /* CENTER (IMPORTANT 🔥) */
             .nav-center {
-            flex: 1;
+
             display: flex;
             justify-content: center;
         }
@@ -402,49 +409,95 @@
            background: #333;
            border-radius: 10px;
         } 
+    @media (max-width: 768px) {
+        /* mobile rules (example) */
+        .nav-right { min-width: unset; }
+        .nav-center { padding: 0 12px; }
+        .search-input { max-width: 200px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+    .show {
+    display: block !important;
+}
+.profile-dropdown.show {
+    display: block;
+}
 
+.create-dropdown.show {
+    display: block;
+}
+
+.django-messages {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.msg {
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 240px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+
+/* success */
+.msg.success {
+    background: #16a34a;
+    color: white;
+}
+
+/* error */
+.msg.error {
+    background: #dc2626;
+    color: white;
+}
+
+/* info */
+.msg.info {
+    background: #2563eb;
+    color: white;
+}
     </style>
 </head>
 
 <body>
 
-<div class="navbar">
+<div class="navbar" role="navigation">
 
     <!-- LEFT -->
     <div class="nav-left">
-        <div class="hamburger" onclick="toggleSidebar()">
+        <button class="hamburger"
+            aria-label="Toggle sidebar"
+            aria-expanded="false"
+            aria-controls="sidebar"  onclick="toggleSidebar()"
+            >
             ☰
-        </div>
+    </button>
+        <!-- <div class="hamburger" ">
+            
+        </div> -->
 
         <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
             ▶ Stream
         </a>
-
-        <div class="nav-links">
-            <a href="{% url 'home' %}">Home</a>
-
-            {% if user.is_authenticated %}
-                <a href="{% url 'subscription_feed' %}">Subscriptions</a>
-                <a href="{% url 'playlist_list' %}">Playlists</a>
-                <a href="{% url 'upload_video' %}">Upload</a>
-            {% else %}
-                <button onclick="openLoginPopup()">Playlists</button>
-                <button onclick="openLoginPopup()">Upload</button>
-            {% endif %}
-        </div>
     </div>
 
-    <!-- CENTER 🔥 -->
-    <div class="nav-center">
-        <form method="GET" action="{% url 'home' %}" class="search-form">
+    <!-- CENTER 🔥 --> 
+    <div class="nav-center" role="search">
+        <form method="GET" action="{% url 'home' %}" class="search-form" >
             <input 
-                type="text" 
+                type="search" 
                 name="q" 
                 placeholder="Search" 
                 value="{{ request.GET.q }}"
                 class="search-input"
             >
-            <button type="submit" class="search-btn">🔍</button>
+            <button type="submit" class="search-btn" aria-label="Submit search">🔍</button>
         </form>
     </div>
 
@@ -459,7 +512,6 @@
                 <div id="createDropdown" class="create-dropdown">
                     <a href="{% url 'upload_video' %}">📤 Upload Video</a>
                     <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
-                    <div class="profile-divider"></div>
                     <a href="#">📝 Create Post</a>
                 </div>
 
@@ -496,11 +548,17 @@
         </a>
         <!-- 🔔 Notification Bell END -->
 
-                <div class="profile-menu">
+        <div class="profile-menu">
+                 
                     {% if user.profile.avatar %}
                         <img src="{{ user.profile.avatar.url }}"
                              class="profile-pic"
                              onclick="toggleProfileMenu()">
+                    {% elif profile_pic %}
+                        <img src="{{ profile_pic }}" 
+                            class="profile-pic"
+                            onclick="toggleProfileMenu()">
+
                     {% else %}
                         <div class="profile-initial"
                              onclick="toggleProfileMenu()">
@@ -563,6 +621,15 @@
             {% endif %}
     </div>
 </div>
+{% if messages %}
+<div class="django-messages">
+    {% for message in messages %}
+        <div class="msg {{ message.tags }}">
+            {{ message }}
+        </div>
+    {% endfor %}
+</div>
+{% endif %}
 <!-- Sidebar Overlay -->
 <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -571,14 +638,14 @@
 
     <a href="/" class="sidebar-item active">🏠  Home</a>
     <a href="{% url 'subscription_feed' %}">🎬  Subscriptions</a>
-    <a href="#">📚  Library</a>
+    <a href="{% url 'playlist_list' %}">📚  Playlist</a>
     <a href="#">⏱  History</a>
     <a href="#">👍  Liked videos</a>
     <a href="#">📺  Your videos</a>
 
     <div class="sidebar-divider"></div>
 
-    <a href="#">⚙ Settings</a>
+    <a href="{% url 'user_settings' %}">⚙ Settings</a>
     <a href="#">❓ Help</a>
 
 </div>
@@ -598,40 +665,58 @@
 </div>
 
 <script>
-    function toggleSidebar() {
-    document.getElementById("sidebar").classList.toggle("open");
-    document.getElementById("sidebarOverlay").classList.toggle("show");
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("sidebarOverlay");
+    const button = document.querySelector(".hamburger");
+
+    sidebar.classList.toggle("open");
+    overlay.classList.toggle("show");
+
+    const isOpen = sidebar.classList.contains("open");
+    button.setAttribute("aria-expanded", isOpen);
+    document.body.style.overflow = isOpen ? "hidden" : "";
 }
+
 function openLoginPopup() {
     document.getElementById("loginPopup").style.display = "block";
 }
+
 function closeLoginPopup() {
     document.getElementById("loginPopup").style.display = "none";
 }
+
 function toggleProfileMenu() {
-    const menu = document.getElementById("profileDropdown");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
+    document.getElementById("profileDropdown").classList.toggle("show");
 }
-document.addEventListener("click", function (e) {
-    const profileMenu = document.querySelector(".profile-menu");
-    const dropdown = document.getElementById("profileDropdown");
-    if (profileMenu && !profileMenu.contains(e.target)) {
-        dropdown.style.display = "none";
-    }
-});
 
 function toggleCreateMenu() {
-    const menu = document.getElementById("createDropdown");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
+    document.getElementById("createDropdown").classList.toggle("show");
 }
 
-/* close when clicking outside */
-document.addEventListener("click", function(e) {
-    const createMenu = document.querySelector(".create-menu");
-    if (!createMenu.contains(e.target)) {
-        document.getElementById("createDropdown").style.display = "none";
+/* Close dropdowns when clicking outside */
+document.addEventListener("click", function (e) {
+
+    const profileMenu = document.querySelector(".profile-menu");
+    const profileDropdown = document.getElementById("profileDropdown");
+    if (profileMenu && !profileMenu.contains(e.target)) {
+        profileDropdown.classList.remove("show");
     }
+
+    const createMenu = document.querySelector(".create-menu");
+    const createDropdown = document.getElementById("createDropdown");
+    if (createMenu && !createMenu.contains(e.target)) {
+        createDropdown.classList.remove("show");
+    }
+
 });
+
+setTimeout(() => {
+    document.querySelectorAll(".msg").forEach(el => {
+        el.style.opacity = "0";
+        setTimeout(() => el.remove(), 400);
+    });
+}, 3000);
 </script>
 
 </body>
