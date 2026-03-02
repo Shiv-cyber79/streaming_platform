@@ -41,7 +41,7 @@ class VideoForm(forms.ModelForm):
             "description",
             "comments_enabled",
             "thumbnail",
-            "is_premium",   
+            "is_premium", 
         ]
         widgets = {
             "description": forms.Textarea(

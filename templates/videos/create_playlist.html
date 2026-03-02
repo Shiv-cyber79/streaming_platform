@@ -195,11 +195,11 @@
         <!-- ✅ Checkbox matching upload form style -->
         <div class="field-group">
             <label class="checkbox-row">
-                <input type="checkbox"
+                
+                <span>Make Playlist Public</span><input type="checkbox"
                        name="{{ form.is_public.html_name }}"
                        id="{{ form.is_public.id_for_label }}"
                        {% if form.is_public.value %}checked{% endif %}>
-                <span>Make Playlist Public</span>
             </label>
         </div>
 

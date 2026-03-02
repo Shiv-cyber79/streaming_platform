@@ -203,8 +203,8 @@
 
             <div class="avatar-box">
 
-                {% if profile.avatar %}
-                    <img src="{{ profile.avatar.url }}" class="avatar-preview">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" class="avatar-preview">
                 {% elif profile_pic  %}
                     <img src="{{ profile_pic  }}" class="profile-pic">
                 {% else %}

@@ -6,6 +6,7 @@ from django.utils import timezone
 import os
 import subprocess
 from django.conf import settings
+from .utils import get_video_duration
 
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -69,6 +70,11 @@ def generate_thumbnail(video_instance):
         return
     try:
         video_path = video_instance.video_file.path
+        
+        # Set duration if not already set
+        if video_instance.duration == 0:
+            video_instance.duration = get_video_duration(video_path)
+            video_instance.save(update_fields=["duration"])
 
         thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
         os.makedirs(thumbnail_dir, exist_ok=True)
