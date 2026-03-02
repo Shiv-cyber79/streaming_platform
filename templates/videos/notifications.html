@@ -4,59 +4,181 @@
 {% block content %}
 
 <style>
-.notification-container {
-    max-width: 700px;
-    margin: 40px auto;
+
+/* Page Background */
+body {
+    background: #0f0f0f;
 }
 
-.notification-card {
+/* Container */
+.notification-container {
+    max-width: 650px;
+    margin: 30px auto;
+    padding: 20px;
     background: #181818;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 12px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* Header */
+.notification-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: background 0.2s;
+    margin-bottom: 20px;
 }
 
+.notification-header h2 {
+    color: white;
+    font-weight: 600;
+}
+
+/* Card */
+.notification-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    background: #202020;
+    transition: all 0.25s ease;
+    position: relative;
+}
+
+/* Hover */
 .notification-card:hover {
-    background: #222;
+    background: #2a2a2a;
+    transform: scale(1.02);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
+/* Clickable link */
+.notification-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Unread */
 .notification-card.unread {
-    border-left: 4px solid red;
+    border-left: 4px solid #ff0000;
 }
 
+/* Glow dot */
+.notification-card.unread::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px;
+    height: 8px;
+    background: red;
+    border-radius: 50%;
+    box-shadow: 0 0 10px red;
+}
+
+/* Left section */
+.notification-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* Icon circle */
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #ff0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+}
+
+/* Text */
 .notification-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.notification-message {
+    color: white;
     font-size: 14px;
+    font-weight: 500;
 }
 
 .notification-time {
-    font-size: 12px;
     color: #aaa;
+    font-size: 12px;
 }
+
+/* Arrow */
+.notification-arrow {
+    color: #888;
+    font-size: 18px;
+}
+
+/* Empty */
+.no-notification {
+    text-align: center;
+    color: #777;
+    padding: 30px;
+}
+
 </style>
 
 <div class="notification-container">
-    <h2>Your Notifications</h2>
+
+    <div class="notification-header">
+        <h2>🔔 Notifications</h2>
+    </div>
 
     {% for notification in notifications %}
+
+        {% if notification.video %}
+        <a href="{% url 'video_detail' notification.video.id %}" class="notification-link">
+        {% endif %}
+
         <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
-            <div class="notification-text">
+            
+            <div class="notification-left">
                 
-                <a href="{% url 'video_detail' notification.video.id %}" 
-                   style="color:white;text-decoration:none;">
-                   {{ notification.message }}
-                </a>
+                <!-- Icon -->
+                <div class="notification-icon">
+                    ▶
+                </div>
+
+                <!-- Text -->
+                <div class="notification-text">
+                    <span class="notification-message">
+                        {{ notification.message }}
+                    </span>
+                    <span class="notification-time">
+                        {{ notification.created_at|timesince }} ago
+                    </span>
+                </div>
+
             </div>
-            <div class="notification-time">
-                {{ notification.created_at|timesince }} ago
+
+            <!-- Arrow -->
+            <div class="notification-arrow">
+                ➤
             </div>
+
         </div>
+
+        {% if notification.video %}
+        </a>
+        {% endif %}
+
     {% empty %}
-        <p style="color:#aaa;">No notifications yet.</p>
+        <div class="no-notification">
+            No notifications yet 🚀
+        </div>
     {% endfor %}
+
 </div>
 
 {% endblock %}

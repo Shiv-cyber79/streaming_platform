@@ -1,0 +1,218 @@
+{% extends "videos/base.html" %}
+{% block content %}
+
+<style>
+body {
+    background: #0f0f0f;
+    color: white;
+}
+
+.otp-container {
+    min-height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.otp-card {
+    background: #181818;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    width: 360px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+}
+
+.otp-title {
+    font-size: 22px;
+    margin-bottom: 10px;
+}
+
+.otp-subtitle {
+    font-size: 14px;
+    color: #aaa;
+    margin-bottom: 25px;
+}
+
+.otp-inputs {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.otp-inputs input {
+    width: 45px;
+    height: 55px;
+    font-size: 22px;
+    text-align: center;
+    border-radius: 8px;
+    border: none;
+    background: #2a2a2a;
+    color: white;
+    outline: none;
+    transition: 0.2s;
+}
+
+.otp-inputs input:focus {
+    border: 1px solid red;
+    transform: scale(1.05);
+}
+
+.verify-btn {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: red;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.verify-btn:hover {
+    background: #ff1a1a;
+}
+
+.error {
+    color: #ff4d4d;
+    margin-bottom: 10px;
+}
+
+/* Resend Button */
+.resend-container {
+    margin-top: 15px;
+}
+
+#resendBtn {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 6px;
+    background: #333;
+    color: #aaa;
+    cursor: not-allowed;
+    transition: 0.2s;
+}
+</style>
+
+<div class="otp-container">
+    <div class="otp-card">
+
+        <div class="otp-title">🔐 Verify OTP</div>
+        <div class="otp-subtitle">Enter the 6-digit code sent to you</div>
+
+        {% if error %}
+            <div class="error">{{ error }}</div>
+        {% endif %}
+
+        <form method="POST" id="otpForm">
+            {% csrf_token %}
+
+            <div class="otp-inputs">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+                <input type="text" maxlength="1" class="otp-box">
+            </div>
+
+            <!-- hidden input -->
+            <input type="hidden" name="otp" id="finalOtp">
+
+            <button type="submit" class="verify-btn">Verify</button>
+        </form>
+
+        <!-- RESEND BUTTON -->
+        <div class="resend-container">
+            <button id="resendBtn" disabled>
+                Resend OTP (<span id="timer">30</span>s)
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+const inputs = document.querySelectorAll(".otp-box");
+const finalInput = document.getElementById("finalOtp");
+const form = document.getElementById("otpForm");
+
+// 🔹 Auto move + collect OTP
+inputs.forEach((input, index) => {
+    input.addEventListener("input", (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) {
+            inputs[index + 1].focus();
+        }
+        updateOtp();
+
+        // 🔥 Auto submit when full OTP entered
+        if (finalInput.value.length === 6) {
+            form.submit();
+        }
+    });
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && index > 0 && !input.value) {
+            inputs[index - 1].focus();
+        }
+    });
+});
+
+function updateOtp() {
+    let otp = "";
+    inputs.forEach(input => otp += input.value);
+    finalInput.value = otp;
+}
+
+
+let timeLeft = 30;
+const timerEl = document.getElementById("timer");
+const resendBtn = document.getElementById("resendBtn");
+
+let countdown;
+
+// start timer initially
+startTimer();
+
+function startTimer() {
+    resendBtn.disabled = true;
+    resendBtn.style.background = "#333";
+    resendBtn.style.color = "#aaa";
+    resendBtn.style.cursor = "not-allowed";
+
+    countdown = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            resendBtn.disabled = false;
+            resendBtn.style.background = "red";
+            resendBtn.style.color = "white";
+            resendBtn.style.cursor = "pointer";
+            resendBtn.innerText = "Resend OTP";
+        }
+    }, 1000);
+}
+
+// 🔥 Resend click
+resendBtn.addEventListener("click", () => {
+    fetch("/user_auth/resend-otp/")
+        .then(res => res.json())
+        .then(data => {
+            alert("New OTP sent!");
+
+            // reset timer
+            timeLeft = 30;
+            resendBtn.innerHTML = `Resend OTP (<span id="timer">30</span>s)`;
+
+            // update timer reference again
+            timerEl = document.getElementById("timer");
+
+            startTimer();
+        });
+});
+</script>
+
+{% endblock %}

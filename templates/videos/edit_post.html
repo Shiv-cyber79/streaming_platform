@@ -1,0 +1,33 @@
+{% extends "videos/base.html" %}
+
+{% block content %}
+
+<div style="max-width:600px; margin:40px auto;">
+
+    <h2>Edit Post</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <textarea name="content" rows="5" style="width:100%; padding:10px;">
+{{ post.content }}
+        </textarea>
+
+        <br><br>
+
+        <button type="submit" style="
+            padding:10px 20px;
+            background:red;
+            color:white;
+            border:none;
+            border-radius:6px;
+            cursor:pointer;
+        ">
+            Update Post
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

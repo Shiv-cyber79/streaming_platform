@@ -1,0 +1,119 @@
+{% extends "videos/base.html" %}
+
+{% block content %}
+
+<style>
+.create-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+}
+
+/* Card */
+.create-card {
+    width: 100%;
+    max-width: 550px;
+    background: #181818;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.6);
+}
+
+/* Title */
+.create-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Textarea */
+.create-textarea {
+    width: 100%;
+    background: #121212;
+    border: 1px solid #333;
+    border-radius: 10px;
+    padding: 12px;
+    color: white;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+}
+
+.create-textarea:focus {
+    border-color: #3ea6ff;
+}
+
+/* File input */
+.file-input {
+    margin-top: 15px;
+    color: #aaa;
+}
+
+/* Preview */
+.preview-img {
+    margin-top: 15px;
+    max-width: 100%;
+    border-radius: 10px;
+    display: none;
+}
+
+/* Button */
+.post-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 12px;
+    background: #3ea6ff;
+    border: none;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    color: white;
+    transition: 0.2s;
+}
+
+.post-btn:hover {
+    background: #2b8ed6;
+}
+</style>
+
+<div class="create-container">
+    <div class="create-card">
+
+        <div class="create-title">Create Post</div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <textarea 
+                name="content" 
+                class="create-textarea"
+                rows="4"
+                placeholder="Share something with your audience..."
+                required></textarea>
+
+            <input 
+                type="file" 
+                name="image" 
+                class="file-input"
+                accept="image/*"
+                onchange="previewImage(event)"
+            >
+
+            <img id="preview" class="preview-img">
+
+            <button type="submit" class="post-btn">Post</button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+function previewImage(event) {
+    const img = document.getElementById('preview');
+    img.src = URL.createObjectURL(event.target.files[0]);
+    img.style.display = "block";
+}
+</script>
+
+{% endblock %}

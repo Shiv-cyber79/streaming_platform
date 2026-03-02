@@ -1,5 +1,5 @@
 from django import forms
-from .models import Playlist, Video, User
+from .models import Playlist, Video, User,Post
 from users.models import Channel
 class ProfilePhotoForm(forms.ModelForm):
     class Meta:
@@ -68,3 +68,19 @@ class CreatePlaylistWithVideoForm(forms.Form):
     thumbnail = forms.ImageField(required=False)  
 
     is_public = forms.BooleanField(required=False, initial=True)
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['content', 'image']
+
+class CustomPasswordResetForm(forms.Form):
+    email = forms.EmailField()
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+
+        if not User.objects.filter(email=email).exists():
+            raise forms.ValidationError("❌ Email is not registered")
+
+        return email

@@ -23,16 +23,8 @@ class Channel(models.Model):
         return self.user.username
     
 class Subscription(models.Model):
-    subscriber = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="subscriptions"
-    )
-    channel = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="subscribers"
-    )
+    subscriber = models.ForeignKey( User, on_delete=models.CASCADE,related_name="subscriptions")
+    channel = models.ForeignKey( User,on_delete=models.CASCADE,related_name="subscribers" )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

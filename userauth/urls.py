@@ -1,14 +1,17 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
-from.views import login_view,logout_view
+from.views import login_view,logout_view,CustomPasswordResetView
 from rest_framework_simplejwt.views import TokenRefreshView
+from .views import CustomPasswordResetView
+from django.shortcuts import redirect
 
 
 urlpatterns = [
+   
     path("signup/", views.signup, name="signup"),
 
-    path("login/", login_view, name="login"),
+    path('login/', auth_views.LoginView.as_view(), name='login'),
 
     path("logout/",logout_view, name="logout"),
 
@@ -31,6 +34,14 @@ urlpatterns = [
 
     path("refresh-token/", TokenRefreshView.as_view(), name="token_refresh"),
 
+    path("verify_otp/", views.verify_otp, name="verify_otp"),
+
+    path("resend-otp/", views.resend_otp, name="resend_otp"),
+
+    path("reset/done/", auth_views.PasswordResetCompleteView.as_view(
+        template_name="registration/password_reset_complete.html"
+    ), name="password_reset_complete"),
+    
 ]
 
 
