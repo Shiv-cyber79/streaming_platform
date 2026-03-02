@@ -15,13 +15,12 @@ urlpatterns = [
     path("all-videos/", views.all_videos, name="all_videos"),
     path("stream/<int:video_id>/", views.stream_video, name="stream_video"),
     path("video/<int:video_id>/comment/", views.add_comment, name="add_comment"),
-    path("video/<int:video_id>/add-to-playlist/", views.add_video_to_playlist, name="add_to_playlist"),
+    path('playlist/<int:playlist_id>/add/<int:video_id>/', views.add_video_to_playlist, name='add_video_to_playlist'),
     path("upload/", views.upload_video, name="upload_video"),
     path("playlists/<int:playlist_id>/edit/",views.edit_playlist, name="edit_playlist"),
     path("playlists/<int:playlist_id>/", views.playlist_detail, name="playlist_detail"),
     path("playlists/new/", views.create_playlist, name="create_playlist"),
-
-
+    path("playlists/add/<int:video_id>/", views.add_to_watch_later, name="add_to_watch_later"),
     # path("settings/", views.user_settings, name="user_settings"),
     # path("subscription-plans/", views.subscription_plans, name="subscription_plans"),
     # # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),

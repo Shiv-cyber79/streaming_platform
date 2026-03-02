@@ -8,111 +8,304 @@
 <style>
 
 /* ===== LAYOUT ===== */
-.video-page {
+.container {
     display: flex;
-    gap: 24px;
-    padding: 20px;
+    height: calc(100vh - 60px);
+    background: #0f0f0f;
+    color: white;
 }
+
 a {
     text-decoration: none;
     color: inherit;
 }
 /* ===== LEFT ===== */
-.video-player-section {
+.video-section {
     flex: 3;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
-
-/* PLAYER */
-.yt-player {
+.video-wrapper {
+    position: relative;
     width: 100%;
-    aspect-ratio: 16/9;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    min-height: 450px;
     background: black;
     border-radius: 12px;
     overflow: hidden;
 }
 
-.yt-player video {
+.video-wrapper video {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+}
+.video-meta {
+    margin-top: 14px;
 }
 
-/* TITLE */
 .video-title {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 600;
-    margin: 15px 0 10px;
+    margin: 12px 0 0 0;
+    padding: 0;
 }
-
-/* CHANNEL SECTION */
-.channel-box {
+.channel-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin: 15px 0;
-}
-
-.channel-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.channel-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #333;
+    margin-top: 12px;
+    padding: 12px 0;
+    border-top: 1px solid #303030;
+    border-bottom: 1px solid #303030;
 }
 
 .channel-info {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+.channel-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #cc0000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
 }
 
-.channel-info span {
-    font-size: 13px;
-    color: #aaa;
+.action-row {
+    display: flex;
+    gap: 10px;
 }
 
-/* SUBSCRIBE BUTTON */
-.subscribe-btn {
-    background: red;
+.action-btn {
+    background: #272727;
     color: white;
     border: none;
     padding: 8px 16px;
     border-radius: 20px;
     cursor: pointer;
+    font-size: 14px;
     font-weight: 500;
-}
-
-/* ACTION BUTTONS */
-.actions {
     display: flex;
-    gap: 10px;
-    margin: 10px 0;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
 }
 
-.action-btn {
-    background: #2a2a2a;
+.action-btn:hover { background: #3a3a3a; }
+
+.action-btn.liked { background: #065fd4; }
+
+.like-btn {
+    background: #303030;
+    color: white;
     border: none;
     padding: 8px 14px;
     border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.like-btn.liked {
+    background: #065fd4;
+}
+
+.subscribe-btn {
+    background: #ff0000;
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+
+.subscribe-btn.subscribed {
+    background: #272727;
     color: white;
+}
+.subscribe-btn:hover {
+    opacity: 0.9;
+}
+/* DESCRIPTION BOX */
+.description-box {
+    background: #181818;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 14px;
+}
+.desc-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.desc-text {
+    color: #ccc;
+    line-height: 1.6;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;       /* ✅ show 3 lines max */
+    -webkit-box-orient: vertical;
+    transition: max-height 0.3s ease;
+}
+
+.desc-text.expanded {
+    display: block;              /* ✅ show full text */
+    -webkit-line-clamp: unset;
+}
+
+.desc-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    margin-top: 6px;
+    padding: 0;
+}
+
+/* ===== COMMENTS ===== */
+.comments-wrapper {
+    margin-top: 24px;
+    border-top: 1px solid #303030;
+    padding-top: 16px;
+}
+
+/* ===== HEADER ===== */
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
 }
 
-.action-btn:hover {
-    background: #3a3a3a;
+.comments-header h3 {
+    margin: 0;
+    font-size: 18px;
 }
 
-/* DESCRIPTION BOX */
-.description-box {
-    background: #1f1f1f;
-    padding: 12px;
-    border-radius: 10px;
-    margin-top: 10px;
+.comments-header span {
     font-size: 14px;
+    color: #aaa;
 }
+
+/* ===== CONTAINER (COLLAPSIBLE) ===== */
+.comments-container {
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0;
+    margin-top: 12px;
+    font-size: 18px;
+    max-height: 0;
+    transition: max-height 0.35s ease;
+}
+
+/* When expanded */
+.comments-container.open {
+    max-height: 420px; /* Adjust as needed */
+}
+
+/* ===== SCROLLABLE COMMENTS LIST ===== */
+.comments-list {
+    overflow-y: auto;
+    padding-right: 6px;
+    flex: 1;
+}
+
+/* Scroll styling */
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+.comments-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 8px;
+}
+
+/* ===== INDIVIDUAL COMMENT ===== */
+.comment {
+    margin-bottom: 14px;
+}
+
+.comment small {
+    color: #aaa;
+    font-size: 12px;
+}
+
+.comment p {
+    margin: 4px 0;
+    color: #ccc;
+}
+
+/* ===== COMMENT FORM (STICKY BOTTOM) ===== */
+.comment-form {
+    flex-shrink: 0;
+    border-top: 1px solid #303030;
+    padding: 12px;
+    background: #0f0f0f;
+}
+
+.comment-form textarea {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    resize: none;
+    height: 70px;
+    margin-bottom: 8px;
+}
+
+.comment-btn {
+    background: #ff0000;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.comment-btn:hover {
+    background: #cc0000;
+}
+
+.no-comments {
+    color: #aaa;
+}
+
+textarea {
+    width: 100%;
+    height: 70px;
+    background: #181818;
+    color: white;
+    border: 1px solid #303030;
+    border-radius: 6px;
+    padding: 10px;
+    font-family: inherit;
+    resize: none;
+}
+
 
 /* ===== RIGHT SIDE ===== */
 .suggested-videos {
@@ -182,67 +375,219 @@ a {
 </style>
 
 
-<div class="video-page">
+<div class="container">
 
-    <!-- LEFT -->
-    <div class="video-player-section">
+<!-- ===== LEFT: VIDEO ===== -->
+<div class="video-section">
+{% if video %}
 
-        <!-- PLAYER -->
-        <div class="yt-player">
-            <video controls autoplay>
-                <source src="{{ video.video_file.url }}" type="video/mp4">
-            </video>
-        </div>
+    <!-- VIDEO PLAYER -->
+    <div class="video-wrapper">
+        <video id="videoPlayer" controls autoplay muted playsinline>
+            <source src="{{ video.video_file.url }}" type="video/mp4">
+        </video>
+    </div>
 
-        <!-- TITLE -->
-        <div class="video-title">{{ video.title }}</div>
+    <!-- ✅ TITLE above channel info -->
+    <div class="video-title">{{ video.title }}</div>
 
-        <!-- CHANNEL -->
-        <div class="channel-box">
-
-            <div class="channel-left">
-                <div class="channel-avatar"></div>
-
-                <div class="channel-info">
-                    <a href="{% url 'user_profile' video.user.username %}">
-                        <strong>{{ video.user.username }}</strong>
-                    </a>
-                    <span>{{ video.views }} views</span>
-                </div>
+    <!-- ✅ CHANNEL ROW -->
+    <div class="channel-row">
+        <div class="channel-info">
+            <div class="channel-avatar">
+                {{ video.user.username|first|upper }}
             </div>
-
-            <button class="subscribe-btn">Subscribe</button>
-
+            
+            <div>
+                <a href="{% url 'user_profile' video.user.username %}">
+                    <strong>{{ video.user.username }}</strong>
+                </a><br>
+                <small style="color:#aaa;">Subscribers</small>
+            </div>
+                {% if video.user != request.user %}
+                    <button
+                        id="subscribeBtn"
+                        data-user-id="{{ video.user.id }}"
+                        class="subscribe-btn"
+                    >
+                        {% if is_subscribed %}Unsubscribe{% else %}Subscribe{% endif %}
+                    </button>
+                    <!-- <button class="btn join">Join</button> -->
+                {% endif %}
         </div>
 
-        <!-- ACTION BUTTONS -->
-        <div class="actions">
-            <form method="POST" action="{% url 'toggle_like' video.id %}">
-                {% csrf_token %}
-               <button type="submit" class="action-btn">👍 Like</button>
-            </form>
-            <form method="POST" action="{% url 'toggle_subscribe' video.user.id %}">
-                {% csrf_token %}
-              <button type="submit" class="action-btn">🔔 Subscribe</button>
-            </form>
+        <!-- ✅ ACTION BUTTONS: Like, Share, More -->
+        <div class="action-row">
+            <button id="likeBtn" class="action-btn">
+                👍 <span id="likeCount">{{ video.likes.count }}</span>
+            </button>
+
             <button class="action-btn" onclick="copyLink()">
                 🔗 Share
             </button>
-        <form method="POST">
-            {% csrf_token %}
-            <input type="text" name="comment" placeholder="Add comment">
-            <button type="submit">Post</button>
-        </form>
+
+            <!-- ✅ Save dropdown -->
+            <div class="save-menu" style="position:relative;">
+                <button class="action-btn" onclick="toggleSaveMenu()">
+                    🔖 Save
+                </button>
+
+                <div id="saveDropdown" style="
+                    display: none;
+                    position: absolute;
+                    top: 110%;
+                    right: 0;
+                    background: #212121;
+                    border: 1px solid #303030;
+                    border-radius: 12px;
+                    width: 200px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+                    z-index: 999;
+                    overflow: hidden;
+                ">
+                    <div style="height:1px;background:#303030;"></div>
+                    {% if user_playlists %}
+                    <!-- Add to Playlist -->
+                    <div style="padding: 10px 14px;">
+                        <p style="font-size:12px;color:#aaa;margin:0 0 8px;">Add to playlist</p>
+                        {% for playlist in user_playlists %}
+                        <form method="POST" action="{% url 'add_video_to_playlist' playlist.id video.id %}">
+                            {% csrf_token %}
+                            <button type="submit" style="
+                                width: 100%;
+                                padding: 8px 4px;
+                                background: none;
+                                border: none;
+                                color: white;
+                                text-align: left;
+                                cursor: pointer;
+                                font-size: 13px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;">
+                                
+                                <input type="checkbox"
+                                    style="
+                                        width: 16px;
+                                        height: 16px;
+                                        accent-color: #3ea6ff;
+                                        cursor: pointer;
+                                        margin: 0;
+                                        flex-shrink: 0;
+                                    "
+                                    {% if video in playlist.videos.all %}checked{% endif %}
+                                    onclick="this.form.submit(); return false;"
+                                >
+                                 {{ playlist.name }}
+                            </button>
+                        </form>
+                        {% empty %}
+                            <p style="font-size:13px;color:#aaa;margin:0;">No playlists yet.</p>
+                        {% endfor %}
+
+                        <a href="{% url 'create_playlist' %}" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-top: 8px;
+                            font-size: 13px;
+                            color: #3ea6ff;
+                            text-decoration: none;
+                        ">
+                            ➕ New Playlist
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if video.is_premium %}
+                <a href="{% url 'subscription_plans' %}" class="premium-btn">
+                    ⭐ Join Premium
+                </a>
+            {% endif %}
         </div>
 
-        <!-- DESCRIPTION -->
-        <div class="description-box">
-            {{ video.description }}
-        </div>
+<script>
+function toggleSaveMenu() {
+    const menu = document.getElementById("saveDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
 
+// Close when clicking outside
+document.addEventListener("click", function(e) {
+    const saveMenu = document.querySelector(".save-menu");
+    if (saveMenu && !saveMenu.contains(e.target)) {
+        document.getElementById("saveDropdown").style.display = "none";
+    }
+});
+</script>
     </div>
 
+    <!-- ✅ DESCRIPTION BOX -->
+    <div class="description-box">
 
+        <!-- ✅ First line: views + time -->
+        <div class="desc-meta">
+            <span>{{ video.views }} views</span>
+            <span>{{ video.created_at|timesince }} ago</span>
+        </div>
+
+        <!-- ✅ Description text — 3 lines then show more -->
+        <div class="desc-text" id="descText">
+            {{ video.description }}
+        </div>
+        {% if video.description|length > 150 %}
+            <button class="desc-toggle" id="descToggle" onclick="toggleDesc()">
+                Show more
+            </button>
+        {% endif %}
+    </div>
+
+    <!-- COMMENTS -->
+   <div class="comments-wrapper">
+
+        <!-- Header (Always Visible) -->
+        <div class="comments-header" onclick="toggleComments()">
+            <h3>
+                Comments ({{ video.comments.count }})
+            </h3>
+            <span id="commentToggleIcon">▼</span>
+        </div>
+
+
+         <!-- Collapsible Body -->
+        <div id="commentsContainer" class="comments-container">
+
+            <!-- Scrollable Comments List -->
+            <div class="comments-list">
+                {% for comment in video.comments.all %}
+                    <div class="comment">
+                        <strong>{{ comment.user.username }}</strong>
+                        <small> · {{ comment.created_at|timesince }} ago</small>
+                        <p>{{ comment.text }}</p>
+                    </div>
+                {% empty %}
+                    <p class="no-comments">No comments yet.</p>
+                {% endfor %}
+            </div>
+
+            <!-- Fixed Post Comment Box -->
+            {% if user.is_authenticated %}
+            <div class="comment-form">
+                <form method="post" action="{% url 'add_comment' video.id %}">
+                    {% csrf_token %}
+                    <textarea name="comment" placeholder="Add a comment..." required></textarea>
+                    <button type="submit" class="comment-btn">Post Comment</button>
+                </form>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+{% endif %}
+</div>
     <!-- RIGHT SIDE -->
     <div class="suggested-videos">
 
@@ -277,9 +622,23 @@ function copyLink() {
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied!");
 }
-</script>
-
-<script>
+/* SUBSCRIBE */
+document.getElementById("subscribeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_subscribe' video.user.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.subscribed) {
+            this.textContent = "Unsubscribe";
+            this.classList.add("subscribed");
+        } else {
+            this.textContent = "Subscribe";
+            this.classList.remove("subscribed");
+        }
+    });
+});
 document.addEventListener("DOMContentLoaded", function () {
     const video = document.querySelector("video");
 
@@ -292,6 +651,47 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 });
+
+/* ✅ Description toggle */
+let expanded = false;
+function toggleDesc() {
+    expanded = !expanded;
+    const text = document.getElementById("descText");
+    const btn = document.getElementById("descToggle");
+    text.classList.toggle("expanded", expanded);
+    btn.textContent = expanded ? "Show less" : "Show more";
+}
+
+/* ✅ Share */
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copied!");
+}
+
+/* ✅ Like */
+document.getElementById("likeBtn")?.addEventListener("click", function () {
+    fetch("{% url 'toggle_like' video.id %}", {
+        method: "POST",
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("likeCount").innerText = data.count;
+        this.classList.toggle("liked", data.liked);
+    });
+});
+
+/* ✅ Comments toggle */
+function toggleComments() {
+    const container = document.getElementById("commentsContainer");
+    const icon = document.getElementById("commentToggleIcon");
+
+    container.classList.toggle("open");
+
+    const isOpen = container.classList.contains("open");
+
+    icon.textContent = isOpen ? "▲" : "▼";
+}
 </script>
 
 {% endblock %}

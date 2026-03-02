@@ -4,6 +4,10 @@
 {% block content %}
 
 <style>
+    * {
+    font-family: Roboto, Arial, sans-serif;  /* ✅ consistent font everywhere */
+    box-sizing: border-box;
+}
 .settings-wrapper {
     min-height: 85vh;
     display: flex;
@@ -87,6 +91,12 @@
     object-fit: cover;
     border: 3px solid #333;
 }
+.profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
 
 /* Buttons */
 .save-btn {
@@ -152,15 +162,6 @@
 }
 </style>
 
-{% if messages %}
-<div id="toast-container">
-  {% for message in messages %}
-    <div class="toast-message {% if message.tags == 'error' %}toast-error{% else %}toast-success{% endif %}">
-        {{ message }}
-    </div>
-  {% endfor %}
-</div>
-{% endif %}
 
 <div class="settings-wrapper">
     <div class="settings-card">
@@ -202,8 +203,10 @@
 
             <div class="avatar-box">
 
-                {% if profile.avatar %}
-                    <img src="{{ profile.avatar.url }}" class="avatar-preview">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" class="avatar-preview">
+                {% elif profile_pic  %}
+                    <img src="{{ profile_pic  }}" class="profile-pic">
                 {% else %}
                     <div class="avatar-preview"
                          style="display:flex;align-items:center;justify-content:center;background:#ff0000;font-size:32px;">

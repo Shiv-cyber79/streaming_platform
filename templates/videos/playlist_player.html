@@ -10,46 +10,51 @@
     color: white;
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
-}
+a { text-decoration: none; color: inherit; }
+
+/* ===== LEFT VIDEO SECTION ===== */
 .video-section {
     flex: 3;
     padding: 20px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
 }
 
-video {
+.video-wrapper {
+    position: relative;
     width: 100%;
-    max-height: 75vh;
-    border-radius: 10px;
+    margin: 0 auto;
+    aspect-ratio: 16 / 9;
+    min-height: 450px;
     background: black;
+    border-radius: 12px;
+    overflow: hidden;
 }
 
-/* VIDEO META */
-.video-meta {
-    margin-top: 14px;
+.video-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
 }
 
+/* ✅ Title and views ABOVE channel info */
 .video-title {
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 600;
+    margin: 12px 0 0 0;
+    padding: 0;
 }
 
-.video-views {
-    font-size: 13px;
-    color: #aaa;
-    margin-top: 4px;
-}
-
+/* ===== CHANNEL ROW ===== */
 .channel-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 14px;
-    padding-top: 12px;
+    margin-top: 12px;
+    padding: 12px 0;
     border-top: 1px solid #303030;
+    border-bottom: 1px solid #303030;
 }
 
 .channel-info {
@@ -67,36 +72,51 @@ video {
     align-items: center;
     justify-content: center;
     font-weight: bold;
+    font-size: 16px;
 }
 
-/* ACTION BUTTONS */
+/* ===== ACTION BUTTONS ===== */
 .action-row {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    align-items: center;
 }
 
-.like-btn {
-    background: #303030;
+.action-btn {
+    background: #272727;
     color: white;
     border: none;
-    padding: 8px 14px;
+    padding: 8px 16px;
     border-radius: 20px;
     cursor: pointer;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s;
 }
 
-.like-btn.liked {
-    background: #065fd4;
-}
+.action-btn:hover { background: #3a3a3a; }
+
+.action-btn.liked { background: #065fd4; }
 
 .subscribe-btn {
-    background: #cc0000;
-    color: white;
+    background: white;
+    color: black;
     border: none;
     padding: 8px 18px;
     border-radius: 20px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 14px;
+    transition: background 0.2s;
+}
+
+.subscribe-btn:hover { background: #ddd; }
+.subscribe-btn.subscribed {
+    background: #272727;
+    color: white;
 }
 
 .premium-btn {
@@ -106,33 +126,61 @@ video {
     border-radius: 20px;
     font-weight: bold;
     text-decoration: none;
-    white-space: nowrap;
+    font-size: 14px;
 }
 
-/* DESCRIPTION */
-.description {
+/* ===== DESCRIPTION ===== */
+.description-box {
+    background: #181818;
+    border-radius: 12px;
+    padding: 14px 16px;
     margin-top: 14px;
+    font-size: 14px;
 }
 
-.description p {
+.desc-meta {
+    display: flex;
+    gap: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: white;
+}
+
+.desc-text {
     color: #ccc;
-    max-height: 60px;
+    line-height: 1.6;
     overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;       /* ✅ show 3 lines max */
+    -webkit-box-orient: vertical;
+    transition: max-height 0.3s ease;
+}
+
+.desc-text.expanded {
+    display: block;              /* ✅ show full text */
+    -webkit-line-clamp: unset;
 }
 
 .desc-toggle {
     background: none;
     border: none;
-    color: #aaa;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
     cursor: pointer;
+    margin-top: 6px;
+    padding: 0;
 }
 
-/* COMMENTS */
+/* ===== COMMENTS ===== */
 .comments {
     margin-top: 22px;
     border-top: 1px solid #303030;
     padding-top: 16px;
 }
+
+.comments h3 { margin-bottom: 14px; }
 
 .comment {
     margin-bottom: 14px;
@@ -151,149 +199,8 @@ textarea {
     border: 1px solid #303030;
     border-radius: 6px;
     padding: 10px;
-}
-
-
-
-/* VIDEO AREA */
-.video-section {
-    flex: 3;
-    padding: 20px;
-    overflow-y: auto;
-}
-
-/* YouTube-style responsive video */
-.video-wrapper {
-    position: relative;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-    aspect-ratio: 16 / 9;
-    background: black;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.video-wrapper video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* VIDEO META */
-.video-meta {
-    margin-top: 14px;
-}
-
-.video-meta h2 {
-    margin: 0;
-    font-weight: 500;
-}
-
-.video-meta span {
-    font-size: 13px;
-    color: #aaa;
-}
-
-.channel-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 14px;
-    padding-top: 12px;
-    border-top: 1px solid #303030;
-}
-
-.channel-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.channel-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #cc0000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* ACTION BUTTONS */
-.action-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.like-btn {
-    background: #303030;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.like-btn.liked {
-    background: #065fd4;
-}
-
-.subscribe-btn {
-    background: #cc0000;
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.premium-btn {
-    background: linear-gradient(90deg, #ff0000, #ff6a00);
-    color: white;
-    padding: 8px 18px;
-    border-radius: 20px;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-/* DESCRIPTION */
-.description {
-    margin-top: 14px;
-}
-
-.description p {
-    color: #ccc;
-    max-height: 60px;
-    overflow: hidden;
-}
-
-.desc-toggle {
-    background: none;
-    border: none;
-    color: #aaa;
-    cursor: pointer;
-}
-
-/* COMMENTS */
-.comments {
-    margin-top: 22px;
-    border-top: 1px solid #303030;
-    padding-top: 16px;
-}
-
-textarea {
-    width: 100%;
-    height: 70px;
-    background: #181818;
-    color: white;
-    border: 1px solid #303030;
-    border-radius: 6px;
-    padding: 10px;
+    font-family: inherit;
+    resize: none;
 }
 
 .comment-btn {
@@ -304,26 +211,29 @@ textarea {
     border-radius: 20px;
     cursor: pointer;
     margin-top: 8px;
+    font-weight: 500;
 }
 
-/* PLAYLIST */
+/* ===== PLAYLIST SIDEBAR ===== */
 .playlist-section {
     flex: 1;
     background: #181818;
     padding: 15px;
     overflow-y: auto;
+    min-width: 260px;
 }
 
 .playlist-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 6px;
+    padding: 8px 6px 12px;
+    border-bottom: 1px solid #303030;
+    margin-bottom: 10px;
 }
 
 .playlist-edit-btn {
     font-size: 12px;
-    margin-left: 10px;
     padding: 4px 10px;
     border-radius: 14px;
     background: #212121;
@@ -332,25 +242,10 @@ textarea {
     border: 1px solid #303030;
 }
 
-.playlist-item {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #303030;
-}
-
-.playlist-item:hover {
-    background: #303030;
-}
-
-.playlist-item.active {
-    background: #272727;
-    border-left: 4px solid #ff0000;
-}
-
 .controls {
     display: flex;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .controls button {
@@ -360,29 +255,61 @@ textarea {
     border: none;
     padding: 8px;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
 }
 
-.controls button.active {
-    background: #ff0000;
+.controls button.active { background: #ff0000; }
+
+.playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.playlist-item:hover { background: #272727; }
+
+.playlist-item.active {
+    background: #272727;
+    border-left: 3px solid #ff0000;
+}
+
+.playlist-item-num {
+    font-size: 12px;
+    color: #aaa;
+    width: 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.playlist-item-title {
+    font-size: 13px;
+    line-height: 1.4;
 }
 </style>
 
 <div class="container">
 
+<!-- ===== LEFT: VIDEO ===== -->
 <div class="video-section">
 {% if current_video %}
 
-<div class="video-wrapper">
-    <video id="videoPlayer" controls autoplay muted playsinline>
-        <source src="{{ current_video.video_file.url }}" type="video/mp4">
-    </video>
-</div>
+    <!-- VIDEO PLAYER -->
+    <div class="video-wrapper">
+        <video id="videoPlayer" controls autoplay muted playsinline>
+            <source src="{{ current_video.video_file.url }}" type="video/mp4">
+        </video>
+    </div>
 
-<div class="video-meta">
-    <h2>{{ current_video.title }}</h2>
-    <span>{{ current_video.views }} views</span>
+    <!-- ✅ TITLE above channel info -->
+    <div class="video-title">{{ current_video.title }}</div>
 
+    <!-- ✅ CHANNEL ROW -->
     <div class="channel-row">
         <div class="channel-info">
             <div class="channel-avatar">
@@ -390,91 +317,229 @@ textarea {
             </div>
             <div>
                 <a href="{% url 'user_profile' current_video.user.username %}">
-                <strong>{{ current_video.user.username }}</strong><br>
-                </a>
-                <small style="color:#aaa;">Number of Subscribers</small>
-
+                    <strong>{{ current_video.user.username }}</strong>
+                </a><br>
+                <small style="color:#aaa;">Subscribers</small>
             </div>
         </div>
 
+        <!-- ✅ ACTION BUTTONS: Like, Share, More -->
         <div class="action-row">
-            <button id="likeBtn" class="like-btn">
+            <button id="likeBtn" class="action-btn">
                 👍 <span id="likeCount">{{ current_video.likes.count }}</span>
             </button>
 
-            <button id="subscribeBtn" class="subscribe-btn">
-                Subscribe
+            <button class="action-btn" onclick="copyLink()">
+                🔗 Share
             </button>
+
+            <!-- ✅ Save dropdown -->
+            <div class="save-menu" style="position:relative;">
+                <button class="action-btn" onclick="toggleSaveMenu()">
+                    🔖 Save
+                </button>
+
+                <div id="saveDropdown" style="
+                    display: none;
+                    position: absolute;
+                    top: 110%;
+                    right: 0;
+                    background: #212121;
+                    border: 1px solid #303030;
+                    border-radius: 12px;
+                    width: 200px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+                    z-index: 999;
+                    overflow: hidden;
+                ">
+                    <!-- Watch Later -->
+                    <form method="POST" action="{% url 'add_to_watch_later' current_video.id %}">
+                        {% csrf_token %}
+                        <button type="submit" style="
+                            width: 100%;
+                            padding: 12px 16px;
+                            background: none;
+                            border: none;
+                            color: white;
+                            text-align: left;
+                            cursor: pointer;
+                            font-size: 14px;
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                        ">
+                            🕐 Watch Later
+                        </button>
+                    </form>
+
+                    <div style="height:1px;background:#303030;"></div>
+
+                    {% if user_playlists %}
+                    <!-- Add to Playlist -->
+                    <div style="padding: 10px 14px;">
+                        <p style="font-size:12px;color:#aaa;margin:0 0 8px;">Add to playlist</p>
+                        {% for playlist in user_playlists %}
+                        <form method="POST" >
+                            {% csrf_token %}
+                            <button type="submit" style="
+                                width: 100%;
+                                padding: 8px 4px;
+                                background: none;
+                                border: none;
+                                color: white;
+                                text-align: left;
+                                cursor: pointer;
+                                font-size: 13px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;">
+                                
+                                <input type="checkbox"
+                                    style="
+                                        width: 16px;
+                                        height: 16px;
+                                        accent-color: #3ea6ff;
+                                        cursor: pointer;
+                                        margin: 0;
+                                        flex-shrink: 0;
+                                    "
+                                    {% if current_video in playlist.videos.all %}checked{% endif %}
+                                    onclick="this.form.submit(); return false;"
+                                >
+                                 {{ playlist.name }}
+                            </button>
+                        </form>
+                        {% empty %}
+                            <p style="font-size:13px;color:#aaa;margin:0;">No playlists yet.</p>
+                        {% endfor %}
+
+                        <a href="{% url 'create_playlist' %}" style="
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                            margin-top: 8px;
+                            font-size: 13px;
+                            color: #3ea6ff;
+                            text-decoration: none;
+                        ">
+                            ➕ New Playlist
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
 
             {% if current_video.is_premium %}
                 <a href="{% url 'subscription_plans' %}" class="premium-btn">
-                    Join Premium
+                    ⭐ Join Premium
                 </a>
             {% endif %}
         </div>
+
+<script>
+function toggleSaveMenu() {
+    const menu = document.getElementById("saveDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+// Close when clicking outside
+document.addEventListener("click", function(e) {
+    const saveMenu = document.querySelector(".save-menu");
+    if (saveMenu && !saveMenu.contains(e.target)) {
+        document.getElementById("saveDropdown").style.display = "none";
+    }
+});
+</script>
     </div>
 
-    <div class="description">
-        <p id="descText">{{ current_video.description }}</p>
-        <button class="desc-toggle" onclick="toggleDesc()">Show more</button>
+    <!-- ✅ DESCRIPTION BOX -->
+    <div class="description-box">
+
+        <!-- ✅ First line: views + time -->
+        <div class="desc-meta">
+            <span>{{ current_video.views }} views</span>
+            <span>{{ current_video.created_at|timesince }} ago</span>
+        </div>
+
+        <!-- ✅ Description text — 3 lines then show more -->
+        <div class="desc-text" id="descText">
+            {{ current_video.description }}
+        </div>
+
+        <button class="desc-toggle" id="descToggle" onclick="toggleDesc()">
+            Show more
+        </button>
     </div>
-</div>
 
-<div class="comments">
-    <h3>Comments</h3>
+    <!-- COMMENTS -->
+    <div class="comments">
+        <h3>Comments</h3>
 
-    {% for comment in current_video.comments.all %}
-        <p><strong>{{ comment.user.username }}</strong>: {{ comment.text }}</p>
-    {% empty %}
-        <p style="color:#aaa;">No comments yet.</p>
-    {% endfor %}
+        {% for comment in current_video.comments.all %}
+            <div class="comment">
+                <strong>{{ comment.user.username }}</strong>
+                <small>· {{ comment.created_at|timesince }} ago</small>
+                <p style="margin:4px 0;color:#ccc;">{{ comment.text }}</p>
+            </div>
+        {% empty %}
+            <p style="color:#aaa;">No comments yet.</p>
+        {% endfor %}
 
-    {% if user.is_authenticated %}
-        <form method="post" action="{% url 'add_comment' current_video.id %}">
-            {% csrf_token %}
-            <textarea name="comment" required></textarea>
-            <button class="comment-btn">Post Comment</button>
-        </form>
-    {% endif %}
-</div>
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'add_comment' current_video.id %}">
+                {% csrf_token %}
+                <textarea name="comment" placeholder="Add a comment..." required></textarea>
+                <button class="comment-btn">Post Comment</button>
+            </form>
+        {% endif %}
+    </div>
 
 {% endif %}
 </div>
 
+<!-- ===== RIGHT: PLAYLIST ===== -->
 <div class="playlist-section">
 
-<div class="playlist-header">
-    <strong>
-        {{ playlist.name }}
-        <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">✎</a>
-    </strong>
-</div>
-
-<div class="controls">
-    <button id="shuffleBtn">Shuffle</button>
-    <button id="loopBtn">Loop</button>
-</div>
-
-{% for video in videos %}
-<a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
-    <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
-        {{ video.title }}
+    <div class="playlist-header">
+        <strong>{{ playlist.name }}</strong>
+        <a href="{% url 'edit_playlist' playlist.id %}" class="playlist-edit-btn">✎ Edit</a>
     </div>
-</a>
-{% endfor %}
+
+    <div class="controls">
+        <button id="shuffleBtn">🔀 Shuffle</button>
+        <button id="loopBtn">🔁 Loop</button>
+    </div>
+
+    {% for video in videos %}
+    <a href="?video={{ video.id }}" style="text-decoration:none;color:white;">
+        <div class="playlist-item {% if video.id == current_video.id %}active{% endif %}">
+            <span class="playlist-item-num">{{ forloop.counter }}</span>
+            <span class="playlist-item-title">{{ video.title }}</span>
+        </div>
+    </a>
+    {% endfor %}
 
 </div>
 </div>
 
 <script>
+/* ✅ Description toggle */
 let expanded = false;
 function toggleDesc() {
     expanded = !expanded;
-    document.getElementById("descText").style.maxHeight =
-        expanded ? "none" : "60px";
+    const text = document.getElementById("descText");
+    const btn = document.getElementById("descToggle");
+    text.classList.toggle("expanded", expanded);
+    btn.textContent = expanded ? "Show less" : "Show more";
 }
 
-/* LIKE */
+/* ✅ Share */
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copied!");
+}
+
+/* ✅ Like */
 document.getElementById("likeBtn")?.addEventListener("click", function () {
     fetch("{% url 'toggle_like' current_video.id %}", {
         method: "POST",
@@ -487,7 +552,7 @@ document.getElementById("likeBtn")?.addEventListener("click", function () {
     });
 });
 
-/* SUBSCRIBE */
+/* ✅ Subscribe */
 document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     fetch("{% url 'toggle_subscribe' current_video.user.id %}", {
         method: "POST",
@@ -499,9 +564,8 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     });
 });
 
-/* PLAYER */
+/* ✅ Player controls */
 document.addEventListener("DOMContentLoaded", function () {
-
     const videoPlayer = document.getElementById("videoPlayer");
     const shuffleBtn = document.getElementById("shuffleBtn");
     const loopBtn = document.getElementById("loopBtn");
@@ -520,11 +584,9 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (!videoPlayer) return;
-
     videoPlayer.play().catch(() => {});
 
     videoPlayer.addEventListener("ended", function () {
-
         if (loop) {
             videoPlayer.currentTime = 0;
             videoPlayer.play();
@@ -542,9 +604,7 @@ document.addEventListener("DOMContentLoaded", function () {
         {% if next_video %}
             window.location.href = window.location.pathname + "?video={{ next_video.id }}";
         {% endif %}
-
     });
-
 });
 </script>
 

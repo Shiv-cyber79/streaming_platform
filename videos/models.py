@@ -6,6 +6,7 @@ from django.utils import timezone
 import os
 import subprocess
 from django.conf import settings
+from .utils import get_video_duration
 from django.contrib.auth.models import User
 
 
@@ -76,6 +77,11 @@ def generate_thumbnail(video_instance):
 
     try:
         video_path = video_instance.video_file.path
+        
+        # Set duration if not already set
+        if video_instance.duration == 0:
+            video_instance.duration = get_video_duration(video_path)
+            video_instance.save(update_fields=["duration"])
         print("Video path:", video_path)
 
         thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
