@@ -45,5 +45,6 @@ urlpatterns = [
     path('post/<int:post_id>/comment/', views.add_post_comment, name='add_post_comment'),
     path('post/<int:post_id>/delete/', views.delete_post, name='delete_post'),
     path('post/<int:post_id>/edit/', views.edit_post, name='edit_post'),
-
+    path("upload-recorded/", views.upload_recorded, name="upload_recorded"),
+    path("stop-live/", views.stop_live, name="stop_live"),
 ]

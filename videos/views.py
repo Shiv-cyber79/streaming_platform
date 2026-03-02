@@ -13,6 +13,7 @@ from users.utils import has_active_subscription
 # import stripe
 from django.conf import settings
 from django.db.models import Q
+from django.middleware.csrf import get_token
 
 from users.models import Subscription
 from.models import Post,PostLike,PostComment
@@ -45,48 +46,41 @@ def home(request):
         )
 
     videos = videos.order_by("-created_at")
-    Live_streams = LiveStream.objects.filter(is_live=True)
+    live_streams = LiveStream.objects.filter(is_live=True)
 
     return render(request, "videos/home.html", {
         "videos": videos,
         "posts": PostForm,
         "query": query,
-        "LiveStream": LiveStream  
+        "live_streams": live_streams   # ✅ FIXED
     })
 
 def live_page(request, username):
     is_broadcaster = request.user.username == username
+    get_token(request)  # ← forces Django to set the CSRF cookie
 
     if is_broadcaster:
         LiveStream.objects.update_or_create(
             user=request.user,
-            defaults={
-                "room_name": username,
-                "is_live": True
-            }
+            defaults={"room_name": username, "is_live": True}
         )
-
         subscribers = Subscription.objects.filter(
             channel=request.user
         ).select_related("subscriber")
-
         for sub in subscribers:
             Notification.objects.create(
                 recipient=sub.subscriber,
                 sender=request.user,
                 message=f"{request.user.username} is LIVE 🔴"
             )
-
-        send_email_to_subscribers(
-            subscribers,
-            request.user,
-            "is LIVE now 🔴"
-        )
+        send_email_to_subscribers(subscribers, request.user, "is LIVE now 🔴")
 
     return render(request, "videos/live.html", {
-        "room_name": username,
-        "is_broadcaster": is_broadcaster
+        "room_name":      username,
+        "is_broadcaster": is_broadcaster,
+        "is_live_page":   True,
     })
+
 def live_view(request, room_name):
     return render(request, "live.html", {
         "room_name": room_name
@@ -98,6 +92,30 @@ def live_stream(request, username):
         "is_broadcaster": is_broadcaster
     })
 
+@csrf_exempt
+@login_required
+@require_POST
+def upload_recorded(request):
+    video_file = request.FILES.get("video")
+    title      = request.POST.get("title", "Live Stream Recording")
+    room       = request.POST.get("room", "")
+
+    if not video_file:
+        return JsonResponse({"error": "No video file received."}, status=400)
+
+    try:
+        video = Video.objects.create(
+            user=request.user,
+            title=title,
+            video_file=video_file,
+            description=f"Recorded live stream from room: {room}",
+            is_private=False,
+        )
+        return JsonResponse({"success": True, "id": video.id, "title": video.title})
+    except Exception as e:
+        print("❌ upload_recorded error:", e)
+        return JsonResponse({"error": str(e)}, status=500)
+    
 @csrf_exempt
 def upload_live_video(request):
     if request.method == "POST":
@@ -115,6 +133,13 @@ def upload_live_video(request):
             "video_id": video.id
         })
         return JsonResponse({"error": "Invalid request"}, status=400)
+    
+@login_required
+@require_POST
+def stop_live(request):
+    LiveStream.objects.filter(user=request.user).update(is_live=False)
+    return JsonResponse({"status": "stopped"})
+
 def playlist_list(request):
     playlists = Playlist.objects.filter(user=request.user)
     return render(request, "videos/playlist_list.html", {

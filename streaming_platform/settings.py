@@ -96,9 +96,22 @@ ASGI_APPLICATION = "streaming_platform.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
     },
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+] 
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
