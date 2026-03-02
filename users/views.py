@@ -13,8 +13,10 @@ from .models import Subscription,SubscriptionPlan,UserSubscription,Channel
 from videos.models import Video,VideoLike, Playlist
 from videos.forms import ProfilePhotoForm,NameChangeForm
 from datetime import timedelta
+from videos.models import Post
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
 
 @login_required
 def user_profile(request, username):
@@ -75,9 +77,15 @@ def user_profile_playlists(request, username):
     }
     return render(request,"videos/channel_playlists.html",context)
 
-def user_profile_posts(request,username):
-    # return HttpResponse("Posts page")
-    return render(request,'videos/channel_posts.html',{'channel_user':username})
+def user_profile_posts(request, username):
+    channel_user = get_object_or_404(User, username=username)
+
+    posts = Post.objects.filter(user=channel_user).order_by('-created_at')
+
+    return render(request, 'videos/channel_posts.html', {
+        'channel_user': channel_user,
+        'posts': posts
+    })
 
 # @login_required
 # def create_payment(request, plan_id):

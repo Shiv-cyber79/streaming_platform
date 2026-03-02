@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<body style="margin:0; padding:0; background:#000; font-family:Arial;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#000; padding:20px;">
+<tr>
+<td align="center">
+
+<!-- MAIN CARD -->
+<table width="500" cellpadding="0" cellspacing="0" style="background:#111; border-radius:10px; overflow:hidden;">
+
+    <!-- HEADER -->
+    <tr>
+        <td style="background:#ff0000; color:white; text-align:center; padding:15px; font-size:20px; font-weight:bold;">
+            🚀 StreamTube
+        </td>
+    </tr>
+
+    <!-- THUMBNAIL -->
+    {% if video and video.thumbnail %}
+    <tr>
+        <td>
+            <img src="{{ site_url }}{{ video.thumbnail.url }}" width="100%" style="display:block;">
+        </td>
+    </tr>
+    {% endif %}
+
+    <!-- CONTENT -->
+    <tr>
+        <td style="padding:20px; text-align:center; color:white;">
+
+            <h2 style="margin:0;">{{ creator.username }}</h2>
+
+            <p style="color:#ccc;">
+                {{ text }}
+            </p>
+
+            {% if video %}
+            <a href="{{ site_url }}/video/{{ video.id }}/"
+               style="display:inline-block; padding:10px 20px; background:#3ea6ff; color:white; text-decoration:none; border-radius:5px;">
+                ▶ Watch Now
+            </a>
+            {% endif %}
+
+        </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+        <td style="padding:15px; text-align:center; color:#888; font-size:12px;">
+            You subscribed to {{ creator.username }}<br><br>
+            <b style="color:red;">StreamTube</b>
+        </td>
+    </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

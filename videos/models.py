@@ -1,11 +1,13 @@
 from django.db import models
 from django import forms
 from django.contrib.auth.models import User
-from .validators import validate_video_size
+from .validators import validate_video_size,validate_video_file
 from django.utils import timezone
 import os
 import subprocess
 from django.conf import settings
+from django.contrib.auth.models import User
+
 
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -35,7 +37,7 @@ class Playlist(models.Model):
 class Video(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(max_length =255,blank=True)
-    video_file = models.FileField(upload_to="videos/")
+    video_file = models.FileField(upload_to="videos/",validators=[validate_video_file])
     thumbnail = models.ImageField(upload_to="thumbnails/", blank=True, null=True)
     playlists = models.ManyToManyField(Playlist, related_name="videos", blank=True )
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -59,43 +61,54 @@ class Video(models.Model):
      is_new = self.pk is None
      super().save(*args, **kwargs)
 
-     if is_new and self.video_file and not self.thumbnail:
-      generate_thumbnail(self)
+     if self.video_file and not self.thumbnail:
+           generate_thumbnail(self)
+     
     def __str__(self):
         return self.title
     
 def generate_thumbnail(video_instance):
+    print("🔥 FUNCTION CALLED")
+
     if not video_instance.video_file:
+        print("❌ No video file")
         return
+
     try:
         video_path = video_instance.video_file.path
+        print("Video path:", video_path)
 
         thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
         os.makedirs(thumbnail_dir, exist_ok=True)
 
         thumbnail_name = f"{video_instance.id}.jpg"
         thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
-        print("thumbnail_path",thumbnail_path)
+
         command = [
-            r"C:\ffmpeg\ffmpeg-8.0.1-essentials_build\bin\ffmpeg.exe",
+            "ffmpeg",
             "-i", video_path,
-            "-ss", "00:00:02",
+            "-ss", "00:00:01",
             "-vframes", "1",
             thumbnail_path
         ]
 
-        result = subprocess.run(command)
+        print("Running command:", command)
+
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        print("Return code:", result.returncode)
+        print("Error:", result.stderr.decode())
 
         if result.returncode == 0:
             video_instance.thumbnail = f"thumbnails/{thumbnail_name}"
-            video_instance.save()
+            video_instance.save(update_fields=['thumbnail'])
+            print("✅ Thumbnail saved")
         else:
-            print("FFmpeg failed:", result.stderr.decode())
-    except FileNotFoundError:
-        print("FFmpeg not installed or not in PATH")
+            print("❌ FFmpeg failed")
 
     except Exception as e:
-        print("Thumbnail generation error:", e)
+        print("❌ Exception:", e)
+
 class PlaylistForm(forms.ModelForm):
     class Meta:
         model = Playlist
@@ -131,25 +144,33 @@ class VideoLike(models.Model):
     class Meta:
         unique_together = ("user", "video")
 class Notification(models.Model):
-    recipient = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="notifications"
-    )
-    sender = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="sent_notifications"
-    )
-    video = models.ForeignKey(
-        Video,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True
-    )
+    recipient = models.ForeignKey( User, on_delete=models.CASCADE, related_name="notifications" )
+    sender = models.ForeignKey( User,  on_delete=models.CASCADE,related_name="sent_notifications" )
+    video = models.ForeignKey( Video,  on_delete=models.CASCADE,null=True, blank=True )
+    post = models.ForeignKey('Post', on_delete=models.CASCADE, null=True, blank=True)
     message = models.CharField(max_length=255)
     is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"To {self.recipient.username}: {self.message}"
+    
+class Post(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    image = models.ImageField(upload_to='posts/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.content[:20]
+    
+
+class PostLike(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="likes")
+
+class PostComment(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)

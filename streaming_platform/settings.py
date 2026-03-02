@@ -89,14 +89,29 @@ TEMPLATES = [
     },
 ]
 
+
+
 WSGI_APPLICATION = 'streaming_platform.wsgi.application'
 ASGI_APPLICATION = "streaming_platform.asgi.application"
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
     },
 }
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+] 
+
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_HTTPONLY = False  # Must be False so JavaScript can read it
+SESSION_COOKIE_SAMESITE = 'Lax'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -127,6 +142,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -134,7 +150,6 @@ EMAIL_USE_TLS = True
 
 EMAIL_HOST_USER = "rshiv9900@gmail.com"
 EMAIL_HOST_PASSWORD = "xjyjznnvgfeqmmyb"
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # DEFAULT_FROM_EMAIL = "Streaming Platform <rshiv9900@gmail.com>"
 
@@ -165,7 +180,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
@@ -174,9 +189,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_URL = "/login/"
+LOGIN_URL = '/user_auth/login/'
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+SOCIALACCOUNT_LOGIN_ON_GET = False
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
@@ -218,4 +235,5 @@ SOCIALACCOUNT_PROVIDERS = {
 #     "signup": None
 # }
 
+ACCOUNT_ADAPTER = 'userauth.adapters.MyAccountAdapter'
 SOCIALACCOUNT_ADAPTER = "userauth.adapters.MySocialAccountAdapter"

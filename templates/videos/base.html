@@ -1,638 +1,470 @@
 <!DOCTYPE html>
-{% block script %}{% endblock %}
 <html>
 <head>
- {% load static %} 
-    <title>{% block title %}Streaming{% endblock %}</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}"> 
+  {% load static %}
+  <title>{% block title %}Streaming{% endblock %}</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+  
 
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #000;
-            color: white;
-            padding-top: var(--navbar-height);
-        }
-        :root {
-            --navbar-height: 60px;
-        }
-        .navbar {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            background: #000;
-            border-bottom: 1px solid #222;
-        }
-            /* NAV LEFT */
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #000;
+      color: white;
+      padding-top: var(--navbar-height);
+    }
+    :root {
+      --navbar-height: 60px;
+    }
+    .navbar {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      background: #000;
+      border-bottom: 1px solid #222;
+    }
     .nav-left {
-        display: flex;
-        align-items: center;
-        gap: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
-
     .hamburger {
-        font-size: 22px;
-        cursor: pointer;
-        padding: 6px 10px;
-        border-radius: 8px;
+      font-size: 22px;
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: 8px;
     }
+    .hamburger:hover { background: #222; }
 
-    .hamburger:hover {
-        background: #222;
-    }
-
-
-    /* OVERLAY */
     .sidebar-overlay {
-        position: fixed;
-        top: var(--navbar-height);
-        left: 0;
-        right: 0;
-        bottom: 0;
-
-        background: rgba(0,0,0,0.5);
-        display: none;
-        z-index: 1999;
+      position: fixed;
+      top: var(--navbar-height);
+      left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 1999;
     }
-
-    /* SIDEBAR */
     .sidebar {
-        position: fixed;
-        left: -260px;
-
-        top: var(--navbar-height);   /* start below navbar */
-        height: calc(100vh - var(--navbar-height));
-
-        width: 260px;
-        background: #0f0f0f;
-        transition: 0.3s ease;
-        z-index: 2000;
-        border-right: 1px solid #222;
+      position: fixed;
+      left: -260px;
+      top: var(--navbar-height);
+      height: calc(100vh - var(--navbar-height));
+      width: 260px;
+      background: #0f0f0f;
+      transition: 0.3s ease;
+      z-index: 2000;
+      border-right: 1px solid #222;
     }
-    /* open state */
-    .sidebar.open {
-        left: 0;
-    }
-
-    .sidebar-overlay.show {
-        display: block;
-    }
-
-
-    /* menu items */
+    .sidebar.open { left: 0; }
+    .sidebar-overlay.show { display: block; }
     .sidebar a {
-        display: block;
-        padding: 14px 22px;
-        color: #ddd;
-        text-decoration: none;
-        font-size: 15px;
+      display: block;
+      padding: 14px 22px;
+      color: #ddd;
+      text-decoration: none;
+      font-size: 15px;
+    }
+    .sidebar a:hover { background: #222; }
+    .sidebar a.active { background: #2a2a2a; color: white; }
+    .sidebar-divider { height: 1px; background: #222; margin: 12px 0; }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: red;
+      margin-right: 30px;
+      white-space: nowrap;
+    }
+    .nav-links a, .nav-links button {
+      margin-right: 15px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .nav-links a:hover, .nav-links button:hover { color: #ff0000; }
+
+    .nav-right {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 300px;
+      justify-content: flex-end;
+    }
+    .create-menu { position: relative; margin-right: 12px; }
+    .create-btn {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: transparent;
+      border: 1px solid #3ea6ff;
+      color: #3ea6ff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 21px;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+    .create-btn:hover { background: rgba(62,166,255,0.15); }
+    .create-dropdown {
+      display: none;
+      position: absolute;
+      right: 0; top: 48px;
+      width: 220px;
+      background: #1f1f1f;
+      border-radius: 14px;
+      border: 1px solid #303030;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      overflow: hidden;
+      z-index: 2000;
+    }
+    .create-dropdown a {
+      display: block;
+      padding: 12px 18px;
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .create-dropdown a:hover { background: #2a2a2a; }
+
+    .profile-initial {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #ff0000;
+      color: white;
+      font-weight: bold;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+    .profile-info {
+      padding: 10px 15px;
+      border-bottom: 1px solid #333;
+    }
+    .profile-info small { display: block; font-size: 12px; color: #aaa; }
+    .profile-menu { position: relative; }
+    .profile-pic { width: 36px; height: 36px; border-radius: 50%; cursor: pointer; }
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 0; top: 48px;
+      background: #1f1f1f;
+      border-radius: 14px;
+      width: 250px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      z-index: 2000;
+      overflow: hidden;
+      border: 1px solid #303030;
+    }
+    .profile-dropdown a, .dropdown-logout {
+      display: block;
+      padding: 12px 18px;
+      color: white;
+      text-decoration: none;
+      background: none;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      width: 100%;
+    }
+    .profile-dropdown a:hover, .dropdown-logout:hover { background: #2a2a2a; }
+    .profile-divider { height: 1px; background: #303030; margin: 6px 0; }
+
+    .popup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+    }
+    .popup-content {
+      background: white;
+      width: 320px;
+      margin: 140px auto;
+      padding: 25px;
+      text-align: center;
+      border-radius: 8px;
+      color: black;
+    }
+    .popup-btn {
+      display: block;
+      padding: 10px;
+      margin-bottom: 12px;
+      background: red;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .popup-btn.signup { background: #065fd4; }
+    .popup-cancel { background: none; border: none; cursor: pointer; color: #777; }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 20px;
+      background: #000;
+      border-bottom: 1px solid #222;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 9999;
+    }
+    .nav-center { flex: 1; display: flex; justify-content: center; }
+    .search-form { display: flex; width: 100%; max-width: 550px; }
+    .search-input {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 25px 0 0 25px;
+      border: 1px solid #333;
+      background: #121212;
+      color: white;
+      outline: none;
+      font-size: 14px;
+    }
+    .search-btn {
+      padding: 10px 18px;
+      border-radius: 0 25px 25px 0;
+      border: 1px solid #333;
+      background: #222;
+      color: white;
+      cursor: pointer;
+    }
+    .search-btn:hover { background: #333; }
+    body { background: #0f0f0f; }
+
+    /* ✅ LIVE PAGE — remove padding and overflow so video fills screen */
+    body.live-page {
+      padding-top: 0 !important;
+      overflow: hidden !important;
+      height: 100vh !important;
     }
 
-    .sidebar a:hover {
-        background: #222;
+    .video-card:hover { transform: scale(1.02); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+    #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; }
+    .toast {
+      background: #ff0000; color: white;
+      padding: 12px 18px; border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+      animation: slideIn 0.3s ease;
+      font-size: 14px;
     }
-
-    .sidebar a.active {
-        background: #2a2a2a;
-        color: white;
+    .toast.success { background: #00c853; }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);    opacity: 1; }
     }
-
-    .sidebar-divider {
-        height: 1px;
-        background: #222;
-        margin: 12px 0;
-    }
-        .logo {
-            font-size: 20px;
-            font-weight: bold;
-            color: red;
-            margin-right: 30px;
-            white-space: nowrap;
-        }
-
-        .nav-links a,
-        .nav-links button {
-            margin-right: 15px;
-            text-decoration: none;
-            color: white;
-            font-weight: bold;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .nav-links a:hover,
-        .nav-links button:hover {
-            color: #ff0000;
-        }
-
-        .nav-right {
-           margin-left: auto;
-           display: flex;
-           align-items: center;
-           gap: 15px;
-           min-width: 300px;   /* 👈 ADD THIS */
-           justify-content: flex-end;
-        }
-
-        /* ================= CREATE MENU ================= */
-
-        .create-menu {
-            position: relative;
-            margin-right: 12px;
-        }
-
-        /* + button */
-        .create-btn {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: transparent;
-            border: 1px solid #3ea6ff;
-            color: #3ea6ff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 21px;
-            cursor: pointer;
-            transition: 0.2s ease;
-        }
-
-        .create-btn:hover {
-            background: rgba(62,166,255,0.15);
-        }
-
-        /* dropdown */
-        .create-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 48px;
-            width: 220px;
-            background: #1f1f1f;
-            border-radius: 14px;
-            border: 1px solid #303030;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            overflow: hidden;
-            z-index: 2000;
-        }
-
-        .create-dropdown a {
-            display: block;
-            padding: 12px 18px;
-            color: white;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .create-dropdown a:hover {
-            background: #2a2a2a;
-        }
-
-        .profile-initial {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #ff0000;
-            color: white;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            text-transform: uppercase;
-        }
-       .profile-info {
-           padding: 10px 15px;
-           border-bottom: 1px solid #333;
-        }
-
-        .profile-info small {
-           display: block;
-           font-size: 12px;
-           color: #aaa;
-        }
-     
-        .profile-menu {
-            position: relative;
-        }
-
-        .profile-pic {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
-        .profile-dropdown {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 48px;
-            background: #1f1f1f;
-            border-radius: 14px;
-            width: 250px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
-            z-index: 2000;
-            overflow: hidden;
-            border: 1px solid #303030;
-        }
-
-        .profile-dropdown a,
-        .dropdown-logout {
-           display: block;
-           padding: 12px 18px;
-           color: white;
-           text-decoration: none;
-           background: none;
-           border: none;
-           text-align: left;
-           cursor: pointer;
-           font-size: 14px;
-           transition: 0.2s ease;
-        }
-
-        .profile-dropdown a:hover,
-        .dropdown-logout:hover {
-           background: #2a2a2a;
-        }
-
-       .profile-divider {
-           height: 1px;
-           background: #303030;
-           margin: 6px 0;
-        }
-
-        .profile-dropdown a,
-        .dropdown-logout {
-            width: 100%;
-            display: block;
-            padding: 10px 15px;
-            color:inherit;
-            text-decoration: none;
-            background: transparent;
-            border: none;
-            text-align: left;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .profile-dropdown a:hover,
-        .dropdown-logout:hover {
-            background: #333;
-        }
-
-        
-        .popup {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-        }
-
-        .popup-content {
-            background: white;
-            width: 320px;
-            margin: 140px auto;
-            padding: 25px;
-            text-align: center;
-            border-radius: 8px;
-            color: black;
-        }
-
-        .popup-btn {
-            display: block;
-            padding: 10px;
-            margin-bottom: 12px;
-            background: red;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .popup-btn.signup {
-            background: #065fd4;
-        }
-
-        .popup-cancel {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #777;
-        }
-
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background: #000;
-            border-bottom: 1px solid #222;
-               position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-        }
-
-        /* LEFT */
-       
-
-        /* CENTER (IMPORTANT 🔥) */
-            .nav-center {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-        }
-
-        /* SEARCH BAR */
-        .search-form {
-            display: flex;
-            width: 100%;
-            max-width: 550px;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 25px 0 0 25px;
-            border: 1px solid #333;
-            background: #121212;
-            color: white;
-            outline: none;
-            font-size: 14px;
-        }
-
-        .search-btn {
-            padding: 10px 18px;
-            border-radius: 0 25px 25px 0;
-            border: 1px solid #333;
-            background: #222;
-            color: white;
-            cursor: pointer;
-        }
-
-        .search-btn:hover {
-            background: #333;
-        }
-
-        body {
-           background: #0f0f0f;
-        }
-
-        /* Smooth UI */
-      *   {
-            transition: all 0.2s ease;
-        }
-
-        /* Card hover feel */
-        .video-card:hover {
-            transform: scale(1.02);
-        }
-
-       /* Scrollbar */
-       ::-webkit-scrollbar {
-    width: 6px;
-        }
-       ::-webkit-scrollbar-thumb {
-           background: #333;
-           border-radius: 10px;
-        } 
-
-    </style>
+  </style>
 </head>
 
 <body>
 
 <div class="navbar">
+  <div class="nav-left">
+    <div class="hamburger" onclick="toggleSidebar()">☰</div>
+    <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">▶ Stream</a>
+    <div class="nav-links">
+      <a href="{% url 'home' %}">Home</a>
+      {% if user.is_authenticated %}
+        <a href="{% url 'subscription_feed' %}">Subscriptions</a>
+        <a href="{% url 'playlist_list' %}">Playlists</a>
+        <a href="{% url 'upload_video' %}">Upload</a>
+      {% else %}
+        <button onclick="openLoginPopup()">Playlists</button>
+        <button onclick="openLoginPopup()">Upload</button>
+      {% endif %}
+    </div>
+  </div>
 
-    <!-- LEFT -->
-    <div class="nav-left">
-        <div class="hamburger" onclick="toggleSidebar()">
-            ☰
+  <div class="nav-center">
+    <form method="GET" action="{% url 'home' %}" class="search-form">
+      <input type="text" name="q" placeholder="Search"
+             value="{{ request.GET.q }}" class="search-input">
+      <button type="submit" class="search-btn">🔍</button>
+    </form>
+  </div>
+
+  <div class="nav-right">
+    {% if user.is_authenticated %}
+      <div class="create-menu">
+        <div class="create-btn" onclick="toggleCreateMenu()">+</div>
+        <div id="createDropdown" class="create-dropdown">
+          <a href="{% url 'upload_video' %}">📤 Upload Video</a>
+          <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
+          <div class="profile-divider"></div>
+          <a href="#">📝 Create Post</a>
         </div>
+      </div>
 
-        <a href="{% url 'home' %}" class="logo" style="text-decoration:none;">
-            ▶ Stream
-        </a>
-
-        <div class="nav-links">
-            <a href="{% url 'home' %}">Home</a>
-
-            {% if user.is_authenticated %}
-                <a href="{% url 'subscription_feed' %}">Subscriptions</a>
-                <a href="{% url 'playlist_list' %}">Playlists</a>
-                <a href="{% url 'upload_video' %}">Upload</a>
-            {% else %}
-                <button onclick="openLoginPopup()">Playlists</button>
-                <button onclick="openLoginPopup()">Upload</button>
+      <div style="position:relative; margin-right:14px;">
+        <div onclick="toggleNotif()" style="cursor:pointer; font-size:20px; position:relative;">
+          🔔
+          {% if unread_notifications_count > 0 %}
+            <span style="
+              position:absolute; top:-6px; right:-8px;
+              background:red; color:white; border-radius:50%;
+              padding:2px 6px; font-size:11px;">
+              {{ unread_notifications_count }}
+            </span>
+          {% endif %}
+        </div>
+        <div id="notifDropdown" style="
+          display:none; position:absolute; right:0; top:35px;
+          width:320px; max-height:400px; overflow-y:auto;
+          background:#1f1f1f; border-radius:12px;
+          box-shadow:0 10px 30px rgba(0,0,0,0.6);
+          padding:10px; z-index:9999;">
+          {% for n in notifications %}
+            {% if n.video %}
+              <a href="{% url 'video_detail' video_id=n.video.id %}" style="text-decoration:none;color:white;">
+            {% elif n.post %}
+              <a href="{% url 'view_post' post_id=n.post.id %}" style="text-decoration:none;color:white;">
             {% endif %}
-        </div>
-    </div>
-
-    <!-- CENTER 🔥 -->
-    <div class="nav-center">
-        <form method="GET" action="{% url 'home' %}" class="search-form">
-            <input 
-                type="text" 
-                name="q" 
-                placeholder="Search" 
-                value="{{ request.GET.q }}"
-                class="search-input"
-            >
-            <button type="submit" class="search-btn">🔍</button>
-        </form>
-    </div>
-
-    <div class="nav-right">
-            {% if user.is_authenticated %} 
-
-            <!-- ➕ CREATE MENU START -->
-            <div class="create-menu">
-
-                <div class="create-btn" onclick="toggleCreateMenu()">+</div>
-
-                <div id="createDropdown" class="create-dropdown">
-                    <a href="{% url 'upload_video' %}">📤 Upload Video</a>
-                    <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
-                    <div class="profile-divider"></div>
-                    <a href="#">📝 Create Post</a>
-                </div>
-
+            <div style="padding:10px; border-radius:8px; margin-bottom:8px; background:#2a2a2a;"
+                 onmouseover="this.style.background='#333'"
+                 onmouseout="this.style.background='#2a2a2a'">
+              <strong>{{ n.sender.username }}</strong><br>
+              <span style="font-size:13px;color:#aaa;">{{ n.message }}</span>
             </div>
-            <!-- ➕ CREATE MENU END -->
+            {% if n.video or n.post %}</a>{% endif %}
+          {% empty %}
+            <p style="text-align:center;color:#aaa;">No notifications</p>
+          {% endfor %}
+        </div>
+      </div>
 
-            <!-- 🔔 Notification Bell START -->
-               <a href="{% url 'notifications' %}" 
-                  style="
-                      color:white;
-                      position:relative;
-                      margin-right:14px;
-                      font-size:20px;
-                      text-decoration:none;
-               ">
-
-               🔔
-
-               {% if unread_notifications_count > 0 %}
-                   <span style="
-                       position:absolute;
-                       top:-6px;
-                       right:-8px;
-                       background:red;
-                       color:white;
-                       border-radius:50%;
-                       padding:2px 6px;
-                       font-size:11px;
-                ">
-                    {{ unread_notifications_count }}
-                </span>
-            {% endif %}
-
-        </a>
-        <!-- 🔔 Notification Bell END -->
-
-                <div class="profile-menu">
-                    {% if user.profile.avatar %}
-                        <img src="{{ user.profile.avatar.url }}"
-                             class="profile-pic"
-                             onclick="toggleProfileMenu()">
-                    {% else %}
-                        <div class="profile-initial"
-                             onclick="toggleProfileMenu()">
-                            {{ user.username|first|upper }}
-                        </div>
-                    {% endif %}
-
-                    <div id="profileDropdown" class="profile-dropdown">
-                        <div class="profile-info">
-                            <strong>
-                                {% if user.first_name %}
-                                    {{ user.first_name }} {{ user.last_name }}
-                                {% else %}
-                                    {{ user.username }}
-                               {% endif %}
-                           </strong>
-
-                            <small>{{ user.email }}</small>
-                        </div>
-
-                        <!-- <div class="profile-divider"></div> -->
-
-                        <a href="{% url 'subscription_plans' %}">💎 Purchase</a>
-
-                        <a href="{% url 'subscription_feed' %}">⭐ Membership</a>
-
-                        <div class="profile-divider"></div>
-
-                        <a href="{% url 'user_settings' %}">⚙️ Settings</a>
-
-                        <form method="post" action="{% url 'logout' %}">
-                              {% csrf_token %}
-                              <button type="submit" class="dropdown-logout">
-                                  🚪 Logout
-                              </button>
-                          </form>
-                    </div>
-                </div>
-            {% else %}
-                <button
-                    onclick="openLoginPopup()"
-                    style="
-                        display:flex;
-                        align-items:center;
-                        gap:6px;
-                        padding:6px 14px;
-                        border:1px solid #3ea6ff;
-                        border-radius:18px;
-                        background:transparent;
-                        color:#3ea6ff;
-                        font-weight:600;
-                        font-size:14px;
-                        cursor:pointer;
-                    "
-                    onmouseover="this.style.background='rgba(62,166,255,0.15)'"
-                    onmouseout="this.style.background='transparent'"
-                >
-                     👤 Log in
-                 </button>
-            {% endif %}
-    </div>
+      <div class="profile-menu">
+        {% if user.profile.avatar %}
+          <img src="{{ user.profile.avatar.url }}" class="profile-pic" onclick="toggleProfileMenu()">
+        {% else %}
+          <div class="profile-initial" onclick="toggleProfileMenu()">
+            {{ user.username|first|upper }}
+          </div>
+        {% endif %}
+        <div id="profileDropdown" class="profile-dropdown">
+          <div class="profile-info">
+            <strong>
+              {% if user.first_name %}{{ user.first_name }} {{ user.last_name }}
+              {% else %}{{ user.username }}{% endif %}
+            </strong>
+            <small>{{ user.email }}</small>
+          </div>
+          <a href="{% url 'subscription_plans' %}">💎 Purchase</a>
+          <a href="{% url 'subscription_feed' %}">⭐ Membership</a>
+          <div class="profile-divider"></div>
+          <a href="{% url 'user_settings' %}">⚙️ Settings</a>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-logout">🚪 Logout</button>
+          </form>
+        </div>
+      </div>
+    {% else %}
+      <button onclick="openLoginPopup()" style="
+        display:flex; align-items:center; gap:6px;
+        padding:6px 14px; border:1px solid #3ea6ff;
+        border-radius:18px; background:transparent;
+        color:#3ea6ff; font-weight:600; font-size:14px; cursor:pointer;"
+        onmouseover="this.style.background='rgba(62,166,255,0.15)'"
+        onmouseout="this.style.background='transparent'">
+        👤 Log in
+      </button>
+    {% endif %}
+  </div>
 </div>
-<!-- Sidebar Overlay -->
+
 <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
-
-<!-- Sidebar -->
 <div id="sidebar" class="sidebar">
-
-    <a href="/" class="sidebar-item active">🏠  Home</a>
-    <a href="{% url 'subscription_feed' %}">🎬  Subscriptions</a>
-    <a href="#">📚  Library</a>
-    <a href="#">⏱  History</a>
-    <a href="#">👍  Liked videos</a>
-    <a href="#">📺  Your videos</a>
-
-    <div class="sidebar-divider"></div>
-
-    <a href="#">⚙ Settings</a>
-    <a href="#">❓ Help</a>
-
+  <a href="/" class="sidebar-item active">🏠 Home</a>
+  <a href="{% url 'subscription_feed' %}">🎬 Subscriptions</a>
+  <a href="#">📚 Library</a>
+  <a href="#">⏱ History</a>
+  <a href="#">👍 Liked videos</a>
+  <a href="#">📺 Your videos</a>
+  <div class="sidebar-divider"></div>
+  <a href="#">⚙ Settings</a>
+  <a href="#">❓ Help</a>
 </div>
+
+{% if messages %}
+<div id="toast-container">
+  {% for message in messages %}
+    <div class="toast {{ message.tags }}">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
 
 {% block content %}{% endblock %}
 
 <div id="loginPopup" class="popup">
-    <div class="popup-content">
-        <h3>Login required</h3>
-        <p>Sign in or create an account to continue</p>
-
-        <a href="{% url 'login' %}?next={{ request.path }}" class="popup-btn">Login</a>
-        <a href="{% url 'signup' %}?next={{ request.path }}" class="popup-btn signup">Create account</a>
-
-        <button onclick="closeLoginPopup()" class="popup-cancel">Cancel</button>
-    </div>
+  <div class="popup-content">
+    <h3>Login required</h3>
+    <p>Sign in or create an account to continue</p>
+    <a href="{% url 'login' %}?next={{ request.path }}" class="popup-btn">Login</a>
+    <a href="{% url 'signup' %}?next={{ request.path }}" class="popup-btn signup">Create account</a>
+    <button onclick="closeLoginPopup()" class="popup-cancel">Cancel</button>
+  </div>
 </div>
 
 <script>
-    function toggleSidebar() {
+  // Auto-hide toasts
+  setTimeout(() => {
+    document.querySelectorAll(".toast").forEach(el => el.style.display = "none");
+  }, 3000);
+
+  function toggleSidebar() {
     document.getElementById("sidebar").classList.toggle("open");
     document.getElementById("sidebarOverlay").classList.toggle("show");
-}
-function openLoginPopup() {
-    document.getElementById("loginPopup").style.display = "block";
-}
-function closeLoginPopup() {
-    document.getElementById("loginPopup").style.display = "none";
-}
-function toggleProfileMenu() {
+  }
+  function openLoginPopup()  { document.getElementById("loginPopup").style.display = "block"; }
+  function closeLoginPopup() { document.getElementById("loginPopup").style.display = "none"; }
+
+  function toggleProfileMenu() {
     const menu = document.getElementById("profileDropdown");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
-document.addEventListener("click", function (e) {
+  }
+  document.addEventListener("click", function(e) {
     const profileMenu = document.querySelector(".profile-menu");
-    const dropdown = document.getElementById("profileDropdown");
+    const dropdown    = document.getElementById("profileDropdown");
     if (profileMenu && !profileMenu.contains(e.target)) {
-        dropdown.style.display = "none";
+      dropdown.style.display = "none";
     }
-});
+  });
 
-function toggleCreateMenu() {
+  function toggleCreateMenu() {
     const menu = document.getElementById("createDropdown");
     menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
-
-/* close when clicking outside */
-document.addEventListener("click", function(e) {
+  }
+  document.addEventListener("click", function(e) {
     const createMenu = document.querySelector(".create-menu");
-    if (!createMenu.contains(e.target)) {
-        document.getElementById("createDropdown").style.display = "none";
+    if (createMenu && !createMenu.contains(e.target)) {
+      document.getElementById("createDropdown").style.display = "none";
     }
-});
+  });
+
+  function toggleNotif() {
+    const box = document.getElementById("notifDropdown");
+    box.style.display = box.style.display === "block" ? "none" : "block";
+  }
+  document.addEventListener("click", function(e) {
+    const notif = document.getElementById("notifDropdown");
+    if (!e.target.closest('[onclick="toggleNotif()"]') && !e.target.closest('#notifDropdown')) {
+      if (notif) notif.style.display = "none";
+    }
+  });
 </script>
+
+<!-- ✅ SCRIPT BLOCK — runs AFTER all HTML is in the DOM -->
+{% block script %}{% endblock %}
 
 </body>
 </html>
