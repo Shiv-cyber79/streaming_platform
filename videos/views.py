@@ -2,6 +2,8 @@ from datetime import timedelta
 from django.http import HttpResponseForbidden, HttpResponse,FileResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+
+from videos.utils import get_video_duration
 from .forms import VideoForm, PlaylistForm, CreatePlaylistWithVideoForm
 from .models import Video, Comment, Playlist,VideoLike,User,Notification,LiveStream 
 from django.views.decorators.http import require_POST
@@ -192,7 +194,8 @@ def playlist_detail(request, playlist_id):
         index = video_list.index(current_video)
         if index + 1 < len(video_list):
             next_video = video_list[index + 1]
-
+    sub_obj = Subscription.objects
+    is_subscribed = sub_obj.filter(channel=current_video.user,subscriber=request.user).exists()
     # print("playlist details: ",current_video.user, current_video.user.id)
     return render(
         request,
@@ -202,6 +205,7 @@ def playlist_detail(request, playlist_id):
             "videos": videos,
             "current_video": current_video,
             "next_video": next_video,
+            "is_subscribed": is_subscribed
         }
     )
 # @login_required
@@ -296,7 +300,11 @@ def upload_video(request):
             video.user = request.user
             print(video.user,request.user)
             video.save()
-
+            
+            duration = get_video_duration(video.video_file.path)
+            print("⏱ Duration returned:", duration)
+            video.duration = duration
+            video.save(update_fields=["duration"])
             if playlist_id:
                 try:
                     playlist = Playlist.objects.get(id=playlist_id, user=request.user)
@@ -397,9 +405,11 @@ def video_detail(request, video_id):
 
     print("video detail",video_id)
     video = get_object_or_404(Video, id=video_id)
+    
+    video_obj = Video.objects
+    suggested_videos = video_obj.exclude(id=video_id)[:10]
 
-    suggested_videos = Video.objects.exclude(id=video_id)[:10]
-
+    video_obj.filter(id=video_id).update(views=F("views") + 1)
     from_page = request.GET.get("from")  # 👈 IMPORTANT
 
     subscribed_channels = []
@@ -410,7 +420,9 @@ def video_detail(request, video_id):
         ).select_related("channel")
     user_playlists = Playlist.objects.filter(user=request.user) if request.user.is_authenticated else []
 
-    sub_counts = Subscription.objects.filter(channel=video.user).count()
+    sub_obj = Subscription.objects
+    sub_counts = sub_obj.filter(channel=video.user).count()
+    is_subscribed = sub_obj.filter(subscriber=request.user,channel=video.user).exists()
     print("Subscription count for channel:", sub_counts)
     return render(request, "videos/video_detail.html", {
         "video": video,
@@ -418,6 +430,7 @@ def video_detail(request, video_id):
         "subscribed_channels": subscribed_channels,
         "from_page": from_page,
         'user_playlists': user_playlists,
+        "is_subscribed": is_subscribed,
     })
 
 @require_POST
@@ -560,21 +573,27 @@ def add_comment(request, video_id):
         text = request.POST.get("comment")
 
         if text:
-            Comment.objects.create(
+            comment = Comment.objects.create(
                 video=video,
                 user=request.user,
                 text=text
             )
+        return JsonResponse({
+            "username":comment.user.username,
+            "text":comment.text,
+            "time":comment.created_at.isoformat(),
+            "total_comments": comment.video.comments.count()
+        })
 
-    playlist = video.playlists.first()
+    # playlist = video.playlists.first()
 
-    if playlist:
-        return redirect(
-            f"/playlists/{playlist.id}/?video={video.id}"
-        )
+    # if playlist:
+    #     return redirect(
+    #         f"/playlists/{playlist.id}/?video={video.id}"
+    #     )
 
-    return redirect("video_detail", video_id=video.id)
-
+    # return 0redirect("video_detail", video_id=video.id)
+    return JsonResponse({"error": "Invalid request"}, status=400)
 @login_required
 def add_video_to_playlist(request, playlist_id, video_id):
     video = get_object_or_404(Video, id=video_id)

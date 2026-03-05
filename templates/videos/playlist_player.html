@@ -102,23 +102,34 @@ a { text-decoration: none; color: inherit; }
 .action-btn.liked { background: #065fd4; }
 
 .subscribe-btn {
-    background: white;
-    color: black;
+    background: #ff0000;
+    color: #fff;
     border: none;
     padding: 8px 18px;
     border-radius: 20px;
     cursor: pointer;
     font-weight: 600;
     font-size: 14px;
+    white-space: nowrap;
     transition: background 0.2s;
 }
 
-.subscribe-btn:hover { background: #ddd; }
+
 .subscribe-btn.subscribed {
     background: #272727;
     color: white;
 }
-
+.subscribe-btn:hover {
+    opacity: 0.9;
+}
+/* DESCRIPTION BOX */
+.description-box {
+    background: #181818;
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-top: 14px;
+    font-size: 14px;
+}
 .premium-btn {
     background: linear-gradient(90deg, #ff0000, #ff6a00);
     color: white;
@@ -174,14 +185,66 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* ===== COMMENTS ===== */
-.comments {
-    margin-top: 22px;
+.comments-wrapper {
+    margin-top: 24px;
     border-top: 1px solid #303030;
     padding-top: 16px;
 }
 
-.comments h3 { margin-bottom: 14px; }
+/* ===== HEADER ===== */
+.comments-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
 
+.comments-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.comments-header span {
+    font-size: 14px;
+    color: #aaa;
+}
+
+/* ===== CONTAINER (COLLAPSIBLE) ===== */
+.comments-container {
+    height: 420px;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 0;
+    margin-top: 12px;
+    font-size: 18px;
+    max-height: 0;
+    transition: max-height 0.35s ease;
+}
+
+/* When expanded */
+.comments-container.open {
+    max-height: 420px; /* Adjust as needed */
+}
+
+/* ===== SCROLLABLE COMMENTS LIST ===== */
+.comments-list {
+    overflow-y: auto;
+    padding-right: 6px;
+    flex: 1;
+}
+
+/* Scroll styling */
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+.comments-list::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 8px;
+}
+
+/* ===== INDIVIDUAL COMMENT ===== */
 .comment {
     margin-bottom: 14px;
 }
@@ -191,6 +254,47 @@ a { text-decoration: none; color: inherit; }
     font-size: 12px;
 }
 
+.comment p {
+    margin: 4px 0;
+    color: #ccc;
+}
+
+/* ===== COMMENT FORM (STICKY BOTTOM) ===== */
+.comment-form {
+    flex-shrink: 0;
+    border-top: 1px solid #303030;
+    padding: 12px;
+    background: #0f0f0f;
+}
+
+.comment-form textarea {
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+    resize: none;
+    height: 70px;
+    margin-bottom: 8px;
+}
+
+.comment-btn {
+    background: #ff0000;
+    color: white;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.comment-btn:hover {
+    background: #cc0000;
+}
+
+.no-comments {
+    color: #aaa;
+}
 textarea {
     width: 100%;
     height: 70px;
@@ -201,17 +305,6 @@ textarea {
     padding: 10px;
     font-family: inherit;
     resize: none;
-}
-
-.comment-btn {
-    background: #ff0000;
-    color: white;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 20px;
-    cursor: pointer;
-    margin-top: 8px;
-    font-weight: 500;
 }
 
 /* ===== PLAYLIST SIDEBAR ===== */
@@ -319,8 +412,18 @@ textarea {
                 <a href="{% url 'user_profile' current_video.user.username %}">
                     <strong>{{ current_video.user.username }}</strong>
                 </a><br>
-                <small style="color:#aaa;">Subscribers</small>
+                <small style="color:#aaa;">{{ current_video.user.subscribers.count }} subscribers</small>
             </div>
+            {% if current_video.user != request.user %}
+                    <button
+                        id="subscribeBtn"
+                        data-user-id="{{ current_video.user.id }}"
+                        class="subscribe-btn"
+                    >
+                        {% if is_subscribed %}Unsubscribe{% else %}Subscribe{% endif %}
+                    </button>
+                    <!-- <button class="btn join">Join</button> -->
+                {% endif %}
         </div>
 
         <!-- ✅ ACTION BUTTONS: Like, Share, More -->
@@ -435,21 +538,6 @@ textarea {
                 </a>
             {% endif %}
         </div>
-
-<script>
-function toggleSaveMenu() {
-    const menu = document.getElementById("saveDropdown");
-    menu.style.display = menu.style.display === "block" ? "none" : "block";
-}
-
-// Close when clicking outside
-document.addEventListener("click", function(e) {
-    const saveMenu = document.querySelector(".save-menu");
-    if (saveMenu && !saveMenu.contains(e.target)) {
-        document.getElementById("saveDropdown").style.display = "none";
-    }
-});
-</script>
     </div>
 
     <!-- ✅ DESCRIPTION BOX -->
@@ -486,11 +574,13 @@ document.addEventListener("click", function(e) {
         {% endfor %}
 
         {% if user.is_authenticated %}
-            <form method="post" action="{% url 'add_comment' current_video.id %}">
-                {% csrf_token %}
-                <textarea name="comment" placeholder="Add a comment..." required></textarea>
-                <button class="comment-btn">Post Comment</button>
-            </form>
+                <div class="comment-form">
+                    <form id="commentForm">
+                    {% csrf_token %}
+                    <textarea id="commentInput" name="comment" placeholder="Add a comment..." required></textarea>
+                    <button type="submit" class="comment-btn">Post Comment</button>
+                    </form>
+                </div>
         {% endif %}
     </div>
 
@@ -523,6 +613,19 @@ document.addEventListener("click", function(e) {
 </div>
 
 <script>
+
+function toggleSaveMenu() {
+    const menu = document.getElementById("saveDropdown");
+    menu.style.display = menu.style.display === "block" ? "none" : "block";
+}
+
+// Close when clicking outside
+document.addEventListener("click", function(e) {
+    const saveMenu = document.querySelector(".save-menu");
+    if (saveMenu && !saveMenu.contains(e.target)) {
+        document.getElementById("saveDropdown").style.display = "none";
+    }
+});
 /* ✅ Description toggle */
 let expanded = false;
 function toggleDesc() {
@@ -560,7 +663,13 @@ document.getElementById("subscribeBtn")?.addEventListener("click", function () {
     })
     .then(res => res.json())
     .then(data => {
-        this.innerText = data.subscribed ? "Subscribed" : "Subscribe";
+        if (data.subscribed) {
+            this.textContent = "Unsubscribe";
+            this.classList.add("subscribed");
+        } else {
+            this.textContent = "Subscribe";
+            this.classList.remove("subscribed");
+        }
     });
 });
 
@@ -605,6 +714,109 @@ document.addEventListener("DOMContentLoaded", function () {
             window.location.href = window.location.pathname + "?video={{ next_video.id }}";
         {% endif %}
     });
+});
+
+/* ✅ Comments toggle */
+function toggleComments() {
+    const container = document.getElementById("commentsContainer");
+    const icon = document.getElementById("commentToggleIcon");
+
+    container.classList.toggle("open");
+
+    const isOpen = container.classList.contains("open");
+
+    icon.textContent = isOpen ? "▲" : "▼";
+}
+function getRelativeTime(timestamp) {
+    const now = new Date();
+    const commentTime = new Date(timestamp);
+
+    const seconds = Math.floor((now - commentTime) / 1000);
+
+    if (seconds < 60) return "just now";
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60)
+        return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+        return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 30)
+        return days === 1 ? "1 day ago" : `${days} days ago`;
+
+    const months = Math.floor(days / 30);
+    if (months < 12)
+        return months === 1 ? "1 month ago" : `${months} months ago`;
+
+    const years = Math.floor(months / 12);
+    return years === 1 ? "1 year ago" : `${years} years ago`;
+}
+function updateAllCommentTimes() {
+    const timeElements = document.querySelectorAll(".comment-time");
+
+    timeElements.forEach(el => {
+        const timestamp = el.getAttribute("data-time");
+        el.textContent = " · " + getRelativeTime(timestamp);
+    });
+}
+
+// Run immediately
+updateAllCommentTimes();
+
+// Update every 60 seconds
+setInterval(updateAllCommentTimes, 60000);
+document.getElementById("commentForm")?.addEventListener("submit", function(e) {
+    e.preventDefault();   // 🚫 stop page refresh
+
+    const textarea = document.getElementById("commentInput");
+    const text = textarea.value.trim();
+
+    if (!text) return;
+
+    fetch("{% url 'add_comment' current_video.id %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            comment: text
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        // 🔹 Create new comment element
+        const commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment");
+
+        commentDiv.innerHTML = `
+            <strong>${data.username}</strong>
+            <small class="comment-time" data-time="${data.created_at}">
+                · just now
+            </small>
+            <p>${data.text}</p>
+        `;
+
+        // 🔹 Append to top of comment list
+        const commentList = document.querySelector(".comments-list");
+        commentList.prepend(commentDiv);
+
+        // 🔹 Update comment count
+        document.querySelector(".comments-header h3")
+            .innerText = `Comments (${data.total_comments})`;
+
+        // 🔹 Clear textarea
+        textarea.value = "";
+
+        // 🔹 Auto-open comments if closed
+        document.getElementById("commentsContainer").classList.add("open");
+        document.getElementById("commentToggleIcon").textContent = "▲";
+    })
+    .catch(err => console.error(err));
 });
 </script>
 

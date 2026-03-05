@@ -9,7 +9,7 @@ from django.conf import settings
 from .utils import get_video_duration
 from django.contrib.auth.models import User
 
-
+ffmpeg_path = os.path.join(settings.BASE_DIR, "tools", "ffmpeg.exe")
 # class Profile(models.Model):
 #     user = models.OneToOneField(User, on_delete=models.CASCADE)
 #     avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
@@ -79,9 +79,9 @@ def generate_thumbnail(video_instance):
         video_path = video_instance.video_file.path
         
         # Set duration if not already set
-        if video_instance.duration == 0:
-            video_instance.duration = get_video_duration(video_path)
-            video_instance.save(update_fields=["duration"])
+        # if video_instance.duration == 0:
+        #     video_instance.duration = get_video_duration(video_path)
+        #     video_instance.save(update_fields=["duration"])
         print("Video path:", video_path)
 
         thumbnail_dir = os.path.join(settings.MEDIA_ROOT, 'thumbnails')
@@ -91,7 +91,7 @@ def generate_thumbnail(video_instance):
         thumbnail_path = os.path.join(thumbnail_dir, thumbnail_name)
 
         command = [
-            "ffmpeg",
+            ffmpeg_path if ffmpeg_path else "ffmpeg",
             "-i", video_path,
             "-ss", "00:00:01",
             "-vframes", "1",

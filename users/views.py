@@ -352,7 +352,7 @@ def user_settings(request):
                     )
                     return redirect("user_settings")
                
-                profile.avatar = new_avatar
+                profile.profile_picture = new_avatar
                 profile.avatar_requested_at = timezone.now()
                 profile.save()
 
