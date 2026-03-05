@@ -4,6 +4,8 @@ import json
 from django.conf import settings
 import shutil
 ffprobe_path  = os.path.join(settings.BASE_DIR, "tools", "ffprobe.exe")
+FFMPEG_PATH = settings.FFMPEG_PATH
+FFPROBE_PATH = settings.FFPROBE_PATH
 # print("FFprobe path:", ffprobe_path)
 def get_video_duration(video_path):
     try:

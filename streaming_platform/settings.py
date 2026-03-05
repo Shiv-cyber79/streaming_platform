@@ -7,6 +7,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv(os.path.join(BASE_DIR, ".env"))
 
+FFMPEG_PATH = os.getenv("FFMPEG_PATH")
+FFPROBE_PATH = os.getenv("FFPROBE_PATH")
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
