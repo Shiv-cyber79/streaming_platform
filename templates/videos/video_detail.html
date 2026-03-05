@@ -79,7 +79,14 @@ a {
     font-weight: bold;
     font-size: 16px;
 }
-
+.profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            object-fit: cover;
+            display: block;
+        }
 .action-row {
     display: flex;
     gap: 10px;
@@ -161,13 +168,13 @@ a {
     line-height: 1.6;
     overflow: hidden;
     display: -webkit-box;
-    -webkit-line-clamp: 3;       /* ✅ show 3 lines max */
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     transition: max-height 0.3s ease;
 }
 
 .desc-text.expanded {
-    display: block;              /* ✅ show full text */
+    display: block;
     -webkit-line-clamp: unset;
 }
 
@@ -394,15 +401,18 @@ textarea {
     <!-- ✅ CHANNEL ROW -->
     <div class="channel-row">
         <div class="channel-info">
-            <div class="channel-avatar">
-                {{ video.user.username|first|upper }}
-            </div>
-            
+            {% if video.user.channel.profile_picture %}
+                <img src="{{ video.user.channel.profile_picture }}"  class="profile-pic">
+            {% else %}
+                <div class="channel-avatar">
+                    {{ video.user.username|first|upper }}
+                </div>
+            {% endif %}
             <div>
                 <a href="{% url 'user_profile' video.user.username %}">
                     <strong>{{ video.user.username }}</strong>
                 </a><br>
-                <small style="color:#aaa;">Subscribers</small>
+                <small style="color:#aaa;">{{ video.user.subscribers.count }} subscribers</small>
             </div>
                 {% if video.user != request.user %}
                     <button
@@ -508,6 +518,104 @@ textarea {
             {% endif %}
         </div>
 
+    </div>
+    
+    <!-- ✅ DESCRIPTION BOX -->
+    <div class="description-box">
+        
+        <!-- ✅ First line: views + time -->
+        <div class="desc-meta">
+            <span>{{ video.views }} views</span>
+            <span>{{ video.created_at|timesince }} ago</span>
+        </div>
+
+        <!-- ✅ Description text — 3 lines then show more -->
+        <div class="desc-text" id="descText">
+            {{ video.description }}
+        </div>
+        {% if video.description|length > 150 %}
+        <button class="desc-toggle" id="descToggle" onclick="toggleDesc()">
+                Show more
+            </button>
+        {% endif %}
+    </div>
+
+    <!-- COMMENTS -->
+   <div class="comments-wrapper">
+       
+        <!-- Header (Always Visible) -->
+        <div class="comments-header" onclick="toggleComments()">
+            <h3>
+                Comments ({{ video.comments.count }})
+            </h3>
+            <span id="commentToggleIcon">▼</span>
+        </div>
+
+
+         <!-- Collapsible Body -->
+         <div id="commentsContainer" class="comments-container">
+             
+             <!-- Scrollable Comments List -->
+             <div class="comments-list">
+                {% for comment in video.comments.all %}
+                <div class="comment">
+                    <strong>{{ comment.user.username }}</strong>
+                        <small class="comment-time"
+                        data-time="{{ comment.created_at|date:'c' }}">
+                        · {{ comment.created_at|timesince }} ago
+                    </small>
+                        <p>{{ comment.text }}</p>
+                    </div>
+                    {% empty %}
+                    <p class="no-comments">No comments yet.</p>
+                    {% endfor %}
+                </div>
+                
+                <!-- Fixed Post Comment Box -->
+                {% if user.is_authenticated %}
+                <div class="comment-form">
+                    <form id="commentForm">
+                    {% csrf_token %}
+                    <textarea id="commentInput" name="comment" placeholder="Add a comment..." required></textarea>
+                    <button type="submit" class="comment-btn">Post Comment</button>
+                    </form>
+                </div>
+            {% endif %}
+            
+        </div>
+    </div>
+    
+{% endif %}
+</div>
+    <!-- RIGHT SIDE -->
+    <div class="suggested-videos">
+
+        {% for v in suggested_videos %}
+        <a href="{% url 'video_detail' v.id %}" class="suggestion-card">
+
+            <div class="thumbnail-box">
+                    {% if v.thumbnail %}
+                    <img src="{{ v.thumbnail.url }}">
+                    {% else %}
+                        <img src="{% static 'images/default_thumbnail.jpg' %}">
+                        {% endif %}
+                        
+                        <span class="duration">{{ v.formatted_duration }}</span>
+                    </div>
+                    
+                    <div class="suggestion-info">
+                        <h4>{{ v.title }}</h4>
+                    <p>{{ v.user.username }}</p>
+                    <span>{{ v.views }} views</span>
+                </div>
+
+            </a>
+            {% endfor %}
+            
+    </div>
+    
+</div>
+
 <script>
 function toggleSaveMenu() {
     const menu = document.getElementById("saveDropdown");
@@ -521,103 +629,7 @@ document.addEventListener("click", function(e) {
         document.getElementById("saveDropdown").style.display = "none";
     }
 });
-</script>
-    </div>
 
-    <!-- ✅ DESCRIPTION BOX -->
-    <div class="description-box">
-
-        <!-- ✅ First line: views + time -->
-        <div class="desc-meta">
-            <span>{{ video.views }} views</span>
-            <span>{{ video.created_at|timesince }} ago</span>
-        </div>
-
-        <!-- ✅ Description text — 3 lines then show more -->
-        <div class="desc-text" id="descText">
-            {{ video.description }}
-        </div>
-        {% if video.description|length > 150 %}
-            <button class="desc-toggle" id="descToggle" onclick="toggleDesc()">
-                Show more
-            </button>
-        {% endif %}
-    </div>
-
-    <!-- COMMENTS -->
-   <div class="comments-wrapper">
-
-        <!-- Header (Always Visible) -->
-        <div class="comments-header" onclick="toggleComments()">
-            <h3>
-                Comments ({{ video.comments.count }})
-            </h3>
-            <span id="commentToggleIcon">▼</span>
-        </div>
-
-
-         <!-- Collapsible Body -->
-        <div id="commentsContainer" class="comments-container">
-
-            <!-- Scrollable Comments List -->
-            <div class="comments-list">
-                {% for comment in video.comments.all %}
-                    <div class="comment">
-                        <strong>{{ comment.user.username }}</strong>
-                        <small> · {{ comment.created_at|timesince }} ago</small>
-                        <p>{{ comment.text }}</p>
-                    </div>
-                {% empty %}
-                    <p class="no-comments">No comments yet.</p>
-                {% endfor %}
-            </div>
-
-            <!-- Fixed Post Comment Box -->
-            {% if user.is_authenticated %}
-            <div class="comment-form">
-                <form method="post" action="{% url 'add_comment' video.id %}">
-                    {% csrf_token %}
-                    <textarea name="comment" placeholder="Add a comment..." required></textarea>
-                    <button type="submit" class="comment-btn">Post Comment</button>
-                </form>
-            </div>
-            {% endif %}
-
-        </div>
-    </div>
-
-{% endif %}
-</div>
-    <!-- RIGHT SIDE -->
-    <div class="suggested-videos">
-
-        {% for v in suggested_videos %}
-            <a href="{% url 'video_detail' v.id %}" class="suggestion-card">
-
-                <div class="thumbnail-box">
-                    {% if v.thumbnail %}
-                        <img src="{{ v.thumbnail.url }}">
-                    {% else %}
-                        <img src="{% static 'images/default_thumbnail.jpg' %}">
-                    {% endif %}
-
-                    <span class="duration">{{ v.formatted_duration }}</span>
-                </div>
-
-                <div class="suggestion-info">
-                    <h4>{{ v.title }}</h4>
-                    <p>{{ v.user.username }}</p>
-                    <span>{{ v.views }} views</span>
-                </div>
-
-            </a>
-        {% endfor %}
-
-    </div>
-
-</div>
-
-<script>
 function copyLink() {
     navigator.clipboard.writeText(window.location.href);
     alert("Link copied!");
@@ -692,6 +704,97 @@ function toggleComments() {
 
     icon.textContent = isOpen ? "▲" : "▼";
 }
+function getRelativeTime(timestamp) {
+    const now = new Date();
+    const commentTime = new Date(timestamp);
+
+    const seconds = Math.floor((now - commentTime) / 1000);
+
+    if (seconds < 60) return "just now";
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60)
+        return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24)
+        return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
+
+    const days = Math.floor(hours / 24);
+    if (days < 30)
+        return days === 1 ? "1 day ago" : `${days} days ago`;
+
+    const months = Math.floor(days / 30);
+    if (months < 12)
+        return months === 1 ? "1 month ago" : `${months} months ago`;
+
+    const years = Math.floor(months / 12);
+    return years === 1 ? "1 year ago" : `${years} years ago`;
+}
+function updateAllCommentTimes() {
+    const timeElements = document.querySelectorAll(".comment-time");
+
+    timeElements.forEach(el => {
+        const timestamp = el.getAttribute("data-time");
+        el.textContent = " · " + getRelativeTime(timestamp);
+    });
+}
+
+// Run immediately
+updateAllCommentTimes();
+
+// Update every 60 seconds
+setInterval(updateAllCommentTimes, 60000);
+document.getElementById("commentForm")?.addEventListener("submit", function(e) {
+    e.preventDefault();   // 🚫 stop page refresh
+
+    const textarea = document.getElementById("commentInput");
+    const text = textarea.value.trim();
+
+    if (!text) return;
+
+    fetch("{% url 'add_comment' video.id %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            comment: text
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        // 🔹 Create new comment element
+        const commentDiv = document.createElement("div");
+        commentDiv.classList.add("comment");
+
+        commentDiv.innerHTML = `
+            <strong>${data.username}</strong>
+            <small class="comment-time" data-time="${data.created_at}">
+                · just now
+            </small>
+            <p>${data.text}</p>
+        `;
+
+        // 🔹 Append to top of comment list
+        const commentList = document.querySelector(".comments-list");
+        commentList.prepend(commentDiv);
+
+        // 🔹 Update comment count
+        document.querySelector(".comments-header h3")
+            .innerText = `Comments (${data.total_comments})`;
+
+        // 🔹 Clear textarea
+        textarea.value = "";
+
+        // 🔹 Auto-open comments if closed
+        document.getElementById("commentsContainer").classList.add("open");
+        document.getElementById("commentToggleIcon").textContent = "▲";
+    })
+    .catch(err => console.error(err));
+});
 </script>
 
 {% endblock %}

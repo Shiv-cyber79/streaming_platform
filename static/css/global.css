@@ -1,0 +1,27 @@
+/* GLOBAL FONT */
+body {
+    font-family: Roboto, Arial, sans-serif;
+    font-size: 15px;
+    color: #ffffff;
+}
+
+/* HEADINGS */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+}
+
+/* BUTTONS */
+button {
+    font-family: inherit;
+    font-weight: 500;
+}
+
+/* INPUTS */
+input, textarea, select {
+    font-family: inherit;
+}
+
+/* LINKS */
+a {
+    font-family: inherit;
+}

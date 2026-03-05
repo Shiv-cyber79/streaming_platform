@@ -780,19 +780,8 @@
 
 <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 <div id="sidebar" class="sidebar">
-  <a href="/" class="sidebar-item active">🏠 Home</a>
-  <a href="{% url 'subscription_feed' %}">🎬 Subscriptions</a>
-  <a href="#">📚 Library</a>
-  <a href="#">⏱ History</a>
-  <a href="#">👍 Liked videos</a>
-  <a href="#">📺 Your videos</a>
-  <div class="sidebar-divider"></div>
-  <a href="#">⚙ Settings</a>
-  <a href="#">❓ Help</a>
-</div>
-
-    <a href="/" class="sidebar-item active">🏠  Home</a>
-    <a href="{% url 'subscription_feed' %}">🎬  Subscriptions</a>
+    <a href="/" class="sidebar-item active">🏠 Home</a>
+    <a href="{% url 'subscription_feed' %}">🎬 Subscriptions</a>
     <a href="{% url 'playlist_list' %}">📚  Playlist</a>
     <a href="#">⏱  History</a>
     <a href="#">👍  Liked videos</a>
@@ -804,7 +793,6 @@
     <a href="#">❓ Help</a>
 
 </div>
-{% endif %}
 
 
 {% block content %}{% endblock %}

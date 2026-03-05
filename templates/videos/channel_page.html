@@ -2,317 +2,326 @@
 
 {% block body_class %}home-page{% endblock %}
 
+{% block title %}{% if channel_user.channel.name %}{{ channel_user.channel.name }}{% else %}{{ channel_user.username }}{% endif %}{% endblock %}
 {% block content %}
 {% csrf_token %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coding Channel</title>
+<style>
+    /* -------------------- RESET -------------------- */
+    * {
+        margin: 0;
+        padding: 0; 
+        box-sizing: border-box;
+        font-family: 'Inter', sans-serif;
+    }
 
-    <!-- Google Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
 
-    <style>
-        /* -------------------- RESET -------------------- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
+    /* -------------------- HEADER -------------------- */
+    .channel-header {
+        position: relative;
+    }
 
-        body {
-            background-color: #0f0f0f;
-            color: #fff;
-        }
+    .banner {
+        height: 260px;
+        background: linear-gradient(135deg, #1f1f1f, #333);
+        margin-bottom: 10px;
+    }
 
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
+    .channel-info {
+        display: flex;
+        margin: auto;
+        align-items: center;
+        gap: 20px;
+        padding: 0 40px;
+        margin-top: 0px;
+        background: #0f0f0f; 
+        border-bottom: 1px solid #222;
+    }
 
-        /* -------------------- HEADER -------------------- */
-        .channel-header {
-            position: relative;
-        }
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #0f0f0f;
+        background: #444;
+    }
 
-        .banner {
-            height: 260px;
-            background: linear-gradient(135deg, #1f1f1f, #333);
-            margin-bottom: 10px;
-        }
+    .channel-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #cc0000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
 
-        .channel-info {
-            display: flex;
-            margin: auto;
-            align-items: center;
-            gap: 20px;
-            padding: 0 40px;
-            margin-top: 0px;
-            background: #0f0f0f; 
-            border-bottom: 1px solid #222;
-        }
+    .channel-text h1 {
+        font-size: 26px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            border: 4px solid #0f0f0f;
-            background: #444;
-        }
+    .badge {
+        color: #3ea6ff;
+        font-size: 18px;
+    }
 
-        .channel-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #cc0000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
+    .channel-text p {
+        color: #aaa;
+        margin-top: 6px;
+    }
 
-        .channel-text h1 {
-            font-size: 26px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .channel-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 12px;
+    }
 
-        .badge {
-            color: #3ea6ff;
-            font-size: 18px;
-        }
+    .btn {
+        padding: 10px 18px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .channel-description {
+        margin-top: 6px;
+        max-width: 600px;
+    }
 
-        .channel-text p {
-            color: #aaa;
-            margin-top: 6px;
-        }
+    .desc {
+        color: #ccc;
+        font-size: 14px;
+        line-height: 1.5;
+    }
 
-        .channel-actions {
-            margin-left: auto;
-            display: flex;
-            gap: 12px;
-        }
-
-        .btn {
-            padding: 10px 18px;
-            border-radius: 20px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        .channel-description {
-            margin-top: 6px;
-            max-width: 600px;
-        }
-
-        .desc {
-            color: #ccc;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        /* collapsed text */
-        .collapsed {
-            display: -webkit-box;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .featured-desc.collapsed {
+    /* collapsed text */
+    .collapsed {
         display: -webkit-box;
+        line-clamp: 2;
         -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .featured-desc.collapsed {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
 
-        line-clamp: 3;
-        -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
 
+    overflow: hidden;
+}
+
+    .view-more-btn {
+        background: none;
+        border: none;
+        color: #3ea6ff;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 0;
+        margin-top: 4px;
+    }
+
+    .subscribe {
+        background: #ff0000;
+        color: #fff;
+    }
+
+    .subscribe.subscribed {
+        background: #333;
+    }
+
+    .join {
+        background: transparent;
+        color: #3ea6ff;
+        border: 1px solid #3ea6ff;
+    }
+
+    .btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* -------------------- NAV TABS -------------------- */
+    .nav-tabs {
+        display: flex;
+        gap: 30px;
+        padding: 20px 40px;
+        border-bottom: 1px solid #222;
+    }
+
+    .nav-tabs a {
+        position: relative;
+        padding-bottom: 10px;
+        color: #aaa;
+    }
+
+    .nav-tabs a.active {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .nav-tabs a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        background: #fff;
+        bottom: 0;
+        left: 0;
+        transition: width 0.3s ease;
+    }
+
+    .nav-tabs a:hover::after,
+    .nav-tabs a.active::after {
+        width: 100%;
+    }
+
+    /* -------------------- CONTENT -------------------- */
+    .content {
+        padding: 40px;
+    }
+
+    .video-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .main-video {
+        margin-bottom: 40px;
+    }
+    .video-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+    .video-card {
+        background: #181818;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .video-card:hover {
+        transform: translateY(-6px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Thumbnail */
+    .thumbnail-wrapper {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: black;
+        border-radius: 12px;
         overflow: hidden;
     }
 
-        .view-more-btn {
-            background: none;
-            border: none;
-            color: #3ea6ff;
-            cursor: pointer;
-            font-size: 13px;
-            padding: 0;
-            margin-top: 4px;
-        }
+    .thumbnail-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
 
-        .subscribe {
-            background: #ff0000;
-            color: #fff;
-        }
+    .duration {
+        position: absolute;
+        bottom: 8px;
+        right: 8px;
+        background: rgba(0,0,0,0.8);
+        padding: 4px 6px;
+        font-size: 12px;
+        border-radius: 4px;
+    }
 
-        .subscribe.subscribed {
-            background: #333;
-        }
+    .video-info {
+        padding: 14px;
+    }
 
-        .join {
-            background: transparent;
-            color: #3ea6ff;
-            border: 1px solid #3ea6ff;
-        }
+    .video-info h3 {
+        font-size: 15px;
+        margin-bottom: 6px;
+    }
 
-        .btn:hover {
-            transform: scale(1.05);
-        }
+    .video-info span {
+        font-size: 13px;
+        color: #aaa;
+    }
 
-        /* -------------------- NAV TABS -------------------- */
-        .nav-tabs {
-            display: flex;
-            gap: 30px;
-            padding: 20px 40px;
-            border-bottom: 1px solid #222;
-        }
+    .featured-video {
+        display: flex;
+        gap: 25px;
+        margin: 30px 0;
+        padding: 1px 0px 0px 35px;
+        align-items: flex-start;
+    }
 
-        .nav-tabs a {
-            position: relative;
-            padding-bottom: 10px;
-            color: #aaa;
-        }
+    .featured-player{
+        flex: 1.0;
+        max-width: 500px;
+    }
+    .featured-player video {
+        width: 100%;
+        border-radius: 12px;
+        aspect-ratio: 16/9;
+        object-fit: cover;
+    }
 
-        .nav-tabs a.active {
-            color: #fff;
-            font-weight: 600;
-        }
+    .featured-info {
+        max-width: 420px;
+        flex: 1.0;
+    }
 
-        .nav-tabs a::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            background: #fff;
-            bottom: 0;
-            left: 0;
-            transition: width 0.3s ease;
-        }
+    .featured-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
 
-        .nav-tabs a:hover::after,
-        .nav-tabs a.active::after {
-            width: 100%;
-        }
+    .featured-meta {
+        color: #aaa;
+        font-size: 14px;
+        margin-bottom: 12px;
+    }
 
-        /* -------------------- CONTENT -------------------- */
-        .content {
-            padding: 40px;
-        }
+    .featured-desc {
+        margin-top: 6px;
+    }
 
-        .video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .main-video {
-            margin-bottom: 40px;
-        }
-        .video-link {
-            text-decoration: none;
-            color: inherit;
-            display: block;
-        }
-        .video-card {
-            background: #181818;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-        }
-
-        .video-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .thumbnail {
-            height: 150px;
-            background: linear-gradient(135deg, #444, #666);
-            position: relative;
-        }
-
-        .duration {
-            position: absolute;
-            bottom: 8px;
-            right: 8px;
-            background: rgba(0,0,0,0.8);
-            padding: 4px 6px;
-            font-size: 12px;
-            border-radius: 4px;
-        }
-
-        .video-info {
-            padding: 14px;
-        }
-
-        .video-info h3 {
-            font-size: 15px;
-            margin-bottom: 6px;
-        }
-
-        .video-info span {
-            font-size: 13px;
-            color: #aaa;
-        }
-
-        .featured-video {
-            display: flex;
-            gap: 25px;
-            margin: 30px 0;
+    /* -------------------- RESPONSIVE -------------------- */
+    @media (max-width: 768px) {
+        .channel-info {
+            flex-direction: column;
             align-items: flex-start;
         }
 
-        .featured-player video {
-            width: 700px;
-            border-radius: 12px;
+        .channel-actions {
+            margin-left: 0;
         }
-
-        .featured-info {
-            max-width: 420px;
-        }
-
-        .featured-title {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .featured-meta {
-            color: #aaa;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        .featured-desc {
-            margin-top: 6px;
-        }
-
-        /* -------------------- RESPONSIVE -------------------- */
-        @media (max-width: 768px) {
-            .channel-info {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .channel-actions {
-                margin-left: 0;
-            }
-        }
-    </style>
-</head>
-<body>
+    }
+</style>
 
 <!-- ==================== HEADER ==================== -->
 <header class="channel-header">
+    {% if channel_user.channel.banner %}
     <div class="banner">banner</div>
-
+    {% endif %}
     <div class="channel-info">
-        <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
-
+        {% if channel_user == request.user %}
+        <img src="{{ profile_pic }}" class="profile-pic">
+        {% elif channel_user.channel.profile_picture %}
+            <img src="{{ channel_user.channel.profile_picture }}"  class="profile-pic">
+        {% else %}
+             <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
+        {% endif %}
         <div class="channel-text">
             <h1>
                 {{ channel_user }}
@@ -331,21 +340,21 @@
             </div>
             {% endif %}
         </div>
-
+        {% if request.user != channel_user %}
         <div class="channel-actions">
-                <button
+            <button
             id="subscribeBtn"
             data-user-id="{{ channel_user.id }}"
-            class="btn subscribe"
-        >
+            class="btn subscribe">
             {% if is_subscribed %}
                 Unsubscribe
             {% else %}
                 Subscribe
             {% endif %}
-        </button>
+            </button>
             <button class="btn join">Join</button>
         </div>
+        {% endif %}
     </div>
 </header>
 
@@ -363,17 +372,20 @@
 
     <!-- Video player -->
     <div class="featured-player">
-        <video controls autoplay muted>
-            <source src="{{ latest_video.video_file.url }}">
-        </video>
+        <a href="{% url 'video_detail' latest_video.id %}">
+            <video controls autoplay muted>
+                <source src="{{ latest_video.video_file.url }}">
+            </video>
+        </a>
     </div>
 
     <!-- Video info -->
     <div class="featured-info">
-
-        <h2 class="featured-title">
-            {{ latest_video.title }}
-        </h2>
+        <a href="{% url 'video_detail' latest_video.id %}">
+            <h2 class="featured-title">
+                {{ latest_video.title }}
+            </h2>
+        </a>
 
         <p class="featured-meta">
             {{ latest_video.views }} views •
@@ -403,9 +415,18 @@
         {% for video in other_videos %}
             <a href="{% url 'video_detail' video.id %}" class="video-link">
                 <div class="video-card">
-                    <div class="thumbnail"> 
-                        {{ video.thumbnail }}
-                    </div>
+                    <div class="thumbnail-wrapper">
+
+                    {% if video.thumbnail %}
+                        <img src="{{ video.thumbnail.url }}">
+                    {% endif %}
+
+                    {% if video.duration %}
+                        <div class="duration">
+                            {{ video.duration|floatformat:0 }}
+                        </div>
+                    {% endif %}
+                </div>
 
                     <div class="video-info">
                         <h3>{{ video.title }}</h3>

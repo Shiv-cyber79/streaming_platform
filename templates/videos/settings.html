@@ -29,6 +29,30 @@
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 30px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.close-btn {
+    background: #2a2a2a;
+    border: none;
+    color: #aaa;
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    background: #333;
+    color: white;
 }
 
 .section {
@@ -168,6 +192,7 @@
 
         <div class="settings-header">
             Profile Settings
+            <a href="{{ request.META.HTTP_REFERER }}" class="close-btn" title="Cancel">✕</a>
         </div>
 
         <!-- ===================== -->
@@ -203,10 +228,10 @@
 
             <div class="avatar-box">
 
-                {% if profile.profile_picture %}
-                    <img src="{{ profile.profile_picture.url }}" class="avatar-preview">
-                {% elif profile_pic  %}
-                    <img src="{{ profile_pic  }}" class="profile-pic">
+                {% if profile_pic  %}
+                    <img src="{{ profile_pic }}" class="avatar-preview">
+                {% elif profile.profile_picture %}
+                    <img src="{{ profile.profile_picture }}" class="avatar-preview">
                 {% else %}
                     <div class="avatar-preview"
                          style="display:flex;align-items:center;justify-content:center;background:#ff0000;font-size:32px;">
