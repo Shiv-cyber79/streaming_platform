@@ -8,12 +8,7 @@
 
 <style>
     /* -------------------- RESET -------------------- */
-    * {
-        margin: 0;
-        padding: 0; 
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
-    }
+
 
     a {
         text-decoration: none;
@@ -49,6 +44,13 @@
         border: 4px solid #0f0f0f;
         background: #444;
     }
+
+    .profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
 
     .channel-avatar {
         width: 40px;
@@ -315,10 +317,8 @@
     <div class="banner">banner</div>
     {% endif %}
     <div class="channel-info">
-        {% if channel_user == request.user %}
-        <img src="{{ profile_pic }}" class="profile-pic">
-        {% elif channel_user.channel.profile_picture %}
-            <img src="{{ channel_user.channel.profile_picture }}"  class="profile-pic">
+        {% if channel_user.channel.avatar %}
+        <img src="{{ channel_user.channel.avatar }}" class="profile-pic">
         {% else %}
              <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
         {% endif %}

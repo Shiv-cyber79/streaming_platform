@@ -115,13 +115,18 @@
     object-fit: cover;
     border: 3px solid #333;
 }
-.profile-pic {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            cursor: pointer;
-        }
-
+.channel-avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        background: #cc0000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 40px;
+        color: white;
+    }
 /* Buttons */
 .save-btn {
     padding: 8px 20px;
@@ -228,24 +233,20 @@
 
             <div class="avatar-box">
 
-                {% if profile_pic  %}
-                    <img src="{{ profile_pic }}" class="avatar-preview">
-                {% elif profile.profile_picture %}
-                    <img src="{{ profile.profile_picture }}" class="avatar-preview">
+            
+                {% if profile.avatar %}
+                    <img src="{{ profile.avatar }}"  class="avatar-preview">
                 {% else %}
-                    <div class="avatar-preview"
-                         style="display:flex;align-items:center;justify-content:center;background:#ff0000;font-size:32px;">
-                        {{ user.username|first|upper }}
-                    </div>
+                    <div class="channel-avatar"> {{ profile.user.username|first|upper }}</div>
                 {% endif %}
 
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
 
                     <label class="upload-btn">
-                        <input type="file"
-                               name="avatar"
-                               style="display:none;">
+                        <input type="file" id="photoInput"
+                               name="profile_picture"
+                               style="display:none;" class="upload-btn">
                         Select Photo
                     </label>
 
@@ -270,6 +271,23 @@ setTimeout(function() {
         setTimeout(() => toast.remove(), 500);
     }
 }, 3000);
+
+document.getElementById('photoInput').addEventListener('change', function() {
+    const formData = new FormData();
+    formData.append('profile_picture', this.files[0]);
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+    fetch("{% url 'user_settings' %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('profilePreview').src = data.url;
+        }
+    });
+});
 </script>
 
 {% endblock %}

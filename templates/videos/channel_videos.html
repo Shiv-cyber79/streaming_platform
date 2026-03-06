@@ -7,13 +7,6 @@
 {% load time_filters %}
 
 <style>
-    /* -------------------- RESET -------------------- */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Inter', sans-serif;
-    }
 
     a {
         text-decoration: none;
@@ -35,7 +28,7 @@
         display: flex;
         align-items: center;
         gap: 20px;
-        padding: 10px  40px;
+        padding: 0px  40px;
         margin-top: 0px;
         background: #0f0f0f; 
         border-bottom: 1px solid #222;
@@ -268,10 +261,8 @@ object-fit: cover;
     {% endif %}
 
     <div class="channel-info">
-        {% if channel_user == request.user %}
-        <img src="{{ profile_pic }}" class="profile-pic">
-        {% elif channel_user.channel.profile_picture %}
-            <img src="{{ channel_user.channel.profile_picture }}"  class="profile-pic">
+        {% if channel_user.channel.avatar %}
+        <img src="{{ channel_user.channel.avatar }}" class="profile-pic">
         {% else %}
              <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
         {% endif %}

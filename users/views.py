@@ -82,9 +82,13 @@ def user_profile_posts(request, username):
 
     posts = Post.objects.filter(user=channel_user).order_by('-created_at')
 
+    subscriber_count = Subscription.objects.filter(
+        channel=channel_user
+    ).count()
     return render(request, 'videos/channel_posts.html', {
         'channel_user': channel_user,
-        'posts': posts
+        'posts': posts,
+        'subscriber_count': subscriber_count
     })
 
 # @login_required
@@ -336,32 +340,31 @@ def user_settings(request):
                 request.FILES,
                 instance=profile
             )
+            print("FILES:", request.FILES['profile_picture'])
+            new_avatar = request.FILES.get("profile_picture")
+            photo = request.FILES["profile_picture"]
 
-            if photo_form.is_valid():
-                new_avatar = photo_form.cleaned_data["profile_picture"]
+            # if profile.avatar_requested_at:
+            #     time_diff = timezone.now() - profile.avatar_requested_at
+            #     if time_diff < timedelta(hours=3):
+            #         remaining_time = timedelta(hours=3) - time_diff
+            #         minutes_left = int(remaining_time.total_seconds() // 60)
 
-                if profile.avatar_requested_at:
-                 time_diff = timezone.now() - profile.avatar_requested_at
-                 if time_diff < timedelta(hours=3):
-                    remaining_time = timedelta(hours=3) - time_diff
-                    minutes_left = int(remaining_time.total_seconds() // 60)
-
-                    messages.error(
-                        request,
-                        f"You can change your profile picture after {minutes_left} minutes."
-                    )
-                    return redirect("user_settings")
+            #         messages.error(
+            #             request,
+            #             f"You can change your profile picture after {minutes_left} minutes."
+            #         )
+            #         return redirect("user_settings")
                
-                profile.profile_picture = new_avatar
-                profile.avatar_requested_at = timezone.now()
-                profile.save()
+            profile.profile_picture = photo
+            profile.avatar_requested_at = timezone.now()
+            profile.save()
 
-                messages.success(
-                    request,
-                    "Profile picture update request submitted successfully."
-                )
-                return redirect("user_settings")
-
+            messages.success(
+                request,
+                "Profile picture update request submitted successfully."
+            )
+            return redirect("user_settings")
        
         elif "name_submit" in request.POST:
             name_form = NameChangeForm(

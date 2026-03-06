@@ -1,4 +1,7 @@
 from django.urls import path
+
+from django.conf.urls.static import static
+from django.conf import settings
 from . import views
 from .api import PlaylistAPI
 from.views import live_view
@@ -46,4 +49,4 @@ urlpatterns = [
     path('post/<int:post_id>/edit/', views.edit_post, name='edit_post'),
     path("upload-recorded/", views.upload_recorded, name="upload_recorded"),
     path("stop-live/", views.stop_live, name="stop_live"),
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

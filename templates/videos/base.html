@@ -130,6 +130,7 @@
       font-size: 21px;
       cursor: pointer;
       transition: 0.2s ease;
+      outline: none;
     }
     .create-btn:hover { background: rgba(62,166,255,0.15); }
     .create-dropdown {
@@ -657,7 +658,7 @@
                 <div id="createDropdown" class="create-dropdown">
                     <a href="{% url 'upload_video' %}">📤 Upload Video</a>
                     <a href="{% url 'live_page' request.user %}">🔴 Go Live</a>
-                    <a href="#">📝 Create Post</a>
+                    <a href="{% url 'create_post' %}">📝 Create Post</a>
                 </div>
 
             </div>
@@ -695,8 +696,8 @@
 
         <div class="profile-menu">
                  
-                    {% if user.profile.avatar %}
-                        <img src="{{ user.profile.avatar.url }}"
+                    {% if user.channel.profile_picture %}
+                        <img src="{{ user.channel.profile_picture.url }}"
                              class="profile-pic"
                              onclick="toggleProfileMenu()">
                     {% elif profile_pic %}

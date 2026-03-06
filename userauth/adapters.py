@@ -47,18 +47,19 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         user = sociallogin.user
 
-        otp_code = str(random.randint(100000, 999999))
-        OTP.objects.create(user=user, otp=otp_code)
+        if user.pk:
+            otp_code = str(random.randint(100000, 999999))
+            OTP.objects.create(user=user, otp=otp_code)
 
-        request.session['otp_user'] = user.id
+            request.session['otp_user'] = user.id
 
-        user.email_user(
-            "Your OTP",
-            f"Your OTP is {otp_code}"
-        )
+            user.email_user(
+                "Your OTP",
+                f"Your OTP is {otp_code}"
+            )
 
-    
-        raise ImmediateHttpResponse(redirect("verify_otp"))
+        
+            raise ImmediateHttpResponse(redirect("verify_otp"))
 
     def save_user(self, request, sociallogin, form=None):
         user = super().save_user(request, sociallogin, form)
@@ -82,7 +83,7 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
         channel, _ = Channel.objects.get_or_create(user=user)
 
         if picture:
-            channel.profile_picture = picture
+            channel.google_avatar = picture
             channel.save()
 
         return user
