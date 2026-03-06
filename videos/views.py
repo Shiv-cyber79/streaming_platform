@@ -418,7 +418,7 @@ def video_detail(request, video_id):
         subscribed_channels = Subscription.objects.filter(
             subscriber=request.user
         ).select_related("channel")
-    user_playlists = Playlist.objects.filter(user=request.user) if request.user.is_authenticated else []
+    user_playlists = Playlist.objects.filter(user=request.user).exclude(name__iexact="watch later") if request.user.is_authenticated else []
 
     sub_obj = Subscription.objects
     sub_counts = sub_obj.filter(channel=video.user).count()

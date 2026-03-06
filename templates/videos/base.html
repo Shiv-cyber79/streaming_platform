@@ -694,17 +694,12 @@
         </a>
         <!-- 🔔 Notification Bell END -->
 
-        <div class="profile-menu">
+                <div class="profile-menu">
                  
-                    {% if user.channel.profile_picture %}
-                        <img src="{{ user.channel.profile_picture.url }}"
+                    {% if user.channel.avatar %}
+                        <img src="{{ user.channel.avatar }}"
                              class="profile-pic"
                              onclick="toggleProfileMenu()">
-                    {% elif profile_pic %}
-                        <img src="{{ profile_pic }}" 
-                            class="profile-pic"
-                            onclick="toggleProfileMenu()">
-
                     {% else %}
                         <div class="profile-initial"
                              onclick="toggleProfileMenu()">
@@ -732,7 +727,9 @@
                         <a href="{% url 'subscription_feed' %}">⭐ Membership</a>
 
                         <div class="profile-divider"></div>
-
+                        
+                        <a href="{% url 'user_profile' user.username %}">📺 Your Channel</a>
+                        
                         <a href="{% url 'user_settings' %}">⚙️ Settings</a>
 
                         <form method="post" action="{% url 'logout' %}">

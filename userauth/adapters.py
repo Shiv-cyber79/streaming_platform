@@ -16,50 +16,7 @@ import random
 User = get_user_model()
 
 
-class MyAccountAdapter(DefaultAccountAdapter):
-
-    def login(self, request, user):
-        otp_code = str(random.randint(100000, 999999))
-        OTP.objects.create(user=user, otp=otp_code)
-
-        request.session['otp_user'] = user.id
-
-        try:
-            profile = UserProfile.objects.get(user=user)
-
-            if profile.mobile:
-                print("OTP sent to mobile:", otp_code)
-            else:
-                raise Exception()
-
-        except:
-            user.email_user(
-                "Your OTP Code",
-                f"Your OTP is {otp_code}"
-            )
-
-        return redirect("verify_otp")
-
-
-
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
-
-    def pre_social_login(self, request, sociallogin):
-        user = sociallogin.user
-
-        if user.pk:
-            otp_code = str(random.randint(100000, 999999))
-            OTP.objects.create(user=user, otp=otp_code)
-
-            request.session['otp_user'] = user.id
-
-            user.email_user(
-                "Your OTP",
-                f"Your OTP is {otp_code}"
-            )
-
-        
-            raise ImmediateHttpResponse(redirect("verify_otp"))
 
     def save_user(self, request, sociallogin, form=None):
         user = super().save_user(request, sociallogin, form)
@@ -87,3 +44,30 @@ class MySocialAccountAdapter(DefaultSocialAccountAdapter):
             channel.save()
 
         return user
+class MyAccountAdapter(DefaultAccountAdapter):
+
+    def login(self, request, user):
+
+        if 'google' in request.path:
+            return super().login(request, user)
+            
+        otp_code = str(random.randint(100000, 999999))
+        OTP.objects.create(user=user, otp=otp_code)
+
+        request.session['otp_user'] = user.id
+
+        try:
+            profile = UserProfile.objects.get(user=user)
+
+            if profile.mobile:
+                print("OTP sent to mobile:", otp_code)
+            else:
+                raise Exception()
+
+        except:
+            user.email_user(
+                "Your OTP Code",
+                f"Your OTP is {otp_code}"
+            )
+
+        return redirect("verify_otp")

@@ -405,15 +405,15 @@ textarea {
     <!-- ✅ CHANNEL ROW -->
     <div class="channel-row">
         <div class="channel-info">
+            <a href="{% url 'user_profile' current_video.user.username %}">
             {% if current_video.user.channel.avatar %}
                 <img src="{{ current_video.user.channel.avatar }}"  class="channel-avatar">
             {% else %}
                 <div class="channel-avatar"> {{ current_video.user.username|first|upper }}</div>
             {% endif %}
             <div>
-                <a href="{% url 'user_profile' current_video.user.username %}">
                     <strong>{{ current_video.user.username }}</strong>
-                </a><br>
+            </a><br>
                 <small style="color:#aaa;">{{ current_video.user.subscribers.count }} subscribers</small>
             </div>
             {% if current_video.user != request.user %}
