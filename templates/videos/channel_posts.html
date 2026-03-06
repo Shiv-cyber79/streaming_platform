@@ -3,8 +3,131 @@
 {% block content %}
 
 <style>
-/* KEEPING YOUR DESIGN + SMALL ADDITIONS */
+    
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
 
+    /* -------------------- HEADER -------------------- */
+    .channel-header {
+        position: relative;
+    }
+
+    .banner {
+        height: 260px;
+        background: linear-gradient(135deg, #1f1f1f, #333);
+        margin-bottom: 10px;
+    }
+
+    .channel-info {
+        display: flex;
+        margin: auto;
+        align-items: center;
+        gap: 20px;
+        padding: 0 40px;
+        margin-top: 0px;
+        background: #0f0f0f; 
+        border-bottom: 1px solid #222;
+    }
+
+    .profile-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        border: 4px solid #0f0f0f;
+        background: #444;
+    }
+
+    .channel-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #cc0000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .channel-text h1 {
+        font-size: 26px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .badge {
+        color: #3ea6ff;
+        font-size: 18px;
+    }
+
+    .channel-text p {
+        color: #aaa;
+        margin-top: 6px;
+    }
+
+    .channel-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 18px;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .channel-description {
+        margin-top: 6px;
+        max-width: 600px;
+    }
+.btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* -------------------- NAV TABS -------------------- */
+    .nav-tabs {
+        display: flex;
+        gap: 30px;
+        padding: 20px 40px;
+        border-bottom: 1px solid #222;
+    }
+
+    .nav-tabs a {
+        position: relative;
+        padding-bottom: 10px;
+        color: #aaa;
+    }
+
+    .nav-tabs a.active {
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .nav-tabs a::after {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 2px;
+        background: #fff;
+        bottom: 0;
+        left: 0;
+        transition: width 0.3s ease;
+    }
+
+    .nav-tabs a:hover::after,
+    .nav-tabs a.active::after {
+        width: 100%;
+    }
+
+    /* -------------------- CONTENT -------------------- */
+    .content {
+        padding: 40px;
+    }
 .post-card {
    background: #181818;
    padding: 15px;
@@ -54,10 +177,60 @@
 }
 </style>
 
-<!-- HEADER -->
-<div style="padding:20px;">
-    <h2>{{ channel_user.username }} - Posts</h2>
-</div>
+
+<header class="channel-header">
+    {% if channel_user.channel.banner %}
+    <div class="banner">banner</div>
+    {% endif %}
+    <div class="channel-info">
+        {% if channel_user.channel.avatar %}
+            <img src="{{ channel_user.channel.avatar }}"  class="channel-avatar">
+        {% else %}
+             <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
+        {% endif %}
+        <div class="channel-text">
+            <h1>
+                {{ channel_user }}
+                <span class="badge"></span>
+            </h1>
+            <p>{{ subscriber_count }} subscribers</p>
+            {% if channel_user.profile.description %}
+            <div class="channel-description">
+                <p id="channelDesc" class="desc collapsed">
+                    {{ channel_user.profile.description }}
+                </p>
+
+                <button id="toggleDesc" class="view-more-btn">
+                    View more
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        {% if request.user != channel_user %}
+        <div class="channel-actions">
+            <button
+            id="subscribeBtn"
+            data-user-id="{{ channel_user.id }}"
+            class="btn subscribe">
+            {% if is_subscribed %}
+                Unsubscribe
+            {% else %}
+                Subscribe
+            {% endif %}
+            </button>
+            <button class="btn join">Join</button>
+        </div>
+        {% endif %}
+    </div>
+</header>
+
+<!-- ==================== NAV ==================== -->
+<nav class="nav-tabs">
+    <a href="{% url 'user_profile' channel_user %}">Home</a>
+    <a href="{% url 'user_profile_videos' channel_user %}">Videos</a>
+    <a href="{% url 'user_profile_playlists' channel_user %}">Playlists</a>
+    <a href="{% url 'user_profile_posts' channel_user %}" class="active">Posts</a>
+</nav>
 
 <!-- POSTS -->
 <div class="content">
@@ -67,9 +240,11 @@
 
     <!-- HEADER -->
     <div class="post-header">
-        <div class="post-avatar">
-            {{ post.user.username|first|upper }}
-        </div>
+        {% if channel_user.channel.avatar %}
+        <img src="{{ channel_user.channel.avatar }}" class="profile-pic">
+        {% else %}
+             <div class="channel-avatar"> {{ channel_user.username|first|upper }}</div>
+        {% endif %}
 
         <div>
             <b>{{ post.user.username }}</b><br>

@@ -12,13 +12,24 @@ class Channel(models.Model):
     name = models.CharField(max_length=150)
     description = models.TextField(blank=True)
 
-    banner = models.ImageField(upload_to='profile_banner',blank=True,null=True)
-    profile_picture = models.ImageField(upload_to='profile_picture',blank=True,null=True)
+    banner = models.ImageField(upload_to='profile_banner/',blank=True,null=True)
+    profile_picture = models.ImageField(upload_to='profile_picture/',blank=True,null=True)
+    google_avatar = models.URLField(blank=True, null=True)
 
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     avatar_requested_at = models.DateTimeField(null=True, blank=True)
     username_requested_at = models.DateTimeField(null=True, blank=True)
+    
+    @property
+    def avatar(self):
+        if self.profile_picture:
+            return self.profile_picture.url
+        elif self.google_avatar:
+            return self.google_avatar
+        else:
+            return None
+    
     def __str__(self):
         return self.user.username
     

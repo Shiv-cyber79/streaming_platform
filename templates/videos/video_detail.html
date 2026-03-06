@@ -401,8 +401,8 @@ textarea {
     <!-- ✅ CHANNEL ROW -->
     <div class="channel-row">
         <div class="channel-info">
-            {% if video.user.channel.profile_picture %}
-                <img src="{{ video.user.channel.profile_picture }}"  class="profile-pic">
+            {% if video.user.channel.avatar %}
+                <img src="{{ video.user.channel.avatar }}"  class="profile-pic">
             {% else %}
                 <div class="channel-avatar">
                     {{ video.user.username|first|upper }}

@@ -228,9 +228,11 @@
                 </div>
 
                 <div class="video-info">
-                    <div class="channel-avatar">
-                        {{ video.user.username|first|upper }}
-                    </div>
+                    {% if video.user.channel.avatar %}
+                        <img src="{{ video.user.channel.avatar }}"  class="channel-avatar">
+                    {% else %}
+                        <div class="channel-avatar"> {{ video.user.username|first|upper }}</div>
+                    {% endif %}
 
                     <div class="video-meta">
                         <div class="video-title">

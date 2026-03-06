@@ -29,7 +29,7 @@ urlpatterns = [
     path("notifications/", videos.views.notifications,name="notifications"),
     path("unsubscribe/<int:channel_id>/", views.unsubscribe, name="unsubscribe"),
 
-    path("settings/", views.user_settings, name="user_settings"),
+    path("user_settings/", views.user_settings, name="user_settings"),
     # path("create-payment/<int:plan_id>/", views.create_payment, name="create_payment"),
 
     path("stripe-checkout/<int:plan_id>/", views.create_stripe_checkout, name="stripe_checkout"),
