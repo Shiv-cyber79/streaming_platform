@@ -408,6 +408,7 @@
 
 </section>
 {% endif %}
+{% if other_videos %}
 <section class="content">
     <h4>More Videos</h4>
     <br>
@@ -435,11 +436,15 @@
                 </div>
             </a>
         {% empty %}
-            <p style="color:#aaa;">No videos uploaded yet.</p>
         {% endfor %}
     </div>
 </section>
-
+{% endif %}
+{% if not latest_video and not other_videos %}
+<div class="content">
+<p style="color:#aaa;">No videos uploaded yet.</p>
+</div>
+{% endif %}
 <!-- ==================== JAVASCRIPT ==================== -->
 <script>
 /* SUBSCRIBE */
