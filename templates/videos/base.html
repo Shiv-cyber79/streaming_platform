@@ -783,8 +783,8 @@
     <a href="{% url 'playlist_list' %}">📚  Playlist</a>
     <a href="#">⏱  History</a>
     <a href="#">👍  Liked videos</a>
-    <a href="#">📺  Your videos</a>
-
+    <a href="{% url 'user_profile' user.username %}">📺  Your channel</a>
+    <a href="{% url 'edit_channel' user.username %}">✏️ Edit Channel</a>
     <div class="sidebar-divider"></div>
 
     <a href="{% url 'user_settings' %}">⚙ Settings</a>
