@@ -66,6 +66,7 @@ def signup(request):
             #         from_email=settings.EMAIL_HOST_USER,
             #         recipient_list=[user.email],
             #         fail_silently=False)
+            request.session['otp_fresh'] = True
             return redirect("verify_otp")
 
 
@@ -109,6 +110,7 @@ def login_view(request):
                 print("OTP send attempt:", c)
             except Exception as e:
                 print("Error sending login OTP:", e)
+            request.session['otp_fresh'] = True
             return redirect("verify_otp")
 
     return render(request, "login.html")
@@ -128,25 +130,28 @@ def verify_otp(request):
             if otp_obj and otp_obj.otp == entered_otp:
 
                 user = otp_obj.user
-
-                
                 login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
                 try:    
                     del request.session['otp_user']
+                    otp_obj.delete()
                 except KeyError:
                     print("Session key 'otp_user' not found during deletion.")
                 return redirect("home")
             else:
+                print("Invalid OTP entered:", entered_otp)
+                context = {"error": "Invalid OTP",
+                               "invalid":True,
+                               "otp_fresh":False}
                 return render(request, "videos/verify_otp.html",
-                              {"error": "Invalid OTP",
-                               "invalid":True})
+                              context)
         return render(request, "videos/verify_otp.html", {
             "error": "Invalid or expired OTP",
-            "otp_expired": True
+            "otp_expired": True,
+            "otp_fresh":False
         })
-
-    return render(request, "videos/verify_otp.html")
+    otp_fresh = request.session.get('otp_fresh', False)
+    return render(request, "videos/verify_otp.html",{"otp_fresh": otp_fresh})
 
 def resend_otp(request):
     user_id = request.session.get('otp_user')

@@ -138,15 +138,13 @@ const inputs = document.querySelectorAll(".otp-box");
 const finalInput = document.getElementById("finalOtp");
 const form = document.getElementById("otpForm");
 
-// 🔹 Auto move + collect OTP
+// Auto move + collect OTP
 inputs.forEach((input, index) => {
     input.addEventListener("input", (e) => {
         if (e.target.value.length === 1 && index < inputs.length - 1) {
             inputs[index + 1].focus();
         }
         updateOtp();
-
-        // 🔥 Auto submit when full OTP entered
         if (finalInput.value.length === 6) {
             form.submit();
         }
@@ -165,30 +163,40 @@ function updateOtp() {
     finalInput.value = otp;
 }
 
+const OTP_DURATION = 120;
+let isFreshOtp = {{ otp_fresh|yesno:"true,false" }};  // true only on new login
+let otpExpired = {{ otp_expired|yesno:"true,false" }};
 
-const OTP_DURATION = 120; // seconds
-let expiryTime = sessionStorage.getItem("otpExpiry");
-if (!expiryTime) {
+let expiryTime;
+
+if (isFreshOtp) {
+    // 🔥 New login — always reset timer
     expiryTime = Date.now() + OTP_DURATION * 1000;
     sessionStorage.setItem("otpExpiry", expiryTime);
+} else {
+    // ⏱ Wrong OTP or page refresh — continue existing countdown
+    expiryTime = sessionStorage.getItem("otpExpiry");
+    if (!expiryTime) {
+        // fallback
+        expiryTime = Date.now() + OTP_DURATION * 1000;
+        sessionStorage.setItem("otpExpiry", expiryTime);
+    }
 }
+
 let timerEl = document.getElementById("timer");
 const resendBtn = document.getElementById("resendBtn");
-const otpExpired = {{ otp_expired|default:"false"|lower }};
-const invalidOtp = {{ invalid|default:"false"|lower }};
 let countdown;
 
-// start timer initially
 if (!otpExpired) {
     startTimer();
-} 
-else {
+} else {
     resendBtn.disabled = false;
     resendBtn.style.background = "red";
     resendBtn.style.color = "white";
     resendBtn.style.cursor = "pointer";
     resendBtn.innerText = "Resend OTP";
 }
+
 function startTimer() {
     clearInterval(countdown);
 
@@ -198,52 +206,41 @@ function startTimer() {
     resendBtn.style.cursor = "not-allowed";
 
     countdown = setInterval(() => {
-
         let timeLeft = Math.floor((expiryTime - Date.now()) / 1000);
 
         if (timeLeft <= 0) {
             clearInterval(countdown);
-
             resendBtn.disabled = false;
             resendBtn.style.background = "red";
             resendBtn.style.color = "white";
             resendBtn.style.cursor = "pointer";
             resendBtn.innerText = "Resend OTP";
-
             sessionStorage.removeItem("otpExpiry");
-        } 
-        else {
+        } else {
             timerEl.innerText = timeLeft;
         }
-
     }, 1000);
 }
 
-// 🔥 Resend click
+// Resend click
 resendBtn.addEventListener("click", () => {
-    fetch("/user_auth/resend-otp/",{
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": "{{ csrf_token }}"
-                }
-        })
-        .then(res => res.json())
-        .then(data => {
-            alert("New OTP sent!");
-
-            // reset timer
-            timeLeft = 120;
-            expiryTime = Date.now() + OTP_DURATION * 1000;
-            sessionStorage.setItem("otpExpiry",expiryTime);
-            resendBtn.innerHTML = 'Resend OTP (<span id="timer">120</span>s)';
-
-            // update timer reference again 
-            timerEl = document.getElementById("timer");
-
-            startTimer();
-        });
+    fetch("/user_auth/resend-otp/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": "{{ csrf_token }}"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert("New OTP sent!");
+        expiryTime = Date.now() + OTP_DURATION * 1000;
+        sessionStorage.setItem("otpExpiry", expiryTime);
+        resendBtn.innerHTML = 'Resend OTP (<span id="timer">120</span>s)';
+        timerEl = document.getElementById("timer");
+        startTimer();
+    });
 });
-</script>
 
+</script>
 {% endblock %}
