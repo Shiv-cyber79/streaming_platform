@@ -1,6 +1,7 @@
 from django import forms
 from .models import Playlist, Video, User,Post
 from users.models import Channel
+from userauth.models import UserProfile
 class ProfilePhotoForm(forms.ModelForm):
     class Meta:
         model = Channel
@@ -84,3 +85,25 @@ class CustomPasswordResetForm(forms.Form):
             raise forms.ValidationError("❌ Email is not registered")
 
         return email
+
+class ProfileCompletionForm(forms.ModelForm):
+    username = forms.CharField(max_length=150)
+
+    class Meta:
+        model = UserProfile
+        fields = ['profile_picture']   
+
+    def save(self, user, commit=True):
+        profile = super().save(commit=False)
+
+       
+        user.username = self.cleaned_data['username']
+        user.save()
+
+        profile.user = user
+        profile.is_profile_complete = True
+
+        if commit:
+            profile.save()
+
+        return profile

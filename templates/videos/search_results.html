@@ -1,0 +1,33 @@
+<h2>Channels</h2>
+
+{% for channel in channels %}
+
+<div class="channel-card">
+    <img src="{{ channel.profile_picture.url }}" width="40">
+    <span>{{ channel.channel_name }}</span>
+</div>
+
+{% empty %}
+<p>No channel found</p>
+
+{% endfor %}
+
+
+<h2>Videos</h2>
+
+{% for video in videos %}
+
+<div class="video-card">
+
+    <img src="{{ video.thumbnail.url }}">
+
+    <h3>{{ video.title }}</h3>
+
+    <p>{{ video.channel.channel_name }}</p>
+
+</div>
+
+{% empty %}
+<p>No videos found</p>
+
+{% endfor %}

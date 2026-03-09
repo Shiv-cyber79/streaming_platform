@@ -14,6 +14,10 @@ from django.conf import settings
 import random
 from .models import OTP
 from videos.forms import CustomPasswordResetForm
+from django.contrib.auth.decorators import login_required
+from videos.forms import ProfileCompletionForm
+from allauth.socialaccount.models import SocialAccount
+from videos.forms import UserProfile
 from django.core.mail import send_mail
 
 def test_email(request):
@@ -78,7 +82,6 @@ def signup(request):
         return redirect(next_url or "/")
 
     return render(request, "signup.html")
-
 
 def login_view(request):
     if request.method == "POST":
@@ -210,3 +213,42 @@ class CustomPasswordResetView(PasswordResetView):
         for error in form.errors.values():
             messages.error(self.request, error[0])
         return super().form_invalid(form)
+    
+def account_suspended(request):
+    return render(request, "user_auth/account_suspended.html")
+
+@login_required
+def complete_profile(request):
+
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == "POST":
+        form = ProfileCompletionForm(request.POST, request.FILES, instance=profile)
+
+        if form.is_valid():
+            form.save(user=request.user)   
+            return redirect("home")
+
+    else:
+        form = ProfileCompletionForm(instance=profile)
+
+    return render(request, "userauth/complete_profile.html", {
+        "form": form
+    })
+@login_required
+def check_profile_completion(request):
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+    if not profile.is_profile_complete:
+        return redirect('complete_profile') 
+
+    return redirect('home')
+
+@login_required
+def profile_redirect(request):
+    profile = request.user.userprofile
+
+    if not profile.is_profile_complete:
+        return redirect("complete_profile")
+
+    return redirect("home")

@@ -17,8 +17,10 @@ from django.conf import settings
 from django.db.models import Q
 from django.middleware.csrf import get_token
 
+
 from users.models import Subscription
-from.models import Post,PostLike,PostComment
+from.models import Post,PostLike,PostComment,generate_thumbnail
+from userauth.models import UserProfile
 from .forms import PostForm
 
 from django.contrib import messages
@@ -28,8 +30,16 @@ from django.views.decorators.csrf import csrf_exempt
 # stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def home(request):
+
+    # 🔒 STEP 1: Force profile completion after login
+    if request.user.is_authenticated:
+        profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        if not profile.is_profile_complete:
+            return redirect("complete_profile")
+
     category = request.GET.get("category")
-    query = request.GET.get("q")   
+    query = request.GET.get("q")
 
     if request.user.is_authenticated:
         videos = Video.objects.filter(
@@ -39,7 +49,7 @@ def home(request):
         videos = Video.objects.filter(
             is_private=False
         )
-        
+
     if query:
         videos = videos.filter(
             Q(title__icontains=query) |
@@ -48,13 +58,14 @@ def home(request):
         )
 
     videos = videos.order_by("-created_at")
+
     live_streams = LiveStream.objects.filter(is_live=True)
 
     return render(request, "videos/home.html", {
         "videos": videos,
         "posts": PostForm,
         "query": query,
-        "live_streams": live_streams   # ✅ FIXED
+        "live_streams": live_streams
     })
 
 def live_page(request, username):
@@ -96,28 +107,34 @@ def live_stream(request, username):
 
 @csrf_exempt
 @login_required
-@require_POST
 def upload_recorded(request):
-    video_file = request.FILES.get("video")
-    title      = request.POST.get("title", "Live Stream Recording")
-    room       = request.POST.get("room", "")
 
-    if not video_file:
-        return JsonResponse({"error": "No video file received."}, status=400)
+    if request.method == "POST":
 
-    try:
+        video_file = request.FILES.get("video")
+        title = request.POST.get("title")
+
         video = Video.objects.create(
             user=request.user,
             title=title,
-            video_file=video_file,
-            description=f"Recorded live stream from room: {room}",
-            is_private=False,
+            video=video_file
         )
-        return JsonResponse({"success": True, "id": video.id, "title": video.title})
-    except Exception as e:
-        print("❌ upload_recorded error:", e)
-        return JsonResponse({"error": str(e)}, status=500)
-    
+
+        video_path = video.video.path
+
+        thumbnail_path = os.path.join(
+            settings.MEDIA_ROOT,
+            "thumbnails",
+            f"{video.id}.jpg"
+        )
+
+        clip = VideoFileClip(video_path)
+        clip.save_frame(thumbnail_path, t=2)
+
+        video.thumbnail = f"thumbnails/{video.id}.jpg"
+        video.save()
+
+        return JsonResponse({"status": "ok"})
 @csrf_exempt
 def upload_live_video(request):
     if request.method == "POST":
@@ -354,6 +371,12 @@ def upload_video_detail(request, video_id=None):
         })
     else:
         return render(request,'videos/upload_video_detail.html')
+    
+def save(self, *args, **kwargs):
+    super().save(*args, **kwargs)
+
+    if self.video_file and not self.thumbnail:
+        generate_thumbnail(self)
     
 def send_email_to_subscribers(subscribers, creator, text, video=None):
     emails = [sub.subscriber.email for sub in subscribers if sub.subscriber.email]
@@ -733,6 +756,35 @@ def toggle_post_like(request, post_id):
         "count": post.likes.count()
     })
 
+
+def search(request):
+
+    query = request.GET.get("q")
+
+    channels = []
+    videos = []
+
+    if query:
+
+        # 🔹 Search channels first
+        channels = Channel.objects.filter(
+            Q(channel_name__icontains=query) |
+            Q(user__username__icontains=query)
+        )
+
+        # 🔹 Search videos
+        videos = Video.objects.filter(
+            Q(title__icontains=query) |
+            Q(description__icontains=query)
+        )
+
+    context = {
+        "query": query,
+        "channels": channels,
+        "videos": videos
+    }
+
+    return render(request, "videos/search_results.html", context)
 # @login_required
 # def user_settings(request):
 #     profile, _ = Profile.objects.get_or_create(user=request.user)

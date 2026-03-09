@@ -11,17 +11,24 @@ import os
 import django
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
-from channels.auth import AuthMiddlewareStack   # ✅ ADD THIS
-from videos.routing import websocket_urlpatterns
+from channels.auth import AuthMiddlewareStack
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'streaming_platform.settings')
+os.environ.setdefault(
+    "DJANGO_SETTINGS_MODULE",
+    "streaming_platform.settings"
+)
 
+# 🔥 VERY IMPORTANT
 django.setup()
 
-application = ProtocolTypeRouter({
-    "http": get_asgi_application(),
+# Normal Django ASGI app
+django_asgi_app = get_asgi_application()
 
-    # 🔥 FIXED PART
+# Now import routing AFTER setup
+from videos.routing import websocket_urlpatterns
+
+application = ProtocolTypeRouter({
+    "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
         URLRouter(
             websocket_urlpatterns

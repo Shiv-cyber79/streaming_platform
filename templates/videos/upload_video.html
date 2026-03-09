@@ -256,7 +256,7 @@
         <a href="{% url 'home' %}" class="close-btn" title="Cancel">✕</a>
     </div>
 
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="uploadForm">
         {% csrf_token %}
 
         <div class="field-group">
@@ -315,6 +315,75 @@
 </div>
 
 <script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    // Get elements
+    const videoInput = document.querySelector('input[name="{{ form.video_file.html_name }}"]');
+    const form = document.getElementById("uploadForm");
+    const toast = document.getElementById("errorToast");
+    const errorText = document.getElementById("errorText");
+
+    // Allowed video formats
+    const allowedTypes = [
+        "video/mp4",
+        "video/webm",
+        "video/ogg",
+        "video/quicktime",
+        "video/x-msvideo",
+        "video/x-matroska"
+    ];
+
+    function showError(message){
+
+        errorText.innerText = message;
+
+        toast.style.display = "block";
+
+        setTimeout(function(){
+            toast.style.display = "none";
+        },3000);
+    }
+
+    // When user selects file
+    videoInput.addEventListener("change", function(){
+
+        const file = this.files[0];
+
+        if(!file) return;
+
+        if(!allowedTypes.includes(file.type)){
+
+            showError("Only video files are allowed (MP4, WebM, MOV, AVI, MKV).");
+
+            this.value = ""; // reset file
+        }
+
+    });
+
+    // Prevent form submit if invalid file
+    form.addEventListener("submit", function(e){
+
+        const file = videoInput.files[0];
+
+        if(!file){
+            showError("Please select a video file.");
+            e.preventDefault();
+            return;
+        }
+
+        if(!allowedTypes.includes(file.type)){
+
+            showError("Invalid file type. Only video files are allowed.");
+
+            videoInput.value = "";
+
+            e.preventDefault();
+        }
+
+    });
+
+});
 
 </script>
 {% endblock %}
