@@ -5,6 +5,7 @@ from.views import login_view,logout_view,CustomPasswordResetView
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import CustomPasswordResetView
 from django.shortcuts import redirect
+from .views import check_profile_completion
 
 
 urlpatterns = [
@@ -41,7 +42,14 @@ urlpatterns = [
     path("reset/done/", auth_views.PasswordResetCompleteView.as_view(
         template_name="registration/password_reset_complete.html"
     ), name="password_reset_complete"),
-    
+
+    path("account-suspended/", views.account_suspended, name="account_suspended"),
+
+    path("complete-profile/", views.complete_profile, name="complete_profile"),
+
+    path("profile-redirect/", views.profile_redirect, name="profile_redirect"),
+
+    path('check-profile/', check_profile_completion, name='check_profile'),
 ]
 
 

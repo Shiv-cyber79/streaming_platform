@@ -1,4 +1,6 @@
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import LiveStream
+from channels.db import database_sync_to_async
 import json
 
 room_viewers = {}
@@ -97,6 +99,39 @@ class LiveConsumer(AsyncWebsocketConsumer):
                }
            )
            return
+
+        if data.get("type") == "stream_ended":
+           room = self.room_name   # usually already defined in consumer
+    
+           await database_sync_to_async(
+               LiveStream.objects.filter(room_name=room).update
+           )(is_live=False)
+
+           await self.channel_layer.group_send(
+               self.room_group_name,
+               {
+                   "type": "stream_ended_msg",
+                   "sender_channel_name": self.channel_name,
+               }
+           )
+           return
+    
+    async def chat_broadcast(self, event):
+       await self.send(text_data=json.dumps({
+          "chat": event["chat"],
+          "sender": event["sender"],
+       }))
+        
+    async def chat_message(self, event):
+       await self.send(text_data=json.dumps({
+           "chat": event["chat"],
+           "sender": event["sender"],
+        }))   
+        
+    async def stream_ended_msg(self, event):
+       await self.send(text_data=json.dumps({
+           "type": "stream_ended"
+       }))
         
     async def direct_signal(self, event):
         msg = event["message"]

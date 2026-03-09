@@ -25,6 +25,7 @@ class LiveStream(models.Model):
     is_live = models.BooleanField(default=True)
     viewers = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    thumbnail = models.ImageField(upload_to="live_thumbnails/", blank=True, null=True)
 
 class Playlist(models.Model):
     name = models.CharField(max_length=255)

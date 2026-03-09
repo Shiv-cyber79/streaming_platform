@@ -360,6 +360,25 @@ var isStreaming    = false;
 var toastTimer     = null;
 var socket         = null;
 
+function showPlayButton() {
+  var overlay = document.getElementById("play-btn-overlay");
+  if (overlay) overlay.style.display = "flex";
+}
+
+function manualPlay() {
+  if (!elRemoteVideo) return;
+
+  elRemoteVideo.muted = false;
+
+  elRemoteVideo.play().then(function() {
+    console.log("▶️ Manual play success");
+    var overlay = document.getElementById("play-btn-overlay");
+    if (overlay) overlay.style.display = "none";
+  }).catch(function(err) {
+    console.error("❌ Manual play failed:", err);
+  });
+}
+
 var elChatBox, elViewerNum, elBadgeStatus, elOfflineScreen,
     elRemoteVideo, elRecIndicator, elBtnGolive, elBtnStop,
     elLocalVideo, elToast, elChatInput;
@@ -474,8 +493,15 @@ function initWebSocket() {
 
     // Chat
     if (data.chat !== undefined) {
-      addChatMsg(data.sender || "User", data.chat, data.sender === CURRENT_USER);
-      return;
+      console.log("💬 CHAT RECEIVED:", data);
+
+      addChatMsg(
+        data.sender || "User",
+        data.chat,
+        data.sender === CURRENT_USER
+      );
+
+     return;
     }
 
     // Viewer receives offer
@@ -487,14 +513,28 @@ function initWebSocket() {
 
     // Broadcaster receives answer
     if (data.answer && IS_BROADCASTER) {
-      console.log("📨 Answer received from viewer:", data.sender_channel_name);
-      var pc = peers[data.sender_channel_name];
-      if (pc) {
-        try { await pc.setRemoteDescription(new RTCSessionDescription(data.answer)); }
-        catch(e) { console.error("setRemoteDescription(answer):", e); }
+     console.log("📨 Answer received from viewer:", data.sender_channel_name);
+
+     var pc = peers[data.sender_channel_name];
+
+     if (pc) {
+    // ✅ Prevent duplicate answer
+       if (pc.signalingState === "have-local-offer") {
+        try {
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(data.answer)
+          );
+          console.log("✅ Remote answer set successfully");
+       }   catch (e) {
+        console.error("❌ setRemoteDescription error:", e);
       }
-      return;
+    } else {
+       console.warn("⚠️ Ignoring duplicate answer. Current state:", pc.signalingState);
     }
+  }
+
+  return;
+}
 
     // ICE candidate
     if (data.candidate) {
@@ -544,6 +584,7 @@ async function handleOffer(offer, senderChannel) {
       }).catch(function(err) {
         console.warn("⚠️ Autoplay blocked:", err);
         // Show a click-to-play button
+
         showPlayButton();
       });
     }
@@ -557,7 +598,7 @@ async function handleOffer(offer, senderChannel) {
 
   pc.onconnectionstatechange = function() {
     console.log("🔗 Viewer peer state:", pc.connectionState);
-    if (pc.connectionState === "failed" || pc.connectionState === "disconnected") {
+    if (pc.connectionState === "failed" || pc.connectionState === "closed") {
       elRemoteVideo.srcObject = null;
       if (elOfflineScreen) elOfflineScreen.classList.remove("hidden");
       delete peers[senderChannel];
@@ -684,8 +725,10 @@ async function createPeer(viewerChannel) {
 // ═══════════════════════════════════════
 // BROADCASTER — STOP
 // ═══════════════════════════════════════
+wsSend({ type: "stream_ended" });
 window.stopStreaming = function() {
   if (!isStreaming) return;
+  wsSend({ type: "stream_ended" });
   console.log("⏹ stopStreaming called");
 
   toast("⏹ Ending stream…");

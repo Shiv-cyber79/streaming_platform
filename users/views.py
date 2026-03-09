@@ -367,28 +367,44 @@ def user_settings(request):
             return redirect("user_settings")
        
         elif "name_submit" in request.POST:
-            name_form = NameChangeForm(
-                request.POST,
-                instance=request.user
-            )
-            print("Name Submit Pressed")
-            if name_form.is_valid():
-                if profile.username_requested_at:
-                    time_diff = timezone.now() - profile.username_requested_at
-                    if time_diff < timedelta(hours=3):
-                        remaining_time = timedelta(hours=3) - time_diff
-                        minutes_left = int(remaining_time.total_seconds() // 60)
+          print("Name Submit Pressed")
 
-                        messages.error(
-                            request,
-                            f"You can change your name after {minutes_left} minutes."
-                        )
-                        return redirect("user_settings")
-                name_form.save()
-                profile.username_requested_at = timezone.now()
-                profile.save()
-                messages.success(request, "Profile name updated successfully.")
-                return redirect("user_settings")
+    name_form = NameChangeForm(request.POST, instance=request.user)
+
+    first_name = request.POST.get("first_name", "").strip()
+    last_name = request.POST.get("last_name", "").strip()
+
+    import re
+    name_regex = r'^[A-Za-z]+$'
+
+    if len(first_name) < 2:
+        messages.error(request, "First name must be at least 2 characters.")
+        return render(request, "videos/settings.html", {
+            "photo_form": photo_form,
+            "name_form": name_form,
+            "profile": profile
+        })
+
+    if not re.match(name_regex, first_name):
+        messages.error(request, "First name can only contain letters.")
+        return render(request, "videos/settings.html", {
+            "photo_form": photo_form,
+            "name_form": name_form,
+            "profile": profile
+        })
+
+    if last_name and not re.match(name_regex, last_name):
+        messages.error(request, "Last name can only contain letters.")
+        return render(request, "videos/settings.html", {
+            "photo_form": photo_form,
+            "name_form": name_form,
+            "profile": profile
+        })
+
+    if name_form.is_valid():
+        name_form.save()
+        messages.success(request, "Profile name updated successfully.")
+        return redirect("user_settings")
             
     return render(request, "videos/settings.html", {
         "photo_form": photo_form,
