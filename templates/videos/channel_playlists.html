@@ -1,7 +1,7 @@
 {% extends "videos/base.html" %}
 
 {% block body_class %}home-page{% endblock %}
-
+{% block title %}{{ channel_user.username }} - Playlists{% endblock %}
 {% block content %}
 {% csrf_token %}
 
@@ -22,6 +22,12 @@
         height: 260px;
         background: linear-gradient(135deg, #1f1f1f, #333);
         margin-bottom: 10px;
+    }
+
+    .banner img {
+        width: 100%;
+        height: 260px;
+        object-fit: cover;
     }
 
     .channel-info {
@@ -248,10 +254,6 @@
         position: relative;
     }
 
-    .no-playlist {
-        text-align: center;
-        margin-top: 40px;
-    }
 
     /* -------------------- RESPONSIVE -------------------- */
     @media (max-width: 768px) {
@@ -269,7 +271,9 @@
 <!-- ==================== HEADER ==================== -->
 <header class="channel-header">
      {% if channel_user.channel.banner %}
-    <div class="banner">banner</div>
+    <div class="banner">
+        <img src="{{ channel_user.channel.banner.url }}" alt="banner">
+    </div>
     {% endif %}
 
     <div class="channel-info">
@@ -350,15 +354,7 @@
     </div>
     
     {% else %}
-    
-    <div class="no-playlist">
-        <p>You currently have no playlist</p>
-        
-        <a href="{% url 'create_playlist' %}" class="create-btn">
-            Create Playlist
-        </a>
-    </div>
-    
+    <p style="color:#aaa;">No playlist yet.</p>
     {% endif %}
     
 </section>

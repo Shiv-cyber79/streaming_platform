@@ -126,7 +126,7 @@ body {
         <!-- RESEND BUTTON -->
         <div class="resend-container">
             <button id="resendBtn" disabled>
-                Resend OTP (<span id="timer">30</span>s)
+                Resend OTP (<span id="timer">120</span>s)
             </button>
         </div>
 
@@ -166,48 +166,79 @@ function updateOtp() {
 }
 
 
-let timeLeft = 30;
-const timerEl = document.getElementById("timer");
+const OTP_DURATION = 120; // seconds
+let expiryTime = sessionStorage.getItem("otpExpiry");
+if (!expiryTime) {
+    expiryTime = Date.now() + OTP_DURATION * 1000;
+    sessionStorage.setItem("otpExpiry", expiryTime);
+}
+let timerEl = document.getElementById("timer");
 const resendBtn = document.getElementById("resendBtn");
-
+const otpExpired = {{ otp_expired|default:"false"|lower }};
+const invalidOtp = {{ invalid|default:"false"|lower }};
 let countdown;
 
 // start timer initially
-startTimer();
-
+if (!otpExpired) {
+    startTimer();
+} 
+else {
+    resendBtn.disabled = false;
+    resendBtn.style.background = "red";
+    resendBtn.style.color = "white";
+    resendBtn.style.cursor = "pointer";
+    resendBtn.innerText = "Resend OTP";
+}
 function startTimer() {
+    clearInterval(countdown);
+
     resendBtn.disabled = true;
     resendBtn.style.background = "#333";
     resendBtn.style.color = "#aaa";
     resendBtn.style.cursor = "not-allowed";
 
     countdown = setInterval(() => {
-        timeLeft--;
-        timerEl.innerText = timeLeft;
+
+        let timeLeft = Math.floor((expiryTime - Date.now()) / 1000);
 
         if (timeLeft <= 0) {
             clearInterval(countdown);
+
             resendBtn.disabled = false;
             resendBtn.style.background = "red";
             resendBtn.style.color = "white";
             resendBtn.style.cursor = "pointer";
             resendBtn.innerText = "Resend OTP";
+
+            sessionStorage.removeItem("otpExpiry");
+        } 
+        else {
+            timerEl.innerText = timeLeft;
         }
+
     }, 1000);
 }
 
 // 🔥 Resend click
 resendBtn.addEventListener("click", () => {
-    fetch("/user_auth/resend-otp/")
+    fetch("/user_auth/resend-otp/",{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": "{{ csrf_token }}"
+                }
+        })
         .then(res => res.json())
         .then(data => {
             alert("New OTP sent!");
 
             // reset timer
-            timeLeft = 30;
-            resendBtn.innerHTML = `Resend OTP (<span id="timer">30</span>s)`;
+            timeLeft = 120;
+            expiryTime = Date.now() + OTP_DURATION * 1000;
+            sessionStorage.setItem("otpExpiry",expiryTime);
+            resendBtn.innerHTML = 'Resend OTP (<span id="timer">120</span>s)';
 
-            // update timer reference again
+            // update timer reference again 
             timerEl = document.getElementById("timer");
 
             startTimer();

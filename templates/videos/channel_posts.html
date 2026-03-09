@@ -1,5 +1,5 @@
 {% extends "videos/base.html" %}
-
+{% block title %}{{ channel_user.username }} - Posts{% endblock %}
 {% block content %}
 
 <style>
@@ -301,7 +301,7 @@
 
 </div>
 {% empty %}
-<p>No posts yet</p>
+<p style="color:#aaa;">No posts yet.</p>
 {% endfor %}
 
 </div>
