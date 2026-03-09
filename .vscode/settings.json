@@ -2,5 +2,7 @@
     "liveServer.settings.port": 5502,
     "python.analysis.extraPaths": [
         "./streaming_platform"
-    ]
+    ],
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda"
 }
